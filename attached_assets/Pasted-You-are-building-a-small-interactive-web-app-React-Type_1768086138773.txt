@@ -1,0 +1,542 @@
+You are building a small interactive web app (React + TypeScript + Vite) called “Intelligence Is Overrated? — Life Sim”. It simulates lives as a series of life-event cards with D&D-style d20 checks with Income as the main metric that we score lives on. It also computes luck as two components: (1) Opportunity luck (quality of the hand of events drawn vs deck expectation) and (2) Roll/Resolution luck (did the agent outperform their own expected EV given their traits and the events drawn). Show both separately and also show “Net luck = opportunity + roll” (we’ll evaluate if it’s useful).
+
+Core requirements:
+1) Single Life mode:
+   - User can either (a) generate random traits or (b) manually input trait scores.
+   - Traits: INT, WORK, SOC, CHAR, RISK. Score range 0–20 (accept 0–20; if user enters outside, clamp).
+   - Modifiers: mod = floor((score - 10)/2).
+   - World mode dropdown: normal | nepo | meritocracy (affects how trait mods contribute to checks; do not create separate decks).
+   - Toggle: “Same deck for everyone” (when ON, use a deterministic stage-by-stage event draw sequence based only on seed+stage, not agent traits; when OFF, draw independently per agent using the RNG).
+   - Seed input (string or number). Seed must make runs reproducible and shareable (e.g., include seed and settings in URL query params).
+   - Run the simulation and render a timeline (Stage 1..8) with:
+     - Event name
+     - Risk gate outcome (if applicable): gate roll + gate mod + DC
+     - Main roll: roll + total mod + DC
+     - Success/Fail
+     - jump_pct and growth_delta applied
+     - Income after stage
+   - Show final income, and show luck:
+     - Opportunity luck (EV units)
+     - Roll luck (EV units)
+     - Net luck (sum)
+   - Also show EV summaries:
+     - EV_baseline_hand (deck expected intrinsic EV)
+     - EV_hand (this hand’s intrinsic EV)
+     - EV_expected (agent expected EV given traits/world)
+     - EV_realized (realized EV)
+     - Verify identity in UI: EV_realized - EV_baseline_hand ≈ (opp_luck + trait_advantage + roll_luck)
+       where trait_advantage = EV_expected - EV_hand.
+     - (Allow tiny floating rounding differences.)
+
+2) Mass Simulation mode:
+   - User chooses N agents (default 10,000; options: 1k / 10k / 50k).
+   - User chooses world mode and same-deck toggle and seed.
+   - Generate agents with random traits using: 3d6 + 2 (clamp 0..20) per trait (fast and bell-ish).
+   - Simulate each agent’s life, compute final income and luck components.
+   - Show top 10 and bottom 10 agents by final income:
+     - Traits
+     - Final income
+     - Opportunity luck, Roll luck, Net luck
+     - Brief event list (names + success/fail)
+   - Also show quick aggregate charts:
+     - Histogram of final income (simple binning)
+     - Scatter plots: all the traits and luck outcomes vs final income, so we can see what trait was most important (simple SVG plot is fine; no need for heavy libs)
+
+Simulation model:
+- 8 stages total.
+- Stage 1 is special Education card: “Where You Land After High School” – everyone gets it at stage 1. It is NOT drawn from the deck.
+  - Education roll: d20 + [INT_mod*1.0 + WORK_mod*0.5 + SOC_mod*1.0] with world multipliers applied the same way as other checks.
+  - Threshold ladder to determine outcome (configure in config.json):
+    - Elite institution: growth_delta_success = +0.020
+    - Strong university: +0.010
+    - Regional/state: +0.006
+    - Community/vocational: +0.003
+    - Straight to workforce: +0.000
+  - Education should apply immediately at Stage 1 as a growth_delta, then proceed to also draw a regular event for Stage 1 OR not? Choose: Stage 1 is education only (simpler). Then stages 2..8 draw 7 events. Total 8 “moments”: 1 education + 7 events.
+- For drawn event stages (2..8): each stage draws 1 event card from events.json.
+- Income model:
+  - start income = 40,000
+  - start growth = 0.03
+  - each stage:
+    - apply event effects to temporary jump_pct and persistent growth
+    - income *= (1 + growth)
+    - income *= (1 + jump_pct)  // jump_pct resets to 0 after applying
+  - clamp growth to a reasonable range, e.g. [-0.05 .. +0.30] to avoid absurdity
+  - clamp income floor at e.g. 1,000 to avoid negative/infinite weirdness
+
+Event resolution:
+- Each event has:
+  - DC
+  - check_traits weights (small weights, typically 1.0 and 0.5)
+  - optional risk gate: risk_gated, risk_gate_DC, risk_gate_weight (usually 1.0)
+  - success effects: jump_pct_success and growth_delta_success
+  - fail effects: jump_pct_fail and growth_delta_fail
+  - “gate_fail” behavior: treat as a neutral no-effect outcome (jump 0, growth 0) — do NOT apply the event’s fail penalties when gate fails. This is important.
+
+World mode:
+- Implement as multiplicative scaling on trait mods during checks:
+  total_mod += mod(agent[trait]) * worldMultiplier[trait] * eventWeight[trait]
+- World multipliers are in worldModes.json.
+
+Precomputed EV tables (non-arbitrary):
+- Precompute EV_success[stage] and EV_fail[stage] for each event, independent of agent income, using:
+  - normalized income = 1.0
+  - base growth = config.baseGrowthEV (same as 0.03)
+  - horizon: stages 2..8 for events (7 stages). But stage index can still be 1..8; just compute for 1..8 and use the relevant ones.
+- For an event at stage t, remaining = (8 - t + 1) stages INCLUDING that stage’s income application. Use the formula:
+  baseline_total = sum_{i=0..remaining-1} (1+g0)^i
+  with_success_total = sum_{i=0..remaining-1} (1+jump_success)*(1+g0+growth_delta_success)^i
+  with_fail_total = sum_{i=0..remaining-1} (1+jump_fail)*(1+g0+growth_delta_fail)^i
+  EV_success[t] = with_success_total - baseline_total
+  EV_fail[t] = with_fail_total - baseline_total
+- For gate_fail, realized EV should be 0 (neutral) at that stage.
+
+Luck calculations:
+Define:
+- intrinsic_expected_EV(event, stage): trait-independent expected EV using a reference person with total_mod=0.
+  - p_gate = P(d20 + 0 >= risk_gate_DC) if risk_gated else 1
+  - p_main = P(d20 + 0 >= DC) if roll_required else 1
+  - return p_gate * (p_main*EV_success[stage] + (1-p_main)*EV_fail[stage])
+- EV_baseline_hand: sum over stages (2..8) of weighted_mean_over_deck(intrinsic_expected_EV(event,stage), drawWeight(event)).
+- EV_hand: sum over stages of intrinsic_expected_EV(drawn_event,stage).
+- agent_expected_EV(event,stage): uses agent mods and world multipliers and event weights to compute p_gate and p_main (still exact, not Monte Carlo), and returns p_gate*(p_main*EV_success + (1-p_main)*EV_fail).
+- EV_expected: sum(agent_expected_EV over drawn events).
+- EV_realized: sum over events of realized EV (EV_success if succeeded, EV_fail if failed, and 0 if gate_fail).
+Then:
+- opportunity_luck = EV_hand - EV_baseline_hand
+- roll_luck = EV_realized - EV_expected
+- net_luck = opportunity_luck + roll_luck
+- trait_advantage = EV_expected - EV_hand (display separately, not labeled luck)
+
+Probability helper:
+- P(d20 + bonus >= DC):
+  needed = DC - bonus
+  if needed <= 1 => 1.0
+  if needed >= 21 => 0.0
+  else => (21 - needed)/20
+
+Deck draw:
+- Use rarity weights: common=5, uncommon=3, rare=1, jackpot=0.3, sinkhole=0.7
+- When same-deck toggle is ON in mass sim, the deck draw sequence per stage should be identical for all agents:
+  - Use RNG seeded with (seed + "|stage" + stageNumber) and draw one event for that stage
+  - Use the same drawn event for every agent at that stage
+- When same-deck toggle is OFF, each agent draws independently using RNG seeded by (seed + "|agent" + index)
+
+UI/UX:
+- Two tabs: Single Life / Mass Simulation
+- In Single Life, show timeline cards and an income line chart (simple SVG is fine).
+- In Single Life, the user should be able to input the trait scores for the agent or click a button to have them randomly assigned. They should also be able to input the agent's name
+- In Mass, let's find some library or file of first names and last names, and generate a random name for each agent
+- In Mass, show top/bottom 10 in tables and a histogram chart.
+- Keep it fast, clean, and readable.
+
+Now create the project with this file structure and content:
+
+FILES TO CREATE:
+
+1) package.json / vite setup for React+TS
+2) src/main.tsx, src/App.tsx
+3) src/lib/rng.ts  (seeded RNG: mulberry32 or xorshift; include string-to-seed hash)
+4) src/lib/sim.ts  (all simulation logic, EV precompute, luck computation)
+5) src/data/events.json (provided below)
+6) src/data/worldModes.json (provided below)
+7) src/data/config.json (provided below)
+8) src/components/SingleLife.tsx
+9) src/components/MassSim.tsx
+10) src/components/Timeline.tsx, src/components/Charts.tsx (simple SVG charts ok)
+11) src/styles.css minimal
+
+IMPORTANT: Keep the code straightforward and commented. No external chart libs required; simple SVG charts are acceptable.
+
+=== src/data/config.json ===
+{
+  "stagesTotal": 8,
+  "eventStages": [2,3,4,5,6,7,8],
+  "startingIncome": 40000,
+  "startingGrowth": 0.03,
+  "baseGrowthEV": 0.03,
+  "growthClamp": { "min": -0.05, "max": 0.30 },
+  "incomeFloor": 1000,
+  "rarityWeights": { "common": 5, "uncommon": 3, "rare": 1, "jackpot": 0.3, "sinkhole": 0.7 },
+  "education": {
+    "name": "Where You Land After High School",
+    "checkTraits": { "INT": 1.0, "WORK": 0.5, "SOC": 1.0 },
+    "thresholds": [
+      { "minTotal": 20, "label": "Elite institution", "growthDelta": 0.020 },
+      { "minTotal": 17, "label": "Strong university", "growthDelta": 0.010 },
+      { "minTotal": 13, "label": "Regional / state school", "growthDelta": 0.006 },
+      { "minTotal": 9,  "label": "Community / vocational", "growthDelta": 0.003 },
+      { "minTotal": -999, "label": "Straight to workforce", "growthDelta": 0.000 }
+    ]
+  }
+}
+
+=== src/data/worldModes.json ===
+{
+  "normal":  { "INT": 1.0, "WORK": 1.0, "SOC": 1.0, "CHAR": 1.0, "RISK": 1.0 },
+  "nepo":    { "INT": 0.8, "WORK": 0.8, "SOC": 1.3, "CHAR": 1.2, "RISK": 1.0 },
+  "meritocracy": { "INT": 1.3, "WORK": 1.3, "SOC": 0.7, "CHAR": 0.8, "RISK": 1.0 }
+}
+
+=== src/data/events.json ===
+[
+  {
+    "id": "you_get_the_nod",
+    "name": "You Get the Nod",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 12,
+    "checkTraits": { "WORK": 1.0, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.10, "growthDelta": 0.003 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "thrown_into_the_spotlight",
+    "name": "Thrown Into the Spotlight",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "WORK": 1.0, "INT": 0.5, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.08, "growthDelta": 0.005 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": -0.002 }
+  },
+  {
+    "id": "a_really_good_boss",
+    "name": "A Really Good Boss",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 10,
+    "checkTraits": { "CHAR": 0.5, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "a_really_bad_boss",
+    "name": "A Really Bad Boss",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 10,
+    "checkTraits": { "CHAR": 0.5, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.00, "growthDelta": -0.002 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": -0.008 }
+  },
+  {
+    "id": "a_strategic_sidestep",
+    "name": "A Strategic Sidestep",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 13,
+    "checkTraits": { "RISK": 0.5, "CHAR": 0.5, "SOC": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.003 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": -0.001 }
+  },
+  {
+    "id": "they_put_you_in_charge",
+    "name": "They Put You in Charge",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "WORK": 1.0, "CHAR": 1.0, "INT": 0.5, "SOC": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.10, "growthDelta": 0.010 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "we_need_to_talk",
+    "name": "The “We Need to Talk” Meeting",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "WORK": 1.0, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.00, "growthDelta": -0.001 },
+    "fail":    { "jumpPct": -0.05, "growthDelta": -0.010 }
+  },
+  {
+    "id": "you_reinvent_yourself",
+    "name": "You Reinvent Yourself",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "WORK": 1.0, "INT": 0.5, "RISK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.010 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": -0.003 }
+  },
+  {
+    "id": "your_name_starts_circulating",
+    "name": "Your Name Starts Circulating",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "CHAR": 1.0, "INT": 0.5, "SOC": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.004 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "someone_powerful_opens_a_door",
+    "name": "Someone Powerful Opens a Door",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 12,
+    "checkTraits": { "SOC": 1.0, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.06, "growthDelta": 0.004 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "youre_suddenly_known",
+    "name": "You’re Suddenly “Known”",
+    "rarity": "rare",
+    "rollRequired": true,
+    "DC": 16,
+    "checkTraits": { "CHAR": 1.0, "SOC": 1.0, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.08, "growthDelta": 0.006 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "a_bigger_offer_comes_in",
+    "name": "A Bigger Offer Comes In",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 16,
+    "checkTraits": { "CHAR": 1.0, "SOC": 0.5, "RISK": 0.5, "WORK": 0.5 },
+    "riskGated": true,
+    "riskGateDC": 13,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.12, "growthDelta": 0.004 },
+    "fail":    { "jumpPct": -0.03, "growthDelta": -0.004 }
+  },
+  {
+    "id": "you_start_something_on_the_side",
+    "name": "You Start Something on the Side",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 17,
+    "checkTraits": { "WORK": 1.0, "RISK": 1.0, "INT": 0.5, "CHAR": 0.5 },
+    "riskGated": true,
+    "riskGateDC": 14,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.10, "growthDelta": 0.012 },
+    "fail":    { "jumpPct": -0.03, "growthDelta": -0.006 }
+  },
+  {
+    "id": "you_pack_up_and_move",
+    "name": "You Pack Up and Move",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "RISK": 0.5, "SOC": 0.5, "CHAR": 0.5 },
+    "riskGated": true,
+    "riskGateDC": 13,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
+    "fail":    { "jumpPct": -0.02, "growthDelta": -0.003 }
+  },
+  {
+    "id": "you_go_all_in",
+    "name": "You Go All In",
+    "rarity": "rare",
+    "rollRequired": true,
+    "DC": 18,
+    "checkTraits": { "RISK": 1.0, "WORK": 1.0, "CHAR": 0.5, "INT": 0.5, "SOC": 0.5 },
+    "riskGated": true,
+    "riskGateDC": 16,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.08, "growthDelta": 0.015 },
+    "fail":    { "jumpPct": -0.05, "growthDelta": -0.010 }
+  },
+  {
+    "id": "the_exit_everyone_dreams_about",
+    "name": "The Exit Everyone Dreams About",
+    "rarity": "jackpot",
+    "rollRequired": true,
+    "DC": 20,
+    "checkTraits": { "RISK": 1.0, "SOC": 0.5, "CHAR": 0.5, "WORK": 0.5 },
+    "riskGated": true,
+    "riskGateDC": 15,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.20, "growthDelta": 0.020 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": -0.005 }
+  },
+  {
+    "id": "positioned_when_the_wave_hit",
+    "name": "You Were Positioned When the Wave Hit",
+    "rarity": "jackpot",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "RISK": 1.0, "INT": 0.5 },
+    "riskGated": true,
+    "riskGateDC": 12,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.15, "growthDelta": 0.008 },
+    "fail":    { "jumpPct": -0.08, "growthDelta": -0.004 }
+  },
+  {
+    "id": "money_appears_from_nowhere",
+    "name": "Money Appears From Nowhere",
+    "rarity": "jackpot",
+    "rollRequired": false,
+    "DC": null,
+    "checkTraits": {},
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.12, "growthDelta": 0.006 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "a_lucky_break_pays_off",
+    "name": "A Lucky Break Pays Off",
+    "rarity": "rare",
+    "rollRequired": true,
+    "DC": 5,
+    "checkTraits": { "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.000 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "the_industry_turns",
+    "name": "The Industry Turns",
+    "rarity": "sinkhole",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "WORK": 1.0, "SOC": 0.5, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.03, "growthDelta": -0.003 },
+    "fail":    { "jumpPct": -0.10, "growthDelta": -0.012 }
+  },
+  {
+    "id": "you_get_hit_by_a_bus",
+    "name": "You Get Hit by a Bus",
+    "rarity": "sinkhole",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "WORK": 1.0, "SOC": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.02, "growthDelta": -0.004 },
+    "fail":    { "jumpPct": -0.06, "growthDelta": -0.010 }
+  },
+  {
+    "id": "you_burn_out",
+    "name": "You Burn Out",
+    "rarity": "sinkhole",
+    "rollRequired": true,
+    "DC": 17,
+    "checkTraits": { "WORK": 1.0, "SOC": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.00, "growthDelta": -0.004 },
+    "fail":    { "jumpPct": -0.08, "growthDelta": -0.012 }
+  },
+  {
+    "id": "you_get_sued",
+    "name": "You Get Sued",
+    "rarity": "rare",
+    "rollRequired": true,
+    "DC": 16,
+    "checkTraits": { "SOC": 1.0, "CHAR": 0.5, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.02, "growthDelta": -0.002 },
+    "fail":    { "jumpPct": -0.10, "growthDelta": -0.006 }
+  },
+  {
+    "id": "you_find_your_person",
+    "name": "You Find Your Person",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 12,
+    "checkTraits": { "CHAR": 1.0, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "under_their_wing",
+    "name": "Someone Takes You Under Their Wing",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 13,
+    "checkTraits": { "CHAR": 1.0, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.00, "growthDelta": 0.007 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "a_big_name_on_your_resume",
+    "name": "A Big Name on Your Resume",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "SOC": 1.0, "WORK": 0.5, "INT": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.005 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "you_catch_a_small_tailwind",
+    "name": "You Catch a Small Tailwind",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "INT": 1.0, "WORK": 0.5, "SOC": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.03, "growthDelta": 0.005 },
+    "fail":    { "jumpPct": 0.00, "growthDelta": 0.000 }
+  }
+]
+
+Implementation notes you must follow:
+- Stages: stage 1 education only; stages 2..8 draw events.
+- Risk gate fail applies no effect (neutral) and realized EV for that stage is 0.
+- In EV calculations, EV_fail is used only when the main check is attempted and fails; gate_fail is treated as 0 EV realized.
+- For intrinsic expected EV and baseline hand EV, use reference person with bonus=0 (ignore world mode).
+- For agent expected EV, include world multipliers.
+

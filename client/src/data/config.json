@@ -1,0 +1,21 @@
+{
+  "stagesTotal": 8,
+  "eventStages": [2, 3, 4, 5, 6, 7, 8],
+  "startingIncome": 40000,
+  "startingGrowth": 0.03,
+  "baseGrowthEV": 0.03,
+  "growthClamp": { "min": -0.05, "max": 0.30 },
+  "incomeFloor": 1000,
+  "rarityWeights": { "common": 5, "uncommon": 3, "rare": 1, "jackpot": 0.3, "sinkhole": 0.7 },
+  "education": {
+    "name": "Where You Land After High School",
+    "checkTraits": { "INT": 1.0, "WORK": 0.5, "SOC": 1.0 },
+    "thresholds": [
+      { "minTotal": 20, "label": "Elite institution", "growthDelta": 0.020 },
+      { "minTotal": 17, "label": "Strong university", "growthDelta": 0.010 },
+      { "minTotal": 13, "label": "Regional / state school", "growthDelta": 0.006 },
+      { "minTotal": 9, "label": "Community / vocational", "growthDelta": 0.003 },
+      { "minTotal": -999, "label": "Straight to workforce", "growthDelta": 0.000 }
+    ]
+  }
+}

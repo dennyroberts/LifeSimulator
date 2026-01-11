@@ -82,6 +82,7 @@ Other rules:
 - <5 on a trait is abysmal, 5-7 on a trait is bad, 8-12 is average, 13-17 is good, and 18-20 is elite.
 - For NEPO, <5 would be something like growing up in foster care. 10 would be average middle class family. 15 would be a wealthy family. 20 would be a billionaire family.
 - You can choose a more specific career for the person from within the field. For example, Creatives could be filmmakers, writers, or musicians. Doctors could be plastic surgeons, pediatricians, etc.
+- You should make up names for the companies they work for, or include humorour details about their major projects.
 - You can reframe the life events to be specific to the person's life / career. For example, "Put You In Charge" for a Creative who we have decided is a filmmaker might mean they are directing their first feature.
 - For the final summary sentence, focus on the traits that helped or hurt them the most, based on the life events. It should be short - you don't need to say something good and bad about everyone; i.e. if their life was mostly good, just say what helped them, if it was mostly bad, just say what hurt them.
 

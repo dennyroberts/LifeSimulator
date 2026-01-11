@@ -47,6 +47,7 @@ export interface EducationOutcome {
   total: number;
   label: string;
   growthDelta: number;
+  outcomeMessage: string;
 }
 
 export interface CareerDefinition {
@@ -69,6 +70,7 @@ export interface CareerOutcome {
   finalSalary: number;
   finalGrowth: number;
   traitContributions: TraitContribution[];
+  outcomeMessage: string;
 }
 
 export interface TraitContribution {
@@ -456,6 +458,20 @@ export function computeCareerExpectedEV(
   return expectedEV;
 }
 
+const educationOutcomes: Record<string, string> = {
+  'Elite PhD': 'Your research opens doors to high-paying consulting gigs',
+  'Top PhD': 'Academia or industry—either way, your expertise commands a premium',
+  'PhD': 'Years of study pay off with specialized career opportunities',
+  'Elite Masters': 'Your graduate degree fast-tracks you into management',
+  'Top Masters': 'The network you built is worth more than the degree',
+  'Masters': 'An extra credential means an extra $10K starting salary',
+  'Elite Bachelors': 'Recruiters are already fighting over you',
+  'Top Bachelors': 'Big companies are sliding into your inbox',
+  'Bachelors': 'You check the box most employers are looking for',
+  'Some College': 'You learned enough to be dangerous, now prove yourself',
+  'Straight to workforce': 'No debt, but you\'ll need to work harder to stand out'
+};
+
 export function resolveEducation(
   traits: Traits,
   worldMode: WorldMode,
@@ -472,7 +488,8 @@ export function resolveEducation(
         totalMod,
         total,
         label: threshold.label,
-        growthDelta: threshold.growthDelta
+        growthDelta: threshold.growthDelta,
+        outcomeMessage: educationOutcomes[threshold.label] || 'Your education shapes your path'
       };
     }
   }
@@ -482,9 +499,57 @@ export function resolveEducation(
     totalMod,
     total,
     label: 'Straight to workforce',
-    growthDelta: 0
+    growthDelta: 0,
+    outcomeMessage: educationOutcomes['Straight to workforce']
   };
 }
+
+const careerOutcomes: Record<string, { normal: string; nat20: string }> = {
+  'Food Service': { 
+    normal: 'Minimum wage, maximum hustle required', 
+    nat20: 'Started at the bottom, but with signing bonus' 
+  },
+  'Retail': { 
+    normal: 'Steady hours and employee discount', 
+    nat20: 'Management fast-track from day one' 
+  },
+  'Construction': { 
+    normal: 'Hard work, honest pay', 
+    nat20: 'Union gig with full benefits' 
+  },
+  'Truck Driver': { 
+    normal: 'Long hours, but the pay is decent', 
+    nat20: 'Prime routes and overtime bonuses' 
+  },
+  'Healthcare': { 
+    normal: 'Job security in a growing field', 
+    nat20: 'Top hospital, top tier compensation' 
+  },
+  'Creative Fields': { 
+    normal: 'Following your passion, bills willing', 
+    nat20: 'Your talent got noticed by the right people' 
+  },
+  'Sales / Marketing': { 
+    normal: 'Commission-based, ceiling unlimited', 
+    nat20: 'Premium territory with established accounts' 
+  },
+  'Tech': { 
+    normal: 'Solid starting salary with growth potential', 
+    nat20: 'FAANG offer with stock options' 
+  },
+  'Finance': { 
+    normal: 'Numbers add up to a nice paycheck', 
+    nat20: 'Wall Street calls, bonuses await' 
+  },
+  'Lawyer': { 
+    normal: 'Billable hours translate to real money', 
+    nat20: 'Big Law associate with partner track' 
+  },
+  'Doctor': { 
+    normal: 'Long residency, but the payoff is coming', 
+    nat20: 'Chief resident at a prestigious hospital' 
+  }
+};
 
 export function resolveCareer(
   traits: Traits,
@@ -515,6 +580,9 @@ export function resolveCareer(
   
   const traitContributions = computeTraitContributions(traits, careerCheckTraits, worldMode);
   
+  const careerMessages = careerOutcomes[selectedCareer.name] || { normal: 'Your career begins', nat20: 'Your career begins with a bang' };
+  const outcomeMessage = isNat20 ? careerMessages.nat20 : careerMessages.normal;
+  
   return {
     roll,
     totalMod,
@@ -526,7 +594,8 @@ export function resolveCareer(
     salaryMultiplier,
     finalSalary,
     finalGrowth,
-    traitContributions
+    traitContributions,
+    outcomeMessage
   };
 }
 
@@ -638,7 +707,9 @@ export function resolveEvent(
   
   // Select outcome message
   let outcomeMessage: string | undefined;
-  if (event.outcomes && !gateFailed) {
+  if (gateFailed) {
+    outcomeMessage = "You decided not to take the risk";
+  } else if (event.outcomes) {
     if (isCritical && criticalType === 'success' && event.outcomes.critSuccess) {
       outcomeMessage = event.outcomes.critSuccess;
     } else if (isCritical && criticalType === 'failure' && event.outcomes.critFail) {

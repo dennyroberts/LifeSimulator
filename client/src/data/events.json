@@ -55,11 +55,11 @@
     "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
     "outcomes": {
-      "success": "Mentorship flourishes",
-      "fail": "Connection never forms",
-      "critSuccess": "Lifelong advocate gained",
-      "critFail": "Boss becomes rival",
-      "traitSuccess": { "CHAR": "You click instantly", "WORK": "Your effort impresses them" }
+      "success": "They fast-track your promotions and raises",
+      "fail": "Just another employee to them",
+      "critSuccess": "They take you with them when they move up",
+      "critFail": "Boss turns on you, blocks your advancement",
+      "traitSuccess": { "CHAR": "You become their trusted right-hand", "WORK": "Your results make them look good" }
     }
   },
   {
@@ -160,11 +160,11 @@
     "success": { "jumpPct": 0.05, "growthDelta": 0.010 },
     "fail": { "jumpPct": -0.05, "growthDelta": -0.008 },
     "outcomes": {
-      "success": "New chapter begins",
-      "fail": "Old habits return",
-      "critSuccess": "Complete transformation",
-      "critFail": "Identity crisis spiral",
-      "traitSuccess": { "WORK": "Put in the work", "INT": "Learned new skills fast", "RISK": "Embraced the change" }
+      "success": "New skills unlock higher-paying opportunities",
+      "fail": "Career pivot cost you momentum and salary",
+      "critSuccess": "Became an expert in a lucrative field",
+      "critFail": "Years wasted learning the wrong thing",
+      "traitSuccess": { "WORK": "Grinded until the market noticed", "INT": "Quick upskill landed a premium role", "RISK": "Bet on yourself and won" }
     }
   },
   {
@@ -181,11 +181,11 @@
     "success": { "jumpPct": 0.05, "growthDelta": 0.004 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
     "outcomes": {
-      "success": "Reputation growing",
-      "fail": "Still unknown",
-      "critSuccess": "Industry darling now",
-      "critFail": "Known for wrong reasons",
-      "traitSuccess": { "CHAR": "People love talking about you", "INT": "Known as the expert", "NEPO": "Family name precedes you" }
+      "success": "Recruiters start calling with bigger offers",
+      "fail": "Nobody knows your name yet",
+      "critSuccess": "Headhunters fight over you",
+      "critFail": "Your reputation tanks publicly",
+      "traitSuccess": { "CHAR": "Everyone wants to work with you", "INT": "Known as the go-to expert", "NEPO": "Family name commands respect" }
     }
   },
   {
@@ -286,11 +286,11 @@
     "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
     "fail": { "jumpPct": -0.02, "growthDelta": -0.003 },
     "outcomes": {
-      "success": "Fresh start works",
-      "fail": "Grass wasn't greener",
-      "critSuccess": "Found your place",
-      "critFail": "Stranded and alone",
-      "traitSuccess": { "RISK": "Leap of faith rewarded", "NEPO": "Family helped you land", "CHAR": "Made friends fast" }
+      "success": "New city, new job market brimming with opportunity",
+      "fail": "Cost of living ate your raise",
+      "critSuccess": "Landed in a booming market at the perfect time",
+      "critFail": "Burned savings on a move that went nowhere",
+      "traitSuccess": { "RISK": "Bet on a hot market and it paid off", "NEPO": "Family connections got you hired fast", "CHAR": "Networked your way to a better gig" }
     }
   },
   {
@@ -391,11 +391,11 @@
     "success": { "jumpPct": 0.05, "growthDelta": 0.000 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
     "outcomes": {
-      "success": "Stars aligned perfectly",
-      "fail": "Luck runs out",
-      "critSuccess": "Once in a lifetime",
-      "critFail": "Cursed timing",
-      "traitSuccess": { "WORK": "Ready when luck struck" }
+      "success": "Right place, right time—bonus lands in your lap",
+      "fail": "The opportunity slipped through your fingers",
+      "critSuccess": "Pure luck turns into pure profit",
+      "critFail": "Bad timing cost you big",
+      "traitSuccess": { "WORK": "Preparation met opportunity" }
     }
   },
   {
@@ -496,11 +496,11 @@
     "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
     "outcomes": {
-      "success": "Love finds you",
-      "fail": "Still searching",
-      "critSuccess": "Soulmate discovered",
-      "critFail": "Heart shattered",
-      "traitSuccess": { "CHAR": "Irresistible chemistry", "WORK": "Built something together" }
+      "success": "Two incomes, shared expenses—your finances flourish",
+      "fail": "Still solo, still paying rent alone",
+      "critSuccess": "Married a high earner who supports your career",
+      "critFail": "Toxic relationship drained your savings",
+      "traitSuccess": { "CHAR": "Partner's network opens new doors", "WORK": "Power couple energy boosts both careers" }
     }
   },
   {
@@ -517,11 +517,11 @@
     "success": { "jumpPct": 0.00, "growthDelta": 0.007 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
     "outcomes": {
-      "success": "Mentorship begins",
-      "fail": "They moved on",
-      "critSuccess": "Career-defining guidance",
-      "critFail": "Mentor exploited you",
-      "traitSuccess": { "CHAR": "They see potential", "WORK": "Earned their respect" }
+      "success": "They teach you the shortcuts to success",
+      "fail": "They were too busy to invest in you",
+      "critSuccess": "Their network becomes your network",
+      "critFail": "They took credit for your work",
+      "traitSuccess": { "CHAR": "They see you as their protégé", "WORK": "Your dedication earned their investment" }
     }
   },
   {

@@ -135,6 +135,11 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
             {edu.label}
           </Badge>
         </div>
+        {edu.outcomeMessage && (
+          <div className="text-[10px] italic mb-1 text-chart-1" data-testid="mobile-edu-outcome">
+            "{edu.outcomeMessage}"
+          </div>
+        )}
         <div className="flex items-center gap-3 text-xs">
           <div className="font-mono">
             <span className="text-muted-foreground">Roll: </span>
@@ -176,6 +181,11 @@ function MobileCareerCard({ stage }: { stage: StageResult }) {
             {career.career.name}
           </Badge>
         </div>
+        {career.outcomeMessage && (
+          <div className={`text-[10px] italic mb-1 ${career.isNat20 ? 'text-chart-4' : 'text-chart-3'}`} data-testid="mobile-career-outcome">
+            "{career.outcomeMessage}"
+          </div>
+        )}
         <div className="flex items-center gap-2 text-xs flex-wrap">
           <div className="font-mono">
             <span className="text-muted-foreground">Roll: </span>
@@ -300,6 +310,12 @@ function CompactEducationCard({ stage }: { stage: StageResult }) {
           {edu.label}
         </Badge>
         
+        {edu.outcomeMessage && (
+          <div className="text-[11px] italic mb-2 px-2 py-1 rounded bg-chart-1/10" data-testid="edu-outcome">
+            "{edu.outcomeMessage}"
+          </div>
+        )}
+        
         <div className="p-2 rounded bg-muted mb-2">
           <div className="text-[10px] text-muted-foreground">Roll</div>
           <div className="font-mono text-sm">
@@ -352,6 +368,12 @@ function CompactCareerCard({ stage }: { stage: StageResult }) {
         <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 mb-2 self-start" data-testid="career-result">
           {career.career.name}
         </Badge>
+        
+        {career.outcomeMessage && (
+          <div className={`text-[11px] italic mb-2 px-2 py-1 rounded ${career.isNat20 ? 'bg-chart-4/10' : 'bg-chart-3/10'}`} data-testid="career-outcome">
+            "{career.outcomeMessage}"
+          </div>
+        )}
         
         <div className={`p-2 rounded mb-2 ${career.isNat20 ? 'bg-chart-4/20 border border-chart-4/40' : 'bg-muted'}`}>
           <div className="flex items-center gap-1">

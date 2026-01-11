@@ -28,8 +28,9 @@ import {
 } from '@/lib/sim';
 import { createRng } from '@/lib/rng';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Dices, Play, User, Settings, RefreshCw, Share2, Trophy, Coins } from 'lucide-react';
+import { Dices, Play, User, Settings, RefreshCw, Share2, Trophy, Coins, Loader2, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export function SingleLife() {
   const { toast } = useToast();
@@ -52,6 +53,8 @@ export function SingleLife() {
   const [seedLocked, setSeedLocked] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [hasRun, setHasRun] = useState(false);
+  const [obituary, setObituary] = useState<string | null>(null);
+  const [obituaryLoading, setObituaryLoading] = useState(false);
   
   const handleNewAvatar = () => {
     setAvatarKey(Date.now());
@@ -122,6 +125,7 @@ export function SingleLife() {
     );
     setResult(simResult);
     setHasRun(true);
+    setObituary(null);
     updateUrl();
   };
   
@@ -132,6 +136,35 @@ export function SingleLife() {
       title: 'Link copied!',
       description: 'Simulation URL copied to clipboard',
     });
+  };
+
+  const generateObituary = async () => {
+    if (!result) return;
+    
+    setObituaryLoading(true);
+    try {
+      const careerStage = result.stages.find(s => s.career);
+      const careerField = careerStage?.career?.placement?.tier || 'General';
+      
+      const response = await apiRequest('POST', '/api/generate-obituary', {
+        name: result.name,
+        traits: result.traits,
+        stages: result.stages,
+        lifetimeEarnings: result.lifetimeEarnings,
+        careerField,
+      });
+      
+      const data = await response.json();
+      setObituary(data.obituary);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate biography',
+        variant: 'destructive',
+      });
+    } finally {
+      setObituaryLoading(false);
+    }
   };
 
   return (
@@ -369,6 +402,35 @@ export function SingleLife() {
                 <div className="lg:w-64 shrink-0">
                   <LuckAnalysis luck={result.luck} embedded />
                 </div>
+              </div>
+              
+              <div className="mt-6 pt-4 border-t">
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">Life Biography</h3>
+                </div>
+                {obituary ? (
+                  <p className="text-sm italic text-muted-foreground leading-relaxed" data-testid="obituary-text">
+                    {obituary}
+                  </p>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={generateObituary}
+                    disabled={obituaryLoading}
+                    data-testid="button-generate-obituary"
+                  >
+                    {obituaryLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      'Generate AI Biography'
+                    )}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

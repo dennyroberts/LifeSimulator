@@ -25,7 +25,8 @@ const stageToAge = (stageNum: number) => 20 + (stageNum - 1) * 8;
 export function Timeline({ stages }: TimelineProps) {
   return (
     <div className="space-y-2" data-testid="timeline">
-      <div className="relative h-8 mx-2">
+      {/* Desktop: Horizontal age rail */}
+      <div className="hidden md:block relative h-8 mx-2">
         <div className="absolute top-3 left-0 right-0 h-0.5 bg-border" />
         <div className="flex justify-between">
           {stages.map((stage) => {
@@ -43,10 +44,39 @@ export function Timeline({ stages }: TimelineProps) {
           })}
         </div>
       </div>
-      <div className="flex flex-row gap-2">
+      
+      {/* Desktop: Horizontal card layout */}
+      <div className="hidden md:flex flex-row gap-2">
         {stages.map((stage) => (
           <TimelineCard key={stage.stage} stage={stage} />
         ))}
+      </div>
+      
+      {/* Mobile: Vertical scrollable layout */}
+      <div className="md:hidden flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
+        {stages.map((stage) => {
+          const age = stageToAge(stage.stage);
+          return (
+            <div key={stage.stage} className="flex items-start gap-3">
+              {/* Vertical age marker */}
+              <div className="flex flex-col items-center shrink-0 pt-3">
+                <div className="text-xs text-muted-foreground font-mono flex items-center gap-0.5">
+                  {stage.stage === 1 && <Baby className="h-3 w-3" />}
+                  {age}
+                  {stage.stage === 8 && <Cross className="h-3 w-3" />}
+                </div>
+                <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background mt-1" />
+                {stage.stage < stages.length && (
+                  <div className="w-0.5 flex-1 bg-border min-h-[20px]" />
+                )}
+              </div>
+              {/* Card */}
+              <div className="flex-1 min-w-0">
+                <TimelineCard stage={stage} />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

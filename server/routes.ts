@@ -46,31 +46,45 @@ export async function registerRoutes(
         return `Age ${age}: [${eventType}] ${eventName} - ${success ? 'Success' : 'Failure'}. ${outcome}`;
       }).join("\n");
 
-      const prompt = `Write a 2-sentence author-style biography blurb for a fictional person based on the life simulation data below.
+      const traitsList = [
+        { name: 'Intelligence', value: traits.INT },
+        { name: 'Work Ethic', value: traits.WORK },
+        { name: 'Connections', value: traits.NEPO },
+        { name: 'Charisma', value: traits.CHAR },
+        { name: 'Risk Tolerance', value: traits.RISK },
+      ];
+      const sortedTraits = [...traitsList].sort((a, b) => b.value - a.value);
+      const highestTrait = sortedTraits[0];
+      const lowestTrait = sortedTraits[sortedTraits.length - 1];
+
+      const prompt = `Write an author-style biography blurb for a fictional person based on the life simulation data below.
+
+STRUCTURE:
+1. First sentence: Open with their name, mention their career as a ${careerName}, and highlight their most notable trait (${highestTrait.name}: ${highestTrait.value}/20) and their weakest trait (${lowestTrait.name}: ${lowestTrait.value}/20).
+2. Following sentences: Cover EVERY life event from the timeline below, in chronological order, mentioning the specific age each happened. Add colorful, specific details (invent restaurant names, company names, specific circumstances) but only for events that actually appear in the timeline.
 
 RULES:
-- Be concise and specific. No fluff.
-- Mention specific ages when key events happened.
-- Only reference events that actually appear in the timeline below. Do not invent events.
-- Reflect their actual career field accurately (provided below).
-- Tone: wry and colorful, but not trying too hard to be funny. Think New Yorker author bio, not stand-up comedy.
-- Do NOT mention death, passing away, or treat this as an obituary.
-- Do NOT mention specific dollar amounts or earnings.
-- First sentence: personality summary based on traits + their career.
-- Second sentence: notable life events from the timeline with ages.
+- Mention ALL life events in order with specific ages.
+- Invent specific fun details: restaurant names, company names, what exactly they got arrested for, etc.
+- Tone: colorful and specific, like a New Yorker author bio. Wry but not reaching for jokes.
+- Do NOT treat this as an obituary. No death, no "passed away."
+- Do NOT mention dollar amounts or lifetime earnings.
+- Only use events from the timeline - do not invent new events.
 
 CHARACTER:
 Name: ${name}
 Career: ${careerName}
+Strongest trait: ${highestTrait.name} (${highestTrait.value}/20)
+Weakest trait: ${lowestTrait.name} (${lowestTrait.value}/20)
 
-Traits (0-20 scale):
+All Traits (0-20 scale):
 - Intelligence: ${traits.INT}
 - Work Ethic: ${traits.WORK}
 - Connections: ${traits.NEPO}
 - Charisma: ${traits.CHAR}
 - Risk Tolerance: ${traits.RISK}
 
-Life Timeline:
+Life Timeline (cover ALL of these in order):
 ${lifeEventsDescription}`;
 
       const response = await openai.chat.completions.create({
@@ -81,8 +95,8 @@ ${lifeEventsDescription}`;
             content: prompt,
           },
         ],
-        max_tokens: 150,
-        temperature: 0.7,
+        max_tokens: 350,
+        temperature: 0.8,
       });
 
       const biography = response.choices[0]?.message?.content || "No biography generated.";

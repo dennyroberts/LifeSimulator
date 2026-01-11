@@ -170,22 +170,9 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
           </div>
         </div>
         
-        <div className="text-xs font-medium mb-1 leading-tight" title={event.name}>
+        <div className="text-xs font-medium mb-2 leading-tight" title={event.name}>
           {event.name}
         </div>
-        
-        {outcome.traitContributions && outcome.traitContributions.length > 0 && (
-          <div className="text-[9px] text-muted-foreground mb-2 font-mono">
-            {outcome.traitContributions.map((tc, i) => (
-              <span key={tc.trait}>
-                {i > 0 && ', '}
-                <span className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                  {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
-                </span>
-              </span>
-            ))}
-          </div>
-        )}
         
         <div className="flex flex-wrap gap-1 mb-2">
           <Badge className={`${rarityColors[event.rarity]} text-[10px] px-1.5 py-0`} data-testid={`event-rarity-${stage.stage}`}>
@@ -208,6 +195,15 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
                 </span>
               )}
             </div>
+            {outcome.traitContributions && outcome.traitContributions.length > 0 && (
+              <div className="text-[10px] font-mono mt-1 mb-1 space-y-0.5">
+                {outcome.traitContributions.map((tc) => (
+                  <div key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                    {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="font-mono text-sm">
               <span className={`font-bold ${outcome.isCritical ? (outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive') : ''}`}>{outcome.mainRoll}</span>
               <span className="text-muted-foreground">+</span>

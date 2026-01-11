@@ -583,7 +583,7 @@ export function SingleLife() {
                                       : ''
                                   }`}
                                 >
-                                  {sentence.text}.{' '}
+                                  {sentence.text.replace(/[.!?]+$/, '')}.{' '}
                                 </span>
                               ))}
                             </p>

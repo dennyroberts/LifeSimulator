@@ -398,11 +398,21 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
         </text>
       )}
       
-      {worstGoesOffBottom && worstExitPoint && (
+      {worstGoesOffBottom && worstExitPoint ? (
         <text
           x={worstExitPoint.x}
           y={worstExitPoint.y + 12}
           textAnchor="middle"
+          className="fill-destructive text-[9px] font-mono font-medium"
+        >
+          {formatCurrency(worstFinal)}
+        </text>
+      ) : (
+        <text
+          x={worstPoints[worstPoints.length - 1].x + 4}
+          y={worstPoints[worstPoints.length - 1].y}
+          textAnchor="start"
+          dominantBaseline="middle"
           className="fill-destructive text-[9px] font-mono font-medium"
         >
           {formatCurrency(worstFinal)}

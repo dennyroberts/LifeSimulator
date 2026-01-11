@@ -414,7 +414,7 @@ export function SingleLife() {
                     Generating biography...
                   </div>
                 ) : biography ? (
-                  <p className="text-sm italic text-muted-foreground leading-relaxed" data-testid="biography-text">
+                  <p className="text-sm italic text-muted-foreground leading-relaxed whitespace-pre-line" data-testid="biography-text">
                     {biography}
                   </p>
                 ) : null}

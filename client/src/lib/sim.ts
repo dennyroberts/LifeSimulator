@@ -541,7 +541,6 @@ export function simulateLife(
     config.growthClamp.max
   );
   
-  stages[0].incomeAfter = income;
   peakIncome = Math.max(peakIncome, income);
   
   stages.push({

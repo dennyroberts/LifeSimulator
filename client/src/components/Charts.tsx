@@ -74,10 +74,20 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const { bestPath, worstPath } = computeBestWorstPaths();
   const incomes = stages.map(s => s.incomeAfter);
   
-  const allValues = [...incomes, ...bestPath, ...worstPath];
-  const maxIncome = Math.max(...allValues);
-  const minIncome = Math.min(...allValues);
+  // Base chart range on user's actual experience only (with small padding)
+  const userMax = Math.max(...incomes);
+  const userMin = Math.min(...incomes);
+  const padding_pct = 0.1;
+  const userRange = userMax - userMin || 1;
+  const maxIncome = userMax + userRange * padding_pct;
+  const minIncome = Math.max(0, userMin - userRange * padding_pct);
   const range = maxIncome - minIncome || 1;
+  
+  // Check if best/worst go off chart
+  const bestFinal = bestPath[bestPath.length - 1];
+  const worstFinal = worstPath[worstPath.length - 1];
+  const bestGoesOffTop = bestFinal > maxIncome;
+  const worstGoesOffBottom = worstFinal < minIncome;
   
   const width = 700;
   const height = 320;
@@ -120,14 +130,21 @@ export function IncomeChart({ stages }: IncomeChartProps) {
     eventInfo: getEventInfo(stage)
   }));
   
+  const clampY = (income: number) => {
+    const rawY = padding.top + chartHeight - ((income - minIncome) / range) * chartHeight;
+    return Math.max(padding.top, Math.min(padding.top + chartHeight, rawY));
+  };
+  
   const bestPoints = bestPath.map((income, i) => ({
     x: padding.left + (i / (stages.length - 1)) * chartWidth,
-    y: padding.top + chartHeight - ((income - minIncome) / range) * chartHeight
+    y: clampY(income),
+    clipped: income > maxIncome
   }));
   
   const worstPoints = worstPath.map((income, i) => ({
     x: padding.left + (i / (stages.length - 1)) * chartWidth,
-    y: padding.top + chartHeight - ((income - minIncome) / range) * chartHeight
+    y: clampY(income),
+    clipped: income < minIncome
   }));
   
   const pathD = points
@@ -318,6 +335,28 @@ export function IncomeChart({ stages }: IncomeChartProps) {
         <line x1="110" y1="8" x2="130" y2="8" stroke="hsl(var(--destructive))" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7" />
         <text x="136" y="12" className="fill-muted-foreground text-[10px]">Worst possible</text>
       </g>
+      
+      {bestGoesOffTop && (
+        <text
+          x={width - padding.right + 5}
+          y={padding.top + 4}
+          textAnchor="start"
+          className="fill-chart-2 text-[9px] font-mono font-medium"
+        >
+          {formatCurrency(bestFinal)}
+        </text>
+      )}
+      
+      {worstGoesOffBottom && (
+        <text
+          x={width - padding.right + 5}
+          y={padding.top + chartHeight}
+          textAnchor="start"
+          className="fill-destructive text-[9px] font-mono font-medium"
+        >
+          {formatCurrency(worstFinal)}
+        </text>
+      )}
     </svg>
   );
 }

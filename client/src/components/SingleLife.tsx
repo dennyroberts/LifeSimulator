@@ -537,11 +537,31 @@ export function SingleLife() {
                       {formatCurrency(result.lifetimeEarnings)}
                     </div>
                   </div>
-                  <div 
-                    className={`text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
-                    data-testid="result-lifetime-grade"
-                  >
-                    {getLifetimeGrade(result.lifetimeEarnings).grade}
+                  <div className="flex items-end gap-1">
+                    <div 
+                      className={`text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
+                      data-testid="result-lifetime-grade"
+                    >
+                      {getLifetimeGrade(result.lifetimeEarnings).grade}
+                    </div>
+                    {bestResult && worstResult && (
+                      <div className="flex flex-col text-xs font-bold mb-1 gap-0.5">
+                        <span 
+                          className={getLifetimeGrade(bestResult.lifetimeEarnings).color}
+                          data-testid="result-best-grade"
+                          title="Best possible grade"
+                        >
+                          {getLifetimeGrade(bestResult.lifetimeEarnings).grade}
+                        </span>
+                        <span 
+                          className={getLifetimeGrade(worstResult.lifetimeEarnings).color}
+                          data-testid="result-worst-grade"
+                          title="Worst possible grade"
+                        >
+                          {getLifetimeGrade(worstResult.lifetimeEarnings).grade}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="lg:ml-auto">

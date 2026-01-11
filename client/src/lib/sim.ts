@@ -856,19 +856,16 @@ export function simulateLife(
   
   // Event roll luck: sum of all raw roll deviations from events
   let eventRollDeviationSum = 0;
-  let eventRollCount = 0;
   for (const stage of stages) {
     if (stage.eventOutcome) {
       const outcome = stage.eventOutcome;
       // Add gate roll deviation if there was a risk gate check
       if (outcome.gateRoll !== undefined) {
         eventRollDeviationSum += outcome.gateRoll - D20_AVERAGE;
-        eventRollCount++;
       }
       // Add main roll deviation if there was a main check
       if (outcome.mainRoll !== undefined) {
         eventRollDeviationSum += outcome.mainRoll - D20_AVERAGE;
-        eventRollCount++;
       }
     }
   }

@@ -288,7 +288,7 @@ export function MassSim() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <AgentTable agents={topAgents} isTop />
+                <AgentTable agents={topAgents} isTop worldMode={worldMode} seed={seed} />
               </CardContent>
             </Card>
             
@@ -300,7 +300,7 @@ export function MassSim() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <AgentTable agents={bottomAgents} isTop={false} />
+                <AgentTable agents={bottomAgents} isTop={false} worldMode={worldMode} seed={seed} />
               </CardContent>
             </Card>
           </div>
@@ -310,49 +310,140 @@ export function MassSim() {
   );
 }
 
-function AgentTable({ agents, isTop }: { agents: SimulationResult[]; isTop: boolean }) {
+interface AgentWithScenarios {
+  actual: SimulationResult;
+  best: SimulationResult;
+  worst: SimulationResult;
+}
+
+function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: string): AgentWithScenarios {
+  const sharedEvents = new Map<number, Event>();
+  agent.stages.forEach(stage => {
+    if (stage.eventOutcome?.event) {
+      sharedEvents.set(stage.stage, stage.eventOutcome.event);
+    }
+  });
+  
+  const agentData = { name: agent.name, traits: agent.traits, index: agent.stages[0]?.stage || 0 };
+  const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 20);
+  const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 1);
+  
+  return { actual: agent, best, worst };
+}
+
+function AgentTable({ agents, isTop, worldMode, seed }: { 
+  agents: SimulationResult[]; 
+  isTop: boolean;
+  worldMode: WorldMode;
+  seed: string;
+}) {
+  const agentsWithScenarios = useMemo(() => {
+    return agents.map(agent => computeBestWorst(agent, worldMode, seed));
+  }, [agents, worldMode, seed]);
+
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">#</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Traits</TableHead>
-            <TableHead className="text-right">Income</TableHead>
-            <TableHead className="text-right">Luck</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {agents.map((agent, i) => (
-            <TableRow key={i} data-testid={`agent-row-${isTop ? 'top' : 'bottom'}-${i}`}>
-              <TableCell className="font-mono text-muted-foreground">
-                {isTop ? i + 1 : agents.length - i}
-              </TableCell>
-              <TableCell className="font-medium">{agent.name}</TableCell>
-              <TableCell>
-                <TraitDisplay traits={agent.traits} compact />
-              </TableCell>
-              <TableCell className={`text-right font-mono font-semibold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
-                {formatCurrency(agent.peakIncome)}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex flex-col items-end gap-0.5 text-xs font-mono">
-                  <span className={agent.luck.opportunityLuck >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                    Opp: {formatEV(agent.luck.opportunityLuck)}
-                  </span>
-                  <span className={agent.luck.rollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                    Roll: {formatEV(agent.luck.rollLuck)}
-                  </span>
-                  <span className={`font-semibold ${agent.luck.netLuck >= 0 ? 'text-chart-4' : 'text-muted-foreground'}`}>
-                    Net: {formatEV(agent.luck.netLuck)}
-                  </span>
+    <div className="space-y-3" data-testid={`agent-list-${isTop ? 'top' : 'bottom'}`}>
+      {agentsWithScenarios.map((agentData, i) => (
+        <AgentCard 
+          key={i} 
+          agentData={agentData} 
+          rank={isTop ? i + 1 : agents.length - i}
+          isTop={isTop}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AgentCard({ agentData, rank, isTop }: { 
+  agentData: AgentWithScenarios; 
+  rank: number;
+  isTop: boolean;
+}) {
+  const { actual, best, worst } = agentData;
+  const actualGrade = getLifetimeGrade(actual.lifetimeEarnings);
+  const bestGrade = getLifetimeGrade(best.lifetimeEarnings);
+  const worstGrade = getLifetimeGrade(worst.lifetimeEarnings);
+
+  return (
+    <Card className="p-3" data-testid={`agent-card-${isTop ? 'top' : 'bottom'}-${rank}`}>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start gap-3">
+          <div className="text-lg font-mono text-muted-foreground w-6 shrink-0">
+            {rank}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold truncate">{actual.name}</span>
+              <div className="flex items-center gap-1">
+                <span className={`text-2xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
+                <div className="flex flex-col text-[10px] font-bold leading-tight">
+                  <span className={bestGrade.color} title="Best possible">{bestGrade.grade}</span>
+                  <span className={worstGrade.color} title="Worst possible">{worstGrade.grade}</span>
                 </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mt-1 text-xs">
+              <span className={`font-mono font-semibold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
+                {formatCurrency(actual.lifetimeEarnings)}
+              </span>
+              <TraitDisplay traits={actual.traits} compact />
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[10px] text-muted-foreground">Roll Luck</div>
+            <div className={`text-sm font-mono font-semibold ${actual.luck.rollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+              {formatEV(actual.luck.rollLuck)}
+            </div>
+          </div>
+        </div>
+        
+        <MiniTimeline stages={actual.stages} />
+      </div>
+    </Card>
+  );
+}
+
+function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
+  const eventStages = stages.filter(s => s.eventOutcome);
+  const education = stages.find(s => s.isEducation);
+  const career = stages.find(s => s.isCareer);
+  
+  return (
+    <div className="flex flex-wrap gap-1 text-[10px]" data-testid="mini-timeline">
+      {education && (
+        <div className="px-1.5 py-0.5 rounded bg-chart-1/20 text-chart-1 font-medium truncate max-w-[80px]" title={education.education?.label}>
+          {education.education?.label}
+        </div>
+      )}
+      {career && (
+        <div className="px-1.5 py-0.5 rounded bg-chart-2/20 text-chart-2 font-medium truncate max-w-[100px]" title={career.career?.career.name}>
+          {career.career?.career.name}
+        </div>
+      )}
+      {eventStages.map((stage) => {
+        const outcome = stage.eventOutcome!;
+        const bgColor = outcome.gateFailed 
+          ? 'bg-muted/50' 
+          : outcome.success 
+            ? 'bg-chart-2/20' 
+            : 'bg-destructive/20';
+        const textColor = outcome.gateFailed 
+          ? 'text-muted-foreground' 
+          : outcome.success 
+            ? 'text-chart-2' 
+            : 'text-destructive';
+        
+        return (
+          <div 
+            key={stage.stage} 
+            className={`px-1.5 py-0.5 rounded ${bgColor} ${textColor} truncate max-w-[100px]`}
+            title={`${outcome.event.name}: ${outcome.success ? 'Success' : outcome.gateFailed ? 'Skipped' : 'Failed'}`}
+          >
+            {outcome.success ? '+' : outcome.gateFailed ? '~' : '-'} {outcome.event.name}
+          </div>
+        );
+      })}
     </div>
   );
 }

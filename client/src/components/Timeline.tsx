@@ -235,6 +235,11 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
             {getStatusText()}
           </span>
         </div>
+        {outcome.outcomeMessage && (
+          <div className={`text-[10px] italic mb-1 ${getStatusColor()}`} data-testid={`mobile-outcome-${stage.stage}`}>
+            "{outcome.outcomeMessage}"
+          </div>
+        )}
         <div className="flex items-center gap-2 text-xs flex-wrap">
           {!outcome.gateFailed && event.rollRequired && (
             <div className="font-mono">
@@ -465,6 +470,12 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
             {getStatusText()}
           </div>
         </div>
+        
+        {outcome.outcomeMessage && (
+          <div className={`text-[11px] italic mb-2 px-2 py-1 rounded ${outcome.success ? 'bg-chart-2/10' : outcome.gateFailed ? 'bg-muted' : 'bg-destructive/10'}`} data-testid={`outcome-${stage.stage}`}>
+            "{outcome.outcomeMessage}"
+          </div>
+        )}
         
         {!outcome.gateFailed && event.rollRequired && (
           <div className={`p-2 rounded mb-2 ${outcome.isCritical ? (outcome.criticalType === 'success' ? 'bg-chart-4/20 border border-chart-4/40' : 'bg-destructive/20 border border-destructive/40') : 'bg-muted'}`}>

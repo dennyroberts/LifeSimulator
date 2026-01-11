@@ -504,7 +504,7 @@ export function resolveEvent(
       outcomeMessage = event.outcomes.critFail;
     } else if (success) {
       // Check for trait-specific success message
-      if (event.outcomes.traitSuccess && traitContributions.length > 0) {
+      if (event.outcomes.traitSuccess && Array.isArray(traitContributions) && traitContributions.length > 0) {
         const topTrait = traitContributions.find(tc => tc.contribution > 0);
         if (topTrait && event.outcomes.traitSuccess[topTrait.trait]) {
           outcomeMessage = event.outcomes.traitSuccess[topTrait.trait];

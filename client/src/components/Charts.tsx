@@ -425,9 +425,10 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
 interface HistogramProps {
   results: SimulationResult[];
   bins?: number;
+  compact?: boolean;
 }
 
-export function IncomeHistogram({ results, bins = 25 }: HistogramProps) {
+export function IncomeHistogram({ results, bins = 25, compact = false }: HistogramProps) {
   const incomes = results.map(r => r.peakIncome);
   const minIncome = Math.min(...incomes);
   const maxIncome = Math.max(...incomes);
@@ -552,9 +553,10 @@ interface ScatterPlotProps {
   xKey: string;
   xLabel: string;
   color: string;
+  compact?: boolean;
 }
 
-export function ScatterPlot({ results, xKey, xLabel, color }: ScatterPlotProps) {
+export function ScatterPlot({ results, xKey, xLabel, color, compact = false }: ScatterPlotProps) {
   const getXValue = (r: SimulationResult): number => {
     if (xKey in r.traits) {
       return r.traits[xKey as keyof typeof r.traits];
@@ -649,10 +651,11 @@ export function ScatterPlot({ results, xKey, xLabel, color }: ScatterPlotProps) 
 
 interface ScatterGridProps {
   results: SimulationResult[];
+  compact?: boolean;
 }
 
-export function ScatterGrid({ results }: ScatterGridProps) {
-  const plots = [
+export function ScatterGrid({ results, compact = false }: ScatterGridProps) {
+  const allPlots = [
     { key: 'INT', label: 'Intelligence', color: 'hsl(var(--chart-1))' },
     { key: 'WORK', label: 'Work Ethic', color: 'hsl(var(--chart-2))' },
     { key: 'NEPO', label: 'Nepotism', color: 'hsl(var(--chart-3))' },
@@ -660,13 +663,15 @@ export function ScatterGrid({ results }: ScatterGridProps) {
     { key: 'RISK', label: 'Risk Tolerance', color: 'hsl(var(--chart-5))' },
     { key: 'netLuck', label: 'Net Luck', color: 'hsl(var(--chart-1))' },
   ];
+  
+  const plots = compact ? allPlots.slice(0, 4) : allPlots;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4" data-testid="scatter-grid">
+    <div className={`grid ${compact ? 'grid-cols-2 gap-2' : 'grid-cols-2 md:grid-cols-3 gap-4'}`} data-testid="scatter-grid">
       {plots.map(({ key, label, color }) => (
-        <div key={key} className="p-3 rounded-md bg-card border border-card-border">
-          <div className="text-sm font-medium text-center mb-2">{label} vs Income</div>
-          <ScatterPlot results={results} xKey={key} xLabel={label} color={color} />
+        <div key={key} className={`${compact ? 'p-2' : 'p-3'} rounded-md bg-card border border-card-border`}>
+          <div className={`${compact ? 'text-xs' : 'text-sm'} font-medium text-center mb-1`}>{label}</div>
+          <ScatterPlot results={results} xKey={key} xLabel={label} color={color} compact={compact} />
         </div>
       ))}
     </div>

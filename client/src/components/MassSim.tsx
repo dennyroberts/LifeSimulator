@@ -26,9 +26,12 @@ import { IncomeHistogram, ScatterGrid } from './Charts';
 import {
   type WorldMode,
   type SimulationResult,
+  type Event,
   runMassSimulation,
   formatCurrency,
   formatEV,
+  getLifetimeGrade,
+  simulateLife,
 } from '@/lib/sim';
 import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
@@ -79,11 +82,8 @@ export function MassSim() {
         sameDeck
       );
       
-      batchResults.forEach((r, idx) => {
-        allResults.push({
-          ...r,
-          name: `Agent_${batchStart + idx + 1}`
-        });
+      batchResults.forEach((r) => {
+        allResults.push(r);
       });
       
       if (!isMountedRef.current) return;
@@ -256,26 +256,28 @@ export function MassSim() {
             </Card>
           </div>
           
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Income Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <IncomeHistogram results={results} />
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Trait & Luck Correlations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScatterGrid results={results} />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <BarChart3 className="h-4 w-4" />
+                  Income Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <IncomeHistogram results={results} compact />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Trait & Luck Correlations</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ScatterGrid results={results} compact />
+              </CardContent>
+            </Card>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>

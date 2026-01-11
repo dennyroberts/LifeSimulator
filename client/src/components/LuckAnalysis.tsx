@@ -36,7 +36,7 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
 
   if (compact) {
     return (
-      <div className="flex flex-wrap items-center gap-3 text-xs" data-testid="luck-analysis-compact">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-testid="luck-analysis-compact">
         <div className="flex items-center gap-1">
           <Sparkles className="h-3 w-3 text-chart-4" />
           <span className="text-muted-foreground">Luck:</span>
@@ -48,11 +48,16 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
             {formatEV(luck.opportunityLuck)}
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Dices className="h-3 w-3 text-chart-1" />
           <span className="text-muted-foreground">Roll</span>
           <span className={`font-mono font-medium ${getLuckColor(luck.rollLuck)}`}>
             {formatEV(luck.rollLuck)}
+          </span>
+          <span className="text-muted-foreground/60">
+            (Edu <span className={`font-mono ${getLuckColor(luck.educationRollLuck)}`}>{formatEV(luck.educationRollLuck)}</span>
+            {' '}Career <span className={`font-mono ${getLuckColor(luck.careerRollLuck)}`}>{formatEV(luck.careerRollLuck)}</span>
+            {' '}Events <span className={`font-mono ${getLuckColor(luck.eventRollLuck)}`}>{formatEV(luck.eventRollLuck)}</span>)
           </span>
         </div>
         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-chart-4/10">

@@ -57,18 +57,21 @@ export async function registerRoutes(
       const highestTrait = sortedTraits[0];
       const lowestTrait = sortedTraits[sortedTraits.length - 1];
 
-      const prompt = `Write a brief author-bio blurb for this fictional person. Keep it SHORT (4-6 sentences max).
+      console.log("Life events being sent to OpenAI:", lifeEventsDescription);
 
-${name} worked as a ${careerName}. Their strongest trait was ${highestTrait.name}, their weakest was ${lowestTrait.name}.
+      const prompt = `Write a biography for ${name}, a ${careerName} known for their ${highestTrait.name} but lacking in ${lowestTrait.name}.
 
-Here is their complete life timeline. Reference ONLY these events - do NOT add any events at other ages:
+Format as a bullet list with exactly 9 bullets - one for each life event below. Each bullet should mention the age and add one colorful detail.
+
+LIFE EVENTS (write one bullet for each):
 ${lifeEventsDescription}
 
-Write the bio now. Rules:
-- First sentence: name, career, and personality based on strongest/weakest traits
-- Then briefly cover each event above with its age, adding a colorful detail (a name, place, or circumstance)
-- ONLY use the ages listed above (18, 24, 30, 36, 42, 48, 54, 60, 66). Do NOT invent events at ages like 22, 28, 32, etc.
-- Keep it concise. No obituary language. No dollar amounts.`;
+Output format - exactly 9 bullets like this:
+• Age 18: [colorful description of what happened]
+• Age 24: [colorful description of what happened]
+...and so on for all 9 events.
+
+No introductory text. Just the 9 bullets. No dollar amounts.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -78,7 +81,7 @@ Write the bio now. Rules:
             content: prompt,
           },
         ],
-        max_tokens: 300,
+        max_tokens: 400,
         temperature: 0.7,
       });
 

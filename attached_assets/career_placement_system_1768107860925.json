@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Food Service",
+    "min_roll": 0,
+    "max_roll": 3,
+    "base_salary": 32000,
+    "base_growth": 0.01
+  },
+  {
+    "name": "Retail",
+    "min_roll": 4,
+    "max_roll": 5,
+    "base_salary": 36000,
+    "base_growth": 0.015
+  },
+  {
+    "name": "Construction",
+    "min_roll": 6,
+    "max_roll": 7,
+    "base_salary": 40000,
+    "base_growth": 0.02
+  },
+  {
+    "name": "Truck Driver",
+    "min_roll": 8,
+    "max_roll": 9,
+    "base_salary": 44000,
+    "base_growth": 0.022
+  },
+  {
+    "name": "Healthcare",
+    "min_roll": 10,
+    "max_roll": 11,
+    "base_salary": 48000,
+    "base_growth": 0.025
+  },
+  {
+    "name": "Creative Fields",
+    "min_roll": 12,
+    "max_roll": 13,
+    "base_salary": 52000,
+    "base_growth": 0.03
+  },
+  {
+    "name": "Sales / Marketing",
+    "min_roll": 14,
+    "max_roll": 15,
+    "base_salary": 56000,
+    "base_growth": 0.035
+  },
+  {
+    "name": "Tech",
+    "min_roll": 16,
+    "max_roll": 17,
+    "base_salary": 60000,
+    "base_growth": 0.04
+  },
+  {
+    "name": "Finance",
+    "min_roll": 18,
+    "max_roll": 18,
+    "base_salary": 64000,
+    "base_growth": 0.045
+  },
+  {
+    "name": "Lawyer",
+    "min_roll": 19,
+    "max_roll": 19,
+    "base_salary": 68000,
+    "base_growth": 0.05
+  },
+  {
+    "name": "Doctor",
+    "min_roll": 20,
+    "max_roll": 20,
+    "base_salary": 72000,
+    "base_growth": 0.055
+  }
+]

@@ -357,75 +357,86 @@ export function SingleLife() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 pb-3 border-b">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Agent</div>
-                      <div className="text-lg font-bold" data-testid="result-agent-name">
-                        {result.name}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Peak Salary</div>
-                      <div className="text-lg font-mono font-bold text-chart-4" data-testid="result-peak-income">
-                        {formatCurrency(result.peakIncome)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Coins className="h-3 w-3" />
-                          Lifetime
-                        </div>
-                        <div className="text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
-                          {formatCurrency(result.lifetimeEarnings)}
-                        </div>
-                      </div>
-                      <div 
-                        className={`text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
-                        data-testid="result-lifetime-grade"
-                      >
-                        {getLifetimeGrade(result.lifetimeEarnings).grade}
-                      </div>
-                    </div>
-                    <div className="lg:ml-auto">
-                      <div className="text-xs text-muted-foreground mb-1">Traits</div>
-                      <TraitDisplay traits={result.traits} compact />
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 pb-3 border-b">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 border">
+                    <AvatarImage
+                      src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                      alt="Agent avatar"
+                    />
+                    <AvatarFallback>
+                      {result.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Agent</div>
+                    <div className="text-lg font-bold" data-testid="result-agent-name">
+                      {result.name}
                     </div>
                   </div>
-                  <div className="flex justify-center">
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Peak Salary</div>
+                  <div className="text-lg font-mono font-bold text-chart-4" data-testid="result-peak-income">
+                    {formatCurrency(result.peakIncome)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Coins className="h-3 w-3" />
+                      Lifetime
+                    </div>
+                    <div className="text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
+                      {formatCurrency(result.lifetimeEarnings)}
+                    </div>
+                  </div>
+                  <div 
+                    className={`text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
+                    data-testid="result-lifetime-grade"
+                  >
+                    {getLifetimeGrade(result.lifetimeEarnings).grade}
+                  </div>
+                </div>
+                <div className="lg:ml-auto">
+                  <div className="text-xs text-muted-foreground mb-1">Traits</div>
+                  <TraitDisplay traits={result.traits} compact />
+                </div>
+              </div>
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 flex flex-col">
+                  <div className="mb-2">
+                    <LuckAnalysis luck={result.luck} embedded compact />
+                  </div>
+                  <div className="flex justify-center flex-1">
                     <IncomeChart stages={result.stages} />
                   </div>
                 </div>
-                <div className="lg:w-64 shrink-0 flex flex-col gap-4">
-                  <LuckAnalysis luck={result.luck} embedded />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      <h3 className="text-sm font-semibold">Life Biography</h3>
-                    </div>
-                    {biographyLoading ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Generating biography...
-                      </div>
-                    ) : biography ? (
-                      (() => {
-                        const lastSentenceMatch = biography.match(/[^.!?]*[.!?]$/);
-                        const lastSentence = lastSentenceMatch ? lastSentenceMatch[0].trim() : '';
-                        const mainBio = lastSentence ? biography.slice(0, biography.lastIndexOf(lastSentence)).trim() : biography;
-                        return (
-                          <div className="max-h-48 overflow-y-auto text-muted-foreground leading-relaxed" data-testid="biography-text">
-                            {lastSentence && (
-                              <p className="text-sm font-semibold mb-2">{lastSentence}</p>
-                            )}
-                            <p className="text-xs italic whitespace-pre-line">{mainBio}</p>
-                          </div>
-                        );
-                      })()
-                    ) : null}
+                <div className="lg:w-72 shrink-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold">Life Biography</h3>
                   </div>
+                  {biographyLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating biography...
+                    </div>
+                  ) : biography ? (
+                    (() => {
+                      const lastSentenceMatch = biography.match(/[^.!?]*[.!?]$/);
+                      const lastSentence = lastSentenceMatch ? lastSentenceMatch[0].trim() : '';
+                      const mainBio = lastSentence ? biography.slice(0, biography.lastIndexOf(lastSentence)).trim() : biography;
+                      return (
+                        <div className="max-h-64 overflow-y-auto text-muted-foreground leading-relaxed" data-testid="biography-text">
+                          {lastSentence && (
+                            <p className="text-sm font-semibold mb-2">{lastSentence}</p>
+                          )}
+                          <p className="text-xs italic whitespace-pre-line">{mainBio}</p>
+                        </div>
+                      );
+                    })()
+                  ) : null}
                 </div>
               </div>
               

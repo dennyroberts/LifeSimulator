@@ -11,9 +11,10 @@ import { useState } from 'react';
 interface LuckAnalysisProps {
   luck: LuckAnalysisType;
   embedded?: boolean;
+  compact?: boolean;
 }
 
-export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
+export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAnalysisProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const getLuckIcon = (value: number) => {
@@ -32,6 +33,37 @@ export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
   const identity = luck.evRealized - luck.evBaselineHand;
   const eventComponents = luck.opportunityLuck + luck.eventRollLuck + luck.traitAdvantage;
   const identityMatch = Math.abs(identity - eventComponents) < 0.001;
+
+  if (compact) {
+    return (
+      <div className="flex flex-wrap items-center gap-3 text-xs" data-testid="luck-analysis-compact">
+        <div className="flex items-center gap-1">
+          <Sparkles className="h-3 w-3 text-chart-4" />
+          <span className="text-muted-foreground">Luck:</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Dices className="h-3 w-3 text-chart-3" />
+          <span className="text-muted-foreground">Opp</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.opportunityLuck)}`}>
+            {formatEV(luck.opportunityLuck)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Dices className="h-3 w-3 text-chart-1" />
+          <span className="text-muted-foreground">Roll</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.rollLuck)}`}>
+            {formatEV(luck.rollLuck)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-chart-4/10">
+          <span className="text-muted-foreground">Net</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.netLuck)}`}>
+            {formatEV(luck.netLuck)}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (embedded) {
     return (

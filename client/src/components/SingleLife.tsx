@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -54,6 +55,9 @@ export function SingleLife() {
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [bestResult, setBestResult] = useState<SimulationResult | null>(null);
+  const [worstResult, setWorstResult] = useState<SimulationResult | null>(null);
+  const [timelineView, setTimelineView] = useState<'actual' | 'best' | 'worst'>('actual');
   const [hasRun, setHasRun] = useState(false);
   const [biography, setBiography] = useState<string | null>(null);
   const [biographyLoading, setBiographyLoading] = useState(false);
@@ -219,13 +223,25 @@ export function SingleLife() {
       setSeed(currentSeed);
     }
     const agentName = name || 'Anonymous';
-    const simResult = simulateLife(
-      { name: agentName, traits, index: 0, aspiration },
-      worldMode,
-      currentSeed,
-      sameDeck
-    );
+    const agent = { name: agentName, traits, index: 0, aspiration };
+    
+    const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck);
     setResult(simResult);
+    
+    const sharedEvents = new Map<number, typeof simResult.stages[0]['eventOutcome']>();
+    simResult.stages.forEach(stage => {
+      if (stage.eventOutcome?.event) {
+        sharedEvents.set(stage.stage, stage.eventOutcome.event as any);
+      }
+    });
+    
+    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents as any, 20);
+    setBestResult(bestSimResult);
+    
+    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents as any, 1);
+    setWorstResult(worstSimResult);
+    
+    setTimelineView('actual');
     setHasRun(true);
     setBiography(null);
     updateUrl();

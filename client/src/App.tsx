@@ -32,18 +32,43 @@ function App() {
                 </div>
                 <ThemeToggle />
               </div>
-              <div className="mt-3 pt-3 border-t text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                <p>
-                  <strong className="text-foreground">Welcome to life simulator!</strong> This app allows you to simulate life trajectories using D&D-style d20 mechanics. Each life consists of 8 big events, some good, some bad. Each agent has five traits: intelligence, work ethic, charisma, risk tolerance, and social capital (aka family money / influence). These traits influence their success or failure in each event. 
-
-                  Most events roll against multiple traits (for example, getting into an elite university requires intelligence, work ethic, and social capital). At the end, you see how much money the agent has accumulated (a proxy for life success), as well as how "lucky" they were (both in terms of dice rolls and in terms of which events they experienced).
+              <div className="mt-3 pt-3 border-t text-sm leading-relaxed">
+                <p className="text-foreground font-medium mb-2">
+                  Welcome to Life Simulator!
                 </p>
-                <p className="mt-1.5">
-                  <strong className="text-foreground">How to use:</strong> In <em>Single Life</em>, configure an agent's traits and run their simulation to see each life event unfold.  
-                  In <em>Mass Simulation</em>, run thousands of random agents to see statistical patterns. 
-                  You can also run simulations using the same seed (which means every agent will have the same life events) to compare different trait configurations.
-                  Share results via URL — seeds make simulations reproducible.
+                <p className="text-muted-foreground mb-3">
+                  Simulate life trajectories using D&D-style d20 mechanics. Each life consists of 8 major events — some good, some bad. 
+                  Agents have five traits that influence outcomes:
                 </p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
+                  <span><strong className="text-foreground">INT</strong> Intelligence</span>
+                  <span><strong className="text-foreground">WORK</strong> Work Ethic</span>
+                  <span><strong className="text-foreground">CHAR</strong> Charisma</span>
+                  <span><strong className="text-foreground">RISK</strong> Risk Tolerance</span>
+                  <span><strong className="text-foreground">SOC</strong> Social Capital</span>
+                </div>
+                <p className="text-muted-foreground mb-3">
+                  Most events roll against multiple traits (e.g., elite university admission checks INT + WORK + SOC). 
+                  Track accumulated wealth as a proxy for success, plus analyze luck — both dice rolls and which events occurred.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div className="p-2 rounded bg-muted/50">
+                    <strong className="text-foreground">Single Life:</strong>
+                    <span className="text-muted-foreground ml-1">Configure traits, run simulation, watch events unfold.</span>
+                  </div>
+                  <div className="p-2 rounded bg-muted/50">
+                    <strong className="text-foreground">Mass Simulation:</strong>
+                    <span className="text-muted-foreground ml-1">Run thousands of agents to see statistical patterns.</span>
+                  </div>
+                  <div className="p-2 rounded bg-muted/50">
+                    <strong className="text-foreground">World Mode:</strong>
+                    <span className="text-muted-foreground ml-1">Test meritocracy vs. nepotism theories.</span>
+                  </div>
+                  <div className="p-2 rounded bg-muted/50">
+                    <strong className="text-foreground">Same Deck:</strong>
+                    <span className="text-muted-foreground ml-1">Give all agents identical events to compare traits.</span>
+                  </div>
+                </div>
               </div>
             </div>
           </header>

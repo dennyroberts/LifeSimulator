@@ -136,7 +136,7 @@ export function SingleLife() {
           <CardContent>
             <div className="flex gap-4">
               <div className="flex flex-col items-center gap-2 w-32 shrink-0">
-                <Avatar className="h-20 w-20 border-2">
+                <Avatar className="h-28 w-28 border-2">
                   <AvatarImage
                     src={`https://thispersondoesnotexist.com?${avatarKey}`}
                     alt="Agent avatar"

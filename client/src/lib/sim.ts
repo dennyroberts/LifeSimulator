@@ -312,15 +312,17 @@ export function resolveEvent(
   let growthDelta = 0;
   let evRealized = 0;
   
+  const multiplier = (config as any).effectMultiplier || 1.0;
+  
   if (gateFailed) {
     evRealized = 0;
   } else if (success) {
-    jumpPct = event.success.jumpPct;
-    growthDelta = event.success.growthDelta;
+    jumpPct = event.success.jumpPct * multiplier;
+    growthDelta = event.success.growthDelta * multiplier;
     evRealized = computeEvSuccess(stage, event);
   } else {
-    jumpPct = event.fail.jumpPct;
-    growthDelta = event.fail.growthDelta;
+    jumpPct = event.fail.jumpPct * multiplier;
+    growthDelta = event.fail.growthDelta * multiplier;
     evRealized = computeEvFail(stage, event);
   }
   

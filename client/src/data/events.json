@@ -204,8 +204,8 @@
     "riskGated": true,
     "riskGateDC": 15,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.20, "growthDelta": 0.020 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.005 }
+    "success": { "jumpPct": 0.50, "growthDelta": 0.040 },
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.010 }
   },
   {
     "id": "positioned_when_the_wave_hit",
@@ -217,8 +217,8 @@
     "riskGated": true,
     "riskGateDC": 12,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.15, "growthDelta": 0.008 },
-    "fail": { "jumpPct": -0.08, "growthDelta": -0.004 }
+    "success": { "jumpPct": 0.35, "growthDelta": 0.020 },
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.010 }
   },
   {
     "id": "money_appears_from_nowhere",
@@ -230,7 +230,7 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.12, "growthDelta": 0.006 },
+    "success": { "jumpPct": 0.30, "growthDelta": 0.015 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
   },
   {
@@ -256,8 +256,8 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": -0.03, "growthDelta": -0.003 },
-    "fail": { "jumpPct": -0.10, "growthDelta": -0.012 }
+    "success": { "jumpPct": -0.05, "growthDelta": -0.008 },
+    "fail": { "jumpPct": -0.25, "growthDelta": -0.025 }
   },
   {
     "id": "you_get_hit_by_a_bus",
@@ -269,8 +269,8 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": -0.02, "growthDelta": -0.004 },
-    "fail": { "jumpPct": -0.06, "growthDelta": -0.010 }
+    "success": { "jumpPct": -0.05, "growthDelta": -0.010 },
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.020 }
   },
   {
     "id": "you_burn_out",
@@ -282,8 +282,8 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.00, "growthDelta": -0.004 },
-    "fail": { "jumpPct": -0.08, "growthDelta": -0.012 }
+    "success": { "jumpPct": 0.00, "growthDelta": -0.010 },
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.025 }
   },
   {
     "id": "you_get_sued",

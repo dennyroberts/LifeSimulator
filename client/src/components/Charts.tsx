@@ -11,11 +11,12 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const computeBestWorstPaths = () => {
     const bestPath: number[] = [];
     const worstPath: number[] = [];
-    let bestIncome = 30000;
-    let worstIncome = 30000;
+    let bestIncome = 40000;
+    let worstIncome = 40000;
     const startingGrowth = 0.03;
-    const growthMin = -0.05;
-    const growthMax = 0.30;
+    const growthMin = -0.10;
+    const growthMax = 0.40;
+    const effectMultiplier = 2.0;
     let bestGrowth = startingGrowth;
     let worstGrowth = startingGrowth;
     
@@ -32,14 +33,14 @@ export function IncomeChart({ stages }: IncomeChartProps) {
       } else if (stage.eventOutcome) {
         const event = stage.eventOutcome.event;
         
-        const newBestGrowth = Math.max(growthMin, Math.min(growthMax, bestGrowth + event.success.growthDelta));
-        const bestOutcome = bestIncome * (1 + newBestGrowth) * (1 + event.success.jumpPct);
+        const newBestGrowth = Math.max(growthMin, Math.min(growthMax, bestGrowth + event.success.growthDelta * effectMultiplier));
+        const bestOutcome = bestIncome * (1 + newBestGrowth) * (1 + event.success.jumpPct * effectMultiplier);
         bestGrowth = newBestGrowth;
         bestIncome = bestOutcome;
         bestPath.push(bestOutcome);
         
-        const newWorstGrowth = Math.max(growthMin, Math.min(growthMax, worstGrowth + event.fail.growthDelta));
-        const worstOutcome = worstIncome * (1 + newWorstGrowth) * (1 + event.fail.jumpPct);
+        const newWorstGrowth = Math.max(growthMin, Math.min(growthMax, worstGrowth + event.fail.growthDelta * effectMultiplier));
+        const worstOutcome = worstIncome * (1 + newWorstGrowth) * (1 + event.fail.jumpPct * effectMultiplier);
         worstGrowth = newWorstGrowth;
         worstIncome = worstOutcome;
         worstPath.push(worstOutcome);

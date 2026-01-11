@@ -4,8 +4,9 @@
   "startingIncome": 40000,
   "startingGrowth": 0.03,
   "baseGrowthEV": 0.03,
-  "growthClamp": { "min": -0.05, "max": 0.30 },
+  "growthClamp": { "min": -0.10, "max": 0.40 },
   "incomeFloor": 1000,
+  "effectMultiplier": 2.0,
   "rarityWeights": { "common": 5, "uncommon": 3, "rare": 1, "jackpot": 0.3, "sinkhole": 0.7 },
   "education": {
     "name": "Where You Land After High School",

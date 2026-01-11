@@ -12,52 +12,63 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  app.post("/api/generate-obituary", async (req, res) => {
+  app.post("/api/generate-biography", async (req, res) => {
     try {
-      const { name, traits, stages, lifetimeEarnings, careerField } = req.body;
+      const { name, traits, stages, careerName } = req.body;
       
-      if (!traits || !stages || lifetimeEarnings === undefined) {
+      if (!traits || !stages) {
         return res.status(400).json({ error: "Missing required simulation data" });
       }
 
       const lifeEventsDescription = stages.map((stage: any) => {
         const age = stage.age;
-        const eventName = stage.education?.outcome || stage.career?.outcome || stage.event?.event?.name || "Unknown event";
-        const success = stage.education?.success ?? stage.career?.success ?? stage.event?.success ?? true;
-        const outcome = stage.education?.outcomeMessage || stage.career?.outcomeMessage || stage.event?.outcomeMessage || "";
-        const income = stage.incomeAfter;
-        return `Age ${age}: ${eventName} (${success ? 'Success' : 'Failure'}) - ${outcome} [Income: $${income?.toLocaleString() || 'N/A'}]`;
+        let eventType = '';
+        let eventName = '';
+        let outcome = '';
+        let success = true;
+        
+        if (stage.education) {
+          eventType = 'Education';
+          eventName = stage.education.label;
+          outcome = stage.education.outcomeMessage || '';
+        } else if (stage.career) {
+          eventType = 'Career Placement';
+          eventName = stage.career.career?.name || 'Unknown';
+          outcome = stage.career.outcomeMessage || '';
+          success = true;
+        } else if (stage.event) {
+          eventType = 'Life Event';
+          eventName = stage.event.event?.name || 'Unknown';
+          outcome = stage.event.outcomeMessage || '';
+          success = stage.event.success ?? true;
+        }
+        
+        return `Age ${age}: [${eventType}] ${eventName} - ${success ? 'Success' : 'Failure'}. ${outcome}`;
       }).join("\n");
 
-      const prompt = `Write a short, 2–3 sentence satirical obituary-style biography of a fictional person based on the following life simulation data. The tone should be wry, clever, and dryly humorous—like a mix between The New Yorker's Shouts & Murmurs, an NPR weekend profile, and a rogue D&D bard giving a eulogy.
+      const prompt = `Write a 2-sentence author-style biography blurb for a fictional person based on the life simulation data below.
 
-The character is defined by:
+RULES:
+- Be concise and specific. No fluff.
+- Mention specific ages when key events happened.
+- Only reference events that actually appear in the timeline below. Do not invent events.
+- Reflect their actual career field accurately (provided below).
+- Tone: wry and colorful, but not trying too hard to be funny. Think New Yorker author bio, not stand-up comedy.
+- Do NOT mention death, passing away, or treat this as an obituary.
+- Do NOT mention specific dollar amounts or earnings.
+- First sentence: personality summary based on traits + their career.
+- Second sentence: notable life events from the timeline with ages.
 
-Five traits (INT, WORK, NEPO, CHAR, RISK), each on a scale from 0–20
-
-Their lifetime earnings
-
-Their assigned career field (e.g., "Tech," "Retail," "Doctor")
-
-A timeline of nine life events
-
-The first sentence should summarize their general personality and background, including any notable strengths or weaknesses drawn from their traits (e.g., brilliant but antisocial, charming but unfocused, etc), and mention their career field.
-
-The second and third sentences should describe each life event in order, adding humor and specificity about what happened at each life stage (ages 18–66). You should interpret any successes or failures with playful speculation, adding made-up but fitting details—like names of companies (or inventions, partners, specific job as fits their life events), quirky rationales for decisions, what the person was sued or arrested for if they were sued or arrested, or how things turned out.
-
-Avoid generic phrasing and clichés—this should feel vivid, human, and lightly absurd.
-
-CHARACTER DATA:
+CHARACTER:
 Name: ${name}
-Career Field: ${careerField || "General"}
-Lifetime Earnings: $${lifetimeEarnings?.toLocaleString()}
+Career: ${careerName}
 
-Traits:
-- INT (Intelligence): ${traits.INT}/20
-- WORK (Work Ethic): ${traits.WORK}/20
-- NEPO (Nepotism/Connections): ${traits.NEPO}/20
-- CHAR (Charisma): ${traits.CHAR}/20
-- RISK (Risk Tolerance): ${traits.RISK}/20
+Traits (0-20 scale):
+- Intelligence: ${traits.INT}
+- Work Ethic: ${traits.WORK}
+- Connections: ${traits.NEPO}
+- Charisma: ${traits.CHAR}
+- Risk Tolerance: ${traits.RISK}
 
 Life Timeline:
 ${lifeEventsDescription}`;
@@ -70,15 +81,15 @@ ${lifeEventsDescription}`;
             content: prompt,
           },
         ],
-        max_tokens: 300,
-        temperature: 0.9,
+        max_tokens: 150,
+        temperature: 0.7,
       });
 
-      const obituary = response.choices[0]?.message?.content || "No biography generated.";
+      const biography = response.choices[0]?.message?.content || "No biography generated.";
       
-      res.json({ obituary });
+      res.json({ biography });
     } catch (error: any) {
-      console.error("Error generating obituary:", error);
+      console.error("Error generating biography:", error);
       res.status(500).json({ error: "Failed to generate biography" });
     }
   });

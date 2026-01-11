@@ -53,8 +53,8 @@ export function SingleLife() {
   const [seedLocked, setSeedLocked] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [hasRun, setHasRun] = useState(false);
-  const [obituary, setObituary] = useState<string | null>(null);
-  const [obituaryLoading, setObituaryLoading] = useState(false);
+  const [biography, setBiography] = useState<string | null>(null);
+  const [biographyLoading, setBiographyLoading] = useState(false);
   
   const handleNewAvatar = () => {
     setAvatarKey(Date.now());
@@ -125,7 +125,7 @@ export function SingleLife() {
     );
     setResult(simResult);
     setHasRun(true);
-    setObituary(null);
+    setBiography(null);
     updateUrl();
   };
   
@@ -138,34 +138,33 @@ export function SingleLife() {
     });
   };
 
-  const generateObituary = async () => {
+  useEffect(() => {
     if (!result) return;
     
-    setObituaryLoading(true);
-    try {
-      const careerStage = result.stages.find(s => s.career);
-      const careerField = careerStage?.career?.placement?.tier || 'General';
-      
-      const response = await apiRequest('POST', '/api/generate-obituary', {
-        name: result.name,
-        traits: result.traits,
-        stages: result.stages,
-        lifetimeEarnings: result.lifetimeEarnings,
-        careerField,
-      });
-      
-      const data = await response.json();
-      setObituary(data.obituary);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate biography',
-        variant: 'destructive',
-      });
-    } finally {
-      setObituaryLoading(false);
-    }
-  };
+    const generateBiography = async () => {
+      setBiographyLoading(true);
+      try {
+        const careerStage = result.stages.find(s => s.career);
+        const careerName = careerStage?.career?.career?.name || 'General';
+        
+        const response = await apiRequest('POST', '/api/generate-biography', {
+          name: result.name,
+          traits: result.traits,
+          stages: result.stages,
+          careerName,
+        });
+        
+        const data = await response.json();
+        setBiography(data.biography);
+      } catch (error) {
+        console.error('Failed to generate biography:', error);
+      } finally {
+        setBiographyLoading(false);
+      }
+    };
+    
+    generateBiography();
+  }, [result]);
 
   return (
     <div className="space-y-6" data-testid="single-life-view">
@@ -409,28 +408,16 @@ export function SingleLife() {
                   <BookOpen className="h-4 w-4 text-muted-foreground" />
                   <h3 className="text-sm font-semibold">Life Biography</h3>
                 </div>
-                {obituary ? (
-                  <p className="text-sm italic text-muted-foreground leading-relaxed" data-testid="obituary-text">
-                    {obituary}
+                {biographyLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generating biography...
+                  </div>
+                ) : biography ? (
+                  <p className="text-sm italic text-muted-foreground leading-relaxed" data-testid="biography-text">
+                    {biography}
                   </p>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={generateObituary}
-                    disabled={obituaryLoading}
-                    data-testid="button-generate-obituary"
-                  >
-                    {obituaryLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      'Generate AI Biography'
-                    )}
-                  </Button>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>

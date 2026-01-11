@@ -38,6 +38,11 @@ export interface EducationOutcome {
   growthDelta: number;
 }
 
+export interface TraitContribution {
+  trait: TraitName;
+  contribution: number;
+}
+
 export interface EventOutcome {
   event: Event;
   stage: number;
@@ -56,6 +61,7 @@ export interface EventOutcome {
   evRealized: number;
   isCritical?: boolean;
   criticalType?: 'success' | 'failure';
+  traitContributions?: TraitContribution[];
 }
 
 export interface StageResult {
@@ -144,6 +150,24 @@ export function computeTotalMod(
     total += mod * (multipliers[t] || 1) * (weight || 0);
   }
   return Math.floor(total);
+}
+
+export function computeTraitContributions(
+  traits: Traits,
+  checkTraits: Partial<Record<TraitName, number>>,
+  worldMode: WorldMode
+): TraitContribution[] {
+  const multipliers = worldModes[worldMode];
+  const contributions: TraitContribution[] = [];
+  for (const [trait, weight] of Object.entries(checkTraits)) {
+    const t = trait as TraitName;
+    const mod = getMod(traits[t]);
+    const contribution = Math.floor(mod * (multipliers[t] || 1) * (weight || 0));
+    if (contribution !== 0) {
+      contributions.push({ trait: t, contribution });
+    }
+  }
+  return contributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 }
 
 export function computeEvSuccess(stage: number, event: Event): number {
@@ -303,10 +327,13 @@ export function resolveEvent(
   let isCritical = false;
   let criticalType: 'success' | 'failure' | undefined;
   
+  let traitContributions: TraitContribution[] = [];
+  
   if (!gateFailed) {
     if (event.rollRequired && event.DC) {
       mainRoll = rollD20(rng);
       mainMod = computeTotalMod(traits, event.checkTraits, worldMode);
+      traitContributions = computeTraitContributions(traits, event.checkTraits, worldMode);
       mainDC = event.DC;
       
       // Check for critical success (nat 20) or critical failure (nat 1)
@@ -373,7 +400,8 @@ export function resolveEvent(
     incomeAfter: newIncome,
     evRealized,
     isCritical,
-    criticalType
+    criticalType,
+    traitContributions
   };
   
   return { outcome, newIncome, newGrowth };

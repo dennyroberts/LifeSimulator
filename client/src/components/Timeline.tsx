@@ -1,7 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  type StageResult, 
+  type StageResult,
+  type TraitContribution,
   formatCurrency, 
   formatPercent,
   formatEV 
@@ -160,9 +161,22 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
           </div>
         </div>
         
-        <div className="text-xs font-medium mb-2 leading-tight min-h-[2.5rem]" title={event.name}>
+        <div className="text-xs font-medium mb-1 leading-tight" title={event.name}>
           {event.name}
         </div>
+        
+        {outcome.traitContributions && outcome.traitContributions.length > 0 && (
+          <div className="text-[9px] text-muted-foreground mb-2 font-mono">
+            {outcome.traitContributions.map((tc, i) => (
+              <span key={tc.trait}>
+                {i > 0 && ', '}
+                <span className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                  {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
         
         <div className="flex flex-wrap gap-1 mb-2">
           <Badge className={`${rarityColors[event.rarity]} text-[10px] px-1.5 py-0`} data-testid={`event-rarity-${stage.stage}`}>
@@ -217,23 +231,24 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
         )}
         
         <div className="p-2 rounded bg-muted mb-2">
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] text-muted-foreground">Effects</span>
-            {outcome.isCritical && (
-              <span className={`text-[9px] font-bold ${outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive'}`}>
-                (2x)
+          {outcome.isCritical && (
+            <div className={`text-[9px] font-bold mb-1 ${outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive'}`}>
+              Critical (2x)
+            </div>
+          )}
+          <div className="font-mono text-xs space-y-0.5">
+            <div>
+              <span className="text-muted-foreground">Jump: </span>
+              <span className={outcome.jumpPct !== 0 ? (outcome.jumpPct > 0 ? 'text-chart-2' : 'text-destructive') : 'text-muted-foreground'}>
+                {formatPercent(outcome.jumpPct)}
               </span>
-            )}
-          </div>
-          <div className="font-mono text-xs">
-            <span className="text-muted-foreground">J:</span>
-            <span className={outcome.jumpPct !== 0 ? (outcome.jumpPct > 0 ? 'text-chart-2' : 'text-destructive') : 'text-muted-foreground'}>
-              {formatPercent(outcome.jumpPct)}
-            </span>
-            <span className="text-muted-foreground ml-1">G:</span>
-            <span className={outcome.growthDelta !== 0 ? (outcome.growthDelta > 0 ? 'text-chart-2' : 'text-destructive') : 'text-muted-foreground'}>
-              {formatPercent(outcome.growthDelta)}
-            </span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Growth: </span>
+              <span className={outcome.growthDelta !== 0 ? (outcome.growthDelta > 0 ? 'text-chart-2' : 'text-destructive') : 'text-muted-foreground'}>
+                {formatPercent(outcome.growthDelta)}
+              </span>
+            </div>
           </div>
         </div>
         

@@ -164,9 +164,7 @@ export function computeTraitContributions(
     const t = trait as TraitName;
     const mod = getMod(traits[t]);
     const contribution = Math.floor(mod * (multipliers[t] || 1) * (weight || 0));
-    if (contribution !== 0) {
-      contributions.push({ trait: t, contribution });
-    }
+    contributions.push({ trait: t, contribution });
   }
   return contributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 }

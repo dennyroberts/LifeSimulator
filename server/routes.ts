@@ -57,18 +57,22 @@ export async function registerRoutes(
       const highestTrait = sortedTraits[0];
       const lowestTrait = sortedTraits[sortedTraits.length - 1];
 
-      const prompt = `Write a short author-style biography blurb (3-5 sentences) for a fictional person based on the life simulation data below.
+      const prompt = `Write an author-style biography blurb for a fictional person based on the life simulation data below.
 
 STRUCTURE:
 1. First sentence: Their name, career as a ${careerName}, and personality based on their strongest trait (${highestTrait.name}) and weakest trait (${lowestTrait.name}).
-2. Remaining sentences: Summarize the life events below, adding colorful specifics (restaurant names, company names, etc.) but ONLY for the events listed. You may combine multiple events into one sentence.
+2. Remaining sentences: Go through EACH life event below in order. For each event, mention the specific age and what happened. Add colorful details (specific names, places, circumstances).
 
-CRITICAL RULES:
-- ONLY mention ages that appear in the timeline below (18, 24, 30, 36, 42, 48, 54, 60, 66). Do NOT invent events at other ages.
-- Add colorful details to the events that exist, but do not add new events.
-- Keep it concise - aim for 3-5 sentences total.
-- Tone: colorful and specific, wry but not trying hard to be funny.
-- No obituary language. No death references.
+CRITICAL: You MUST mention every single event from the timeline, including failures. Examples:
+- Success: "At 36, she launched a startup called BrightPath Analytics that took off."
+- Failure (didn't risk): "At 42, Marcus briefly considered law school but decided it would be too much work."
+- Failure (tried and failed): "At 48, her attempt to get promoted at Deloitte fell flat."
+
+RULES:
+- Mention EVERY event with its specific age. Do not skip any.
+- Add colorful specifics (company names, what exactly happened, etc.)
+- Tone: colorful and specific, wry but not forced.
+- No obituary language. No death.
 - No dollar amounts.
 
 CHARACTER:
@@ -77,7 +81,7 @@ Career: ${careerName}
 Strongest: ${highestTrait.name} (${highestTrait.value}/20)
 Weakest: ${lowestTrait.name} (${lowestTrait.value}/20)
 
-Life Timeline (ONLY reference these events):
+Life Timeline (mention ALL of these with ages):
 ${lifeEventsDescription}`;
 
       const response = await openai.chat.completions.create({
@@ -88,7 +92,7 @@ ${lifeEventsDescription}`;
             content: prompt,
           },
         ],
-        max_tokens: 250,
+        max_tokens: 400,
         temperature: 0.75,
       });
 

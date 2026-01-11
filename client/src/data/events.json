@@ -17,7 +17,8 @@
       "fail": "Passed over again",
       "critSuccess": "Fast-tracked to executive",
       "critFail": "Publicly humiliated",
-      "traitSuccess": { "WORK": "Your work ethic got you noticed", "CHAR": "Your charisma won them over" }
+      "traitSuccess": { "WORK": "Your work ethic got you noticed", "CHAR": "Your charisma won them over" },
+      "traitFail": { "WORK": "Your poor work ethic held you back", "CHAR": "Your lack of charm lost the decision" }
     }
   },
   {
@@ -38,7 +39,8 @@
       "fail": "Froze under pressure",
       "critSuccess": "Standing ovation moment",
       "critFail": "Career-ending embarrassment",
-      "traitSuccess": { "WORK": "Your work ethic ensured you were prepared", "INT": "Your intelligence let you think on your feet", "CHAR": "Your charisma commanded the room" }
+      "traitSuccess": { "WORK": "Your work ethic ensured you were prepared", "INT": "Your intelligence let you think on your feet", "CHAR": "Your charisma commanded the room" },
+      "traitFail": { "WORK": "Your lack of preparation showed", "INT": "You weren't sharp enough under pressure", "CHAR": "You couldn't command the room" }
     }
   },
   {
@@ -59,7 +61,8 @@
       "fail": "Just another employee to them",
       "critSuccess": "They take you with them when they move up",
       "critFail": "Boss turns on you, blocks your advancement",
-      "traitSuccess": { "CHAR": "Your charisma made you their trusted right-hand", "WORK": "Your work ethic made them look good" }
+      "traitSuccess": { "CHAR": "Your charisma made you their trusted right-hand", "WORK": "Your work ethic made them look good" },
+      "traitFail": { "CHAR": "Your lack of personality made you forgettable", "WORK": "Your poor output made them look elsewhere" }
     }
   },
   {
@@ -80,7 +83,8 @@
       "fail": "Crushed your spirit",
       "critSuccess": "Outlasted and thrived",
       "critFail": "Completely destroyed you",
-      "traitSuccess": { "CHAR": "Your charisma kept you on their good side", "WORK": "Your work ethic made you too valuable to target" }
+      "traitSuccess": { "CHAR": "Your charisma kept you on their good side", "WORK": "Your work ethic made you too valuable to target" },
+      "traitFail": { "CHAR": "Your lack of charm made you an easy target", "WORK": "Your poor performance gave them ammunition" }
     }
   },
   {
@@ -101,7 +105,8 @@
       "fail": "Went nowhere fast",
       "critSuccess": "Perfect positioning achieved",
       "critFail": "Career dead end",
-      "traitSuccess": { "RISK": "Your risk tolerance paid off on a bold move", "CHAR": "Your charisma talked your way in", "NEPO": "Your family connections opened doors" }
+      "traitSuccess": { "RISK": "Your risk tolerance paid off on a bold move", "CHAR": "Your charisma talked your way in", "NEPO": "Your family connections opened doors" },
+      "traitFail": { "RISK": "Your risk aversion kept you stuck", "CHAR": "Your lack of charm failed to impress", "NEPO": "No connections to help you transition" }
     }
   },
   {
@@ -122,7 +127,8 @@
       "fail": "Not ready for this",
       "critSuccess": "Born to lead",
       "critFail": "Spectacular public failure",
-      "traitSuccess": { "WORK": "Your work ethic earned their respect", "CHAR": "Your charisma rallied the team behind you", "INT": "Your intelligence impressed with strategic vision", "NEPO": "Your family name opened doors" }
+      "traitSuccess": { "WORK": "Your work ethic earned their respect", "CHAR": "Your charisma rallied the team behind you", "INT": "Your intelligence impressed with strategic vision", "NEPO": "Your family name opened doors" },
+      "traitFail": { "WORK": "Your poor work habits undermined your authority", "CHAR": "Your lack of presence failed to inspire the team", "INT": "Your poor judgment led to bad decisions", "NEPO": "No connections to back you up when things got tough" }
     }
   },
   {
@@ -143,7 +149,8 @@
       "fail": "Written up officially",
       "critSuccess": "Turned it around completely",
       "critFail": "Escorted out immediately",
-      "traitSuccess": { "WORK": "Your work ethic and track record saved you", "CHAR": "Your charisma talked your way out" }
+      "traitSuccess": { "WORK": "Your work ethic and track record saved you", "CHAR": "Your charisma talked your way out" },
+      "traitFail": { "WORK": "Your poor work ethic got you fired", "CHAR": "Your lack of charisma made things worse" }
     }
   },
   {
@@ -164,7 +171,8 @@
       "fail": "Career pivot cost you momentum and salary",
       "critSuccess": "Became an expert in a lucrative field",
       "critFail": "Years wasted learning the wrong thing",
-      "traitSuccess": { "WORK": "Your work ethic let you grind until the market noticed", "INT": "Your intelligence let you upskill quickly", "RISK": "Your risk tolerance paid off betting on yourself" }
+      "traitSuccess": { "WORK": "Your work ethic let you grind until the market noticed", "INT": "Your intelligence let you upskill quickly", "RISK": "Your risk tolerance paid off betting on yourself" },
+      "traitFail": { "WORK": "Your lack of discipline slowed your progress", "INT": "You struggled to learn new skills", "RISK": "Your fear of change held you back" }
     }
   },
   {
@@ -185,7 +193,8 @@
       "fail": "Nobody knows your name yet",
       "critSuccess": "Headhunters fight over you",
       "critFail": "Your reputation tanks publicly",
-      "traitSuccess": { "CHAR": "Your charisma makes everyone want to work with you", "INT": "Your intelligence made you the go-to expert", "NEPO": "Your family name commands respect" }
+      "traitSuccess": { "CHAR": "Your charisma makes everyone want to work with you", "INT": "Your intelligence made you the go-to expert", "NEPO": "Your family name commands respect" },
+      "traitFail": { "CHAR": "Your lack of presence made you easy to overlook", "INT": "You weren't seen as an expert", "NEPO": "No family reputation to leverage" }
     }
   },
   {
@@ -206,7 +215,8 @@
       "fail": "Door slams shut",
       "critSuccess": "VIP access unlocked",
       "critFail": "Burned that bridge forever",
-      "traitSuccess": { "NEPO": "Your family connections came through", "CHAR": "Your charisma made a great impression" }
+      "traitSuccess": { "NEPO": "Your family connections came through", "CHAR": "Your charisma made a great impression" },
+      "traitFail": { "NEPO": "No connections to open doors for you", "CHAR": "Your poor impression closed the door" }
     }
   },
   {
@@ -227,7 +237,8 @@
       "fail": "Moment passes unnoticed",
       "critSuccess": "Overnight sensation",
       "critFail": "Viral for wrong reasons",
-      "traitSuccess": { "CHAR": "Your charisma gave you natural star power", "NEPO": "Your family connections put you in the right circles", "WORK": "Your work ethic made your work speak for itself" }
+      "traitSuccess": { "CHAR": "Your charisma gave you natural star power", "NEPO": "Your family connections put you in the right circles", "WORK": "Your work ethic made your work speak for itself" },
+      "traitFail": { "CHAR": "Your lack of presence made fame slip away", "NEPO": "No connections to amplify your moment", "WORK": "Your weak portfolio went unnoticed" }
     }
   },
   {
@@ -248,7 +259,8 @@
       "fail": "Offer falls through",
       "critSuccess": "Dream job secured",
       "critFail": "Lost current job too",
-      "traitSuccess": { "CHAR": "Your charisma negotiated masterfully", "NEPO": "Your family connections helped from inside", "RISK": "Your risk tolerance paid off on a bold ask", "WORK": "Your work ethic and track record sealed it" }
+      "traitSuccess": { "CHAR": "Your charisma negotiated masterfully", "NEPO": "Your family connections helped from inside", "RISK": "Your risk tolerance paid off on a bold ask", "WORK": "Your work ethic and track record sealed it" },
+      "traitFail": { "CHAR": "Your weak negotiation skills cost you the deal", "NEPO": "No inside connections to advocate for you", "RISK": "Your timid approach left money on the table", "WORK": "Your thin resume couldn't compete" }
     }
   },
   {
@@ -269,7 +281,8 @@
       "fail": "Project fizzles out",
       "critSuccess": "Built an empire",
       "critFail": "Lost everything trying",
-      "traitSuccess": { "WORK": "Your work ethic outworked everyone", "RISK": "Your risk tolerance let you bet big on yourself", "INT": "Your intelligence led to brilliant execution", "CHAR": "Your charisma made customers love you" }
+      "traitSuccess": { "WORK": "Your work ethic outworked everyone", "RISK": "Your risk tolerance let you bet big on yourself", "INT": "Your intelligence led to brilliant execution", "CHAR": "Your charisma made customers love you" },
+      "traitFail": { "WORK": "Your lack of hustle doomed the venture", "RISK": "Your fear of failure held you back from growth", "INT": "Your poor planning led to costly mistakes", "CHAR": "Your lack of salesmanship killed momentum" }
     }
   },
   {
@@ -290,7 +303,8 @@
       "fail": "Cost of living ate your raise",
       "critSuccess": "Landed in a booming market at the perfect time",
       "critFail": "Burned savings on a move that went nowhere",
-      "traitSuccess": { "RISK": "Your risk tolerance paid off betting on a hot market", "NEPO": "Your family connections got you hired fast", "CHAR": "Your charisma networked you into a better gig" }
+      "traitSuccess": { "RISK": "Your risk tolerance paid off betting on a hot market", "NEPO": "Your family connections got you hired fast", "CHAR": "Your charisma networked you into a better gig" },
+      "traitFail": { "RISK": "Your fear of change kept you in a dying market", "NEPO": "No network in the new city to help you land", "CHAR": "Your poor networking left you isolated" }
     }
   },
   {
@@ -311,7 +325,8 @@
       "fail": "Crashed and burned",
       "critSuccess": "Legendary success story",
       "critFail": "Lost absolutely everything",
-      "traitSuccess": { "RISK": "Your risk tolerance meant fortune favored the bold", "WORK": "Your work ethic and obsessive focus won out", "CHAR": "Your charisma inspired believers", "INT": "Your intelligence calculated everything perfectly", "NEPO": "Your family safety net caught you" }
+      "traitSuccess": { "RISK": "Your risk tolerance meant fortune favored the bold", "WORK": "Your work ethic and obsessive focus won out", "CHAR": "Your charisma inspired believers", "INT": "Your intelligence calculated everything perfectly", "NEPO": "Your family safety net caught you" },
+      "traitFail": { "RISK": "Your hesitation cost you the crucial moment", "WORK": "Your lack of commitment undermined the bet", "CHAR": "Your lack of conviction scared away supporters", "INT": "Your poor judgment led you astray", "NEPO": "No safety net when you fell" }
     }
   },
   {
@@ -332,7 +347,8 @@
       "fail": "Deal fell apart",
       "critSuccess": "Generational wealth achieved",
       "critFail": "Watched millions vanish",
-      "traitSuccess": { "RISK": "Your risk tolerance kept you holding on", "NEPO": "Your family connections brought in the right investors", "CHAR": "Your charisma closed the deal", "WORK": "Your work ethic built something valuable" }
+      "traitSuccess": { "RISK": "Your risk tolerance kept you holding on", "NEPO": "Your family connections brought in the right investors", "CHAR": "Your charisma closed the deal", "WORK": "Your work ethic built something valuable" },
+      "traitFail": { "RISK": "Your fear made you sell too early", "NEPO": "No connections to bring serious buyers", "CHAR": "Your poor pitch killed the deal", "WORK": "Your half-built product wasn't worth buying" }
     }
   },
   {
@@ -353,7 +369,8 @@
       "fail": "Wiped out completely",
       "critSuccess": "Perfect timing magic",
       "critFail": "Crushed by the wave",
-      "traitSuccess": { "RISK": "Your risk tolerance had you positioned early", "INT": "Your intelligence saw the downturn coming" }
+      "traitSuccess": { "RISK": "Your risk tolerance had you positioned early", "INT": "Your intelligence saw the downturn coming" },
+      "traitFail": { "RISK": "Your caution left you on the sidelines", "INT": "You failed to see the opportunity coming" }
     }
   },
   {
@@ -395,7 +412,8 @@
       "fail": "The opportunity slipped through your fingers",
       "critSuccess": "Pure luck turns into pure profit",
       "critFail": "Bad timing cost you big",
-      "traitSuccess": { "WORK": "Your work ethic meant you were prepared for opportunity" }
+      "traitSuccess": { "WORK": "Your work ethic meant you were prepared for opportunity" },
+      "traitFail": { "WORK": "Your lack of preparation meant you missed the moment" }
     }
   },
   {
@@ -416,7 +434,8 @@
       "fail": "Swept away by change",
       "critSuccess": "Pivoted beautifully",
       "critFail": "Skills now worthless",
-      "traitSuccess": { "WORK": "Your work ethic let you adapt quickly", "NEPO": "Your family connections found you work", "CHAR": "Your charisma networked you to safety" }
+      "traitSuccess": { "WORK": "Your work ethic let you adapt quickly", "NEPO": "Your family connections found you work", "CHAR": "Your charisma networked you to safety" },
+      "traitFail": { "WORK": "You couldn't adapt fast enough", "NEPO": "No connections to fall back on", "CHAR": "No one was willing to help you out" }
     }
   },
   {
@@ -437,7 +456,8 @@
       "fail": "Long road to recovery",
       "critSuccess": "Bounced back stronger",
       "critFail": "Life-altering injuries",
-      "traitSuccess": { "WORK": "Your work ethic meant your job waited for you", "NEPO": "Your family connections covered expenses" }
+      "traitSuccess": { "WORK": "Your work ethic meant your job waited for you", "NEPO": "Your family connections covered expenses" },
+      "traitFail": { "WORK": "Your expendability meant they replaced you", "NEPO": "No family support to cover medical bills" }
     }
   },
   {
@@ -458,7 +478,8 @@
       "fail": "Completely broke down",
       "critSuccess": "Found better balance",
       "critFail": "Never the same again",
-      "traitSuccess": { "WORK": "Your work ethic and discipline saved you", "NEPO": "Your family support system helped" }
+      "traitSuccess": { "WORK": "Your work ethic and discipline saved you", "NEPO": "Your family support system helped" },
+      "traitFail": { "WORK": "Your poor habits made recovery harder", "NEPO": "No support system to catch you" }
     }
   },
   {
@@ -479,7 +500,8 @@
       "fail": "Paid the settlement",
       "critSuccess": "Won and countersued",
       "critFail": "Financially ruined",
-      "traitSuccess": { "NEPO": "Your family lawyers crushed it", "CHAR": "Your charisma won over the jury", "WORK": "Your work ethic and documentation saved you" }
+      "traitSuccess": { "NEPO": "Your family lawyers crushed it", "CHAR": "Your charisma won over the jury", "WORK": "Your work ethic and documentation saved you" },
+      "traitFail": { "NEPO": "No access to good lawyers", "CHAR": "Your poor demeanor hurt your case", "WORK": "Your sloppy documentation made you look guilty" }
     }
   },
   {
@@ -500,7 +522,8 @@
       "fail": "Still solo, still paying rent alone",
       "critSuccess": "Married a high earner who supports your career",
       "critFail": "Toxic relationship drained your savings",
-      "traitSuccess": { "CHAR": "Your charisma attracted someone whose network opened doors", "WORK": "Your work ethic built a power couple dynamic" }
+      "traitSuccess": { "CHAR": "Your charisma attracted someone whose network opened doors", "WORK": "Your work ethic built a power couple dynamic" },
+      "traitFail": { "CHAR": "Your lack of appeal kept you searching", "WORK": "Your poor ambition wasn't attractive" }
     }
   },
   {
@@ -521,7 +544,8 @@
       "fail": "They were too busy to invest in you",
       "critSuccess": "Their network becomes your network",
       "critFail": "They took credit for your work",
-      "traitSuccess": { "CHAR": "Your charisma made them see you as their protégé", "WORK": "Your work ethic earned their investment" }
+      "traitSuccess": { "CHAR": "Your charisma made them see you as their protégé", "WORK": "Your work ethic earned their investment" },
+      "traitFail": { "CHAR": "Your lack of likability made them pass you over", "WORK": "Your poor effort wasn't worth their time" }
     }
   },
   {
@@ -542,7 +566,8 @@
       "fail": "Didn't make the cut",
       "critSuccess": "Elite credential secured",
       "critFail": "Rejected and blacklisted",
-      "traitSuccess": { "NEPO": "Your family connections got you in", "WORK": "Your work ethic earned you your spot", "INT": "Your intelligence impressed in interviews" }
+      "traitSuccess": { "NEPO": "Your family connections got you in", "WORK": "Your work ethic earned you your spot", "INT": "Your intelligence impressed in interviews" },
+      "traitFail": { "NEPO": "No connections to get your foot in the door", "WORK": "Your weak portfolio didn't impress", "INT": "You bombed the technical interviews" }
     }
   },
   {
@@ -563,7 +588,8 @@
       "fail": "Wind died down",
       "critSuccess": "Perfect timing",
       "critFail": "Headwinds instead",
-      "traitSuccess": { "INT": "Your intelligence spotted the trend early", "WORK": "Your work ethic had you ready to capitalize", "NEPO": "Family connections tipped you off" }
+      "traitSuccess": { "INT": "Your intelligence spotted the trend early", "WORK": "Your work ethic had you ready to capitalize", "NEPO": "Family connections tipped you off" },
+      "traitFail": { "INT": "You failed to see the opportunity", "WORK": "Your lack of preparation meant you missed the wave", "NEPO": "No inside information to act on" }
     }
   },
   {
@@ -584,7 +610,8 @@
       "fail": "Idea didn't work",
       "critSuccess": "Changed the world",
       "critFail": "Someone stole the idea",
-      "traitSuccess": { "INT": "Your intelligence led to a genius breakthrough", "WORK": "Your work ethic and years of research paid off" }
+      "traitSuccess": { "INT": "Your intelligence led to a genius breakthrough", "WORK": "Your work ethic and years of research paid off" },
+      "traitFail": { "INT": "Your limited thinking couldn't crack the problem", "WORK": "Your lack of persistence abandoned the project too early" }
     }
   },
   {
@@ -605,7 +632,8 @@
       "fail": "Convicted as charged",
       "critSuccess": "Walked away clean",
       "critFail": "Maximum sentence",
-      "traitSuccess": { "NEPO": "Your family hired top lawyers", "CHAR": "Your charisma convinced the judge to show mercy" }
+      "traitSuccess": { "NEPO": "Your family hired top lawyers", "CHAR": "Your charisma convinced the judge to show mercy" },
+      "traitFail": { "NEPO": "No money for a decent lawyer", "CHAR": "Your poor demeanor made the judge throw the book at you" }
     }
   },
   {
@@ -626,7 +654,8 @@
       "fail": "Months of unemployment",
       "critSuccess": "Better job immediately",
       "critFail": "Career derailed completely",
-      "traitSuccess": { "WORK": "Your work ethic and reputation preceded you", "NEPO": "Your family network found you work", "CHAR": "Your charisma had you interviewing like a pro" }
+      "traitSuccess": { "WORK": "Your work ethic and reputation preceded you", "NEPO": "Your family network found you work", "CHAR": "Your charisma had you interviewing like a pro" },
+      "traitFail": { "WORK": "Your poor track record made you unhireable", "NEPO": "No network to tap for leads", "CHAR": "Your weak interviews left you jobless" }
     }
   },
   {
@@ -647,7 +676,8 @@
       "fail": "Dropped out",
       "critSuccess": "Top of your class",
       "critFail": "Debt with nothing to show",
-      "traitSuccess": { "INT": "Your intelligence earned academic excellence", "WORK": "Your work ethic powered you through" }
+      "traitSuccess": { "INT": "Your intelligence earned academic excellence", "WORK": "Your work ethic powered you through" },
+      "traitFail": { "INT": "You couldn't keep up with the coursework", "WORK": "Your lack of discipline led you to quit" }
     }
   },
   {
@@ -668,7 +698,8 @@
       "fail": "Ugly court battle",
       "critSuccess": "You come out ahead",
       "critFail": "Lost everything",
-      "traitSuccess": { "NEPO": "Your family lawyers protected you", "CHAR": "Your charisma kept you on good terms" }
+      "traitSuccess": { "NEPO": "Your family lawyers protected you", "CHAR": "Your charisma kept you on good terms" },
+      "traitFail": { "NEPO": "No legal resources to protect your assets", "CHAR": "Your poor communication made everything hostile" }
     }
   },
   {
@@ -689,7 +720,8 @@
       "fail": "Drowning in debt",
       "critSuccess": "Turned it around completely",
       "critFail": "Declared bankruptcy",
-      "traitSuccess": { "NEPO": "Your family bailed you out", "WORK": "Your work ethic had you working extra to pay it off" }
+      "traitSuccess": { "NEPO": "Your family bailed you out", "WORK": "Your work ethic had you working extra to pay it off" },
+      "traitFail": { "NEPO": "No family money to help you out", "WORK": "Your lack of hustle kept you sinking deeper" }
     }
   }
 ]

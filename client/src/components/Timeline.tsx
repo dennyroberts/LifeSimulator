@@ -140,7 +140,7 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
             "{edu.outcomeMessage}"
           </div>
         )}
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex items-center gap-3 text-xs flex-wrap">
           <div className="font-mono">
             <span className="text-muted-foreground">Roll: </span>
             <span className="font-bold">{edu.roll}</span>
@@ -151,6 +151,18 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
             <span className="text-muted-foreground">=</span>
             <span className="font-bold">{edu.total}</span>
           </div>
+          {edu.traitContributions && edu.traitContributions.some(tc => tc.contribution !== 0) && (
+            <div className="font-mono text-[10px] text-muted-foreground">
+              ({edu.traitContributions.filter(tc => tc.contribution !== 0).map((tc, i) => (
+                <span key={tc.trait}>
+                  {i > 0 && ' '}
+                  <span className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                    {tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                  </span>
+                </span>
+              ))})
+            </div>
+          )}
           <div className="font-mono">
             <span className="text-muted-foreground">Growth: </span>
             <span className={edu.growthDelta > 0 ? 'text-chart-2' : 'text-muted-foreground'}>
@@ -318,6 +330,15 @@ function CompactEducationCard({ stage }: { stage: StageResult }) {
         
         <div className="p-2 rounded bg-muted mb-2">
           <div className="text-[10px] text-muted-foreground">Roll</div>
+          {edu.traitContributions && edu.traitContributions.some(tc => tc.contribution !== 0) && (
+            <div className="text-[10px] font-mono mt-1 mb-1 space-y-0.5">
+              {edu.traitContributions.filter(tc => tc.contribution !== 0).map((tc) => (
+                <div key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                  {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                </div>
+              ))}
+            </div>
+          )}
           <div className="font-mono text-sm">
             <span className="font-bold">{edu.roll}</span>
             <span className="text-muted-foreground">+</span>

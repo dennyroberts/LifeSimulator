@@ -23,6 +23,7 @@ export interface EventOutcomes {
   critSuccess?: string;
   critFail?: string;
   traitSuccess?: Partial<Record<TraitName, string>>;
+  traitFail?: Partial<Record<TraitName, string>>;
 }
 
 export interface Event {
@@ -48,6 +49,7 @@ export interface EducationOutcome {
   label: string;
   growthDelta: number;
   outcomeMessage?: string;
+  traitContributions: TraitContribution[];
 }
 
 export interface CareerDefinition {
@@ -478,8 +480,10 @@ export function resolveEducation(
   rng: () => number
 ): EducationOutcome {
   const roll = rollD20(rng);
-  const totalMod = computeTotalMod(traits, config.education.checkTraits as Partial<Record<TraitName, number>>, worldMode);
+  const checkTraits = config.education.checkTraits as Partial<Record<TraitName, number>>;
+  const totalMod = computeTotalMod(traits, checkTraits, worldMode);
   const total = roll + totalMod;
+  const traitContributions = computeTraitContributions(traits, checkTraits, worldMode);
   
   for (const threshold of config.education.thresholds) {
     if (total >= threshold.minTotal) {
@@ -489,7 +493,8 @@ export function resolveEducation(
         total,
         label: threshold.label,
         growthDelta: threshold.growthDelta,
-        outcomeMessage: educationOutcomes[threshold.label] || 'Your education shapes your path'
+        outcomeMessage: educationOutcomes[threshold.label] || 'Your education shapes your path',
+        traitContributions
       };
     }
   }
@@ -500,7 +505,8 @@ export function resolveEducation(
     total,
     label: 'Straight to workforce',
     growthDelta: 0,
-    outcomeMessage: educationOutcomes['Straight to workforce']
+    outcomeMessage: educationOutcomes['Straight to workforce'],
+    traitContributions
   };
 }
 
@@ -727,7 +733,20 @@ export function resolveEvent(
         outcomeMessage = event.outcomes.success;
       }
     } else {
-      outcomeMessage = event.outcomes.fail;
+      // Check for trait-specific fail message (when a trait contributed negatively to failure)
+      if (event.outcomes.traitFail && Array.isArray(traitContributions) && traitContributions.length > 0) {
+        // Find the trait with the most negative contribution (worst harm)
+        const negativeTrait = traitContributions
+          .filter(tc => tc.contribution < 0)
+          .sort((a, b) => a.contribution - b.contribution)[0]; // Most negative first
+        if (negativeTrait && event.outcomes.traitFail[negativeTrait.trait]) {
+          outcomeMessage = event.outcomes.traitFail[negativeTrait.trait];
+        } else {
+          outcomeMessage = event.outcomes.fail;
+        }
+      } else {
+        outcomeMessage = event.outcomes.fail;
+      }
     }
   }
   

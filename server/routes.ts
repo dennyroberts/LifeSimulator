@@ -57,32 +57,18 @@ export async function registerRoutes(
       const highestTrait = sortedTraits[0];
       const lowestTrait = sortedTraits[sortedTraits.length - 1];
 
-      const prompt = `Write an author-style biography blurb for a fictional person based on the life simulation data below.
+      const prompt = `Write a brief author-bio blurb for this fictional person. Keep it SHORT (4-6 sentences max).
 
-STRUCTURE:
-1. First sentence: Their name, career as a ${careerName}, and personality based on their strongest trait (${highestTrait.name}) and weakest trait (${lowestTrait.name}).
-2. Remaining sentences: Go through EACH life event below in order. For each event, mention the specific age and what happened. Add colorful details (specific names, places, circumstances).
+${name} worked as a ${careerName}. Their strongest trait was ${highestTrait.name}, their weakest was ${lowestTrait.name}.
 
-CRITICAL: You MUST mention every single event from the timeline, including failures. Examples:
-- Success: "At 36, she launched a startup called BrightPath Analytics that took off."
-- Failure (didn't risk): "At 42, Marcus briefly considered law school but decided it would be too much work."
-- Failure (tried and failed): "At 48, her attempt to get promoted at Deloitte fell flat."
+Here is their complete life timeline. Reference ONLY these events - do NOT add any events at other ages:
+${lifeEventsDescription}
 
-RULES:
-- Mention EVERY event with its specific age. Do not skip any.
-- Add colorful specifics (company names, what exactly happened, etc.)
-- Tone: colorful and specific, wry but not forced.
-- No obituary language. No death.
-- No dollar amounts.
-
-CHARACTER:
-Name: ${name}
-Career: ${careerName}
-Strongest: ${highestTrait.name} (${highestTrait.value}/20)
-Weakest: ${lowestTrait.name} (${lowestTrait.value}/20)
-
-Life Timeline (mention ALL of these with ages):
-${lifeEventsDescription}`;
+Write the bio now. Rules:
+- First sentence: name, career, and personality based on strongest/weakest traits
+- Then briefly cover each event above with its age, adding a colorful detail (a name, place, or circumstance)
+- ONLY use the ages listed above (18, 24, 30, 36, 42, 48, 54, 60, 66). Do NOT invent events at ages like 22, 28, 32, etc.
+- Keep it concise. No obituary language. No dollar amounts.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -92,8 +78,8 @@ ${lifeEventsDescription}`;
             content: prompt,
           },
         ],
-        max_tokens: 400,
-        temperature: 0.75,
+        max_tokens: 300,
+        temperature: 0.7,
       });
 
       const biography = response.choices[0]?.message?.content || "No biography generated.";

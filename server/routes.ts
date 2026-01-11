@@ -88,11 +88,11 @@ Age 60: [Life Event] Change Careers - Success. Your connections came through aga
 Age 66: [Life Event] Retire Early - Failure. Too risky for your taste.
 
 EXAMPLE OUTPUT:
-Marcus Chen was a brilliant student from a wealthy family, but never much of a ri. At 18, his early academic success landed him a spot at Yale University, where he studied Computer Science. By 24, thanks to family connections, he had began a successful career at an AI lab, designing autonomous nerve agent delivery systems for use against protesters, and quickly rose through the ranks, being promoted to a senior role at age 30. 
+Marcus Chen was a brilliant student from a wealthy family, but never much of a risk taker. At 18, his early academic success landed him a spot at Yale University, where he studied Computer Science. By 24, thanks to family connections, he had began a successful career at an AI lab, designing autonomous nerve agent delivery systems for use against protesters. He quickly rose through the ranks, being promoted to a senior role at age 30. 
 
-At 36 he briefly toyed with the idea of getting his masters, but decided it wasn't worth leaving the workforce. At 42, after years of stagnation, Marcus left his role to found a company designing high energy low-earth-orbit weapons, which ultimately flopped. Redoubling his efforts at work, he rose to senior leadership with another promotion in his late 40s. At 54, he passed up an opportunity to invest in an early-stage riotbot startup, which eventually went unicorn, a decision he regretted for the rest of his life.
+At 36 he briefly toyed with the idea of getting his masters, but decided it wasn't worth it. At 42, after years of stagnation, Marcus left his role to found a company designing high energy low-earth-orbit weapons, which ultimately fizzled. Redoubling his efforts at work, he rose to senior leadership with another promotion in his late 40s. At 54, he passed up an opportunity to invest in an early-stage riotbot startup, a decision he regretted for the rest of his life.
 
-At 60, he decided weapons-grade robotics was no longer for him, and became a painter. He tried to retire early, at 66, but ultimately decided not to take the chance.
+At 60, he decided weapons-grade robotics was no longer for him, and became a realtor. He tried to retire early, at 66, but ultimately decided not to take the chance.
 
 INFO TO WORK FROM:
 Name: ${name}

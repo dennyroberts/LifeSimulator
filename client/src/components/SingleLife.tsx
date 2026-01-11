@@ -398,8 +398,34 @@ export function SingleLife() {
                     <IncomeChart stages={result.stages} />
                   </div>
                 </div>
-                <div className="lg:w-64 shrink-0">
+                <div className="lg:w-64 shrink-0 flex flex-col gap-4">
                   <LuckAnalysis luck={result.luck} embedded />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="text-sm font-semibold">Life Biography</h3>
+                    </div>
+                    {biographyLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating biography...
+                      </div>
+                    ) : biography ? (
+                      (() => {
+                        const lastSentenceMatch = biography.match(/[^.!?]*[.!?]$/);
+                        const lastSentence = lastSentenceMatch ? lastSentenceMatch[0].trim() : '';
+                        const mainBio = lastSentence ? biography.slice(0, biography.lastIndexOf(lastSentence)).trim() : biography;
+                        return (
+                          <div className="max-h-48 overflow-y-auto text-muted-foreground leading-relaxed" data-testid="biography-text">
+                            {lastSentence && (
+                              <p className="text-sm font-semibold mb-2">{lastSentence}</p>
+                            )}
+                            <p className="text-xs italic whitespace-pre-line">{mainBio}</p>
+                          </div>
+                        );
+                      })()
+                    ) : null}
+                  </div>
                 </div>
               </div>
               
@@ -409,33 +435,6 @@ export function SingleLife() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Life Timeline</h2>
             <Timeline stages={result.stages} />
-          </div>
-          
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold">Life Biography</h3>
-            </div>
-            {biographyLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating biography...
-              </div>
-            ) : biography ? (
-              (() => {
-                const firstSentenceMatch = biography.match(/^[^.!?]+[.!?]/);
-                const firstSentence = firstSentenceMatch ? firstSentenceMatch[0] : '';
-                const restOfBio = firstSentence ? biography.slice(firstSentence.length).trim() : biography;
-                return (
-                  <div className="text-muted-foreground leading-relaxed whitespace-pre-line" data-testid="biography-text">
-                    {firstSentence && (
-                      <p className="text-base font-semibold mb-2">{firstSentence}</p>
-                    )}
-                    <p className="text-sm italic">{restOfBio}</p>
-                  </div>
-                );
-              })()
-            ) : null}
           </div>
         </>
       )}

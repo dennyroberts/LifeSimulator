@@ -24,9 +24,9 @@ function App() {
                     <Brain className="h-6 w-6 text-chart-1" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold tracking-tight">Intelligence Is Overrated?</h1>
+                    <h1 className="text-xl font-bold tracking-tight">LIFE SIMULATOR</h1>
                     <p className="text-sm text-muted-foreground">
-                      A D20-based career trajectory simulator
+                      A D20-based life trajectory simulator
                     </p>
                   </div>
                 </div>
@@ -34,13 +34,14 @@ function App() {
               </div>
               <div className="mt-3 pt-3 border-t text-sm text-muted-foreground leading-relaxed max-w-3xl">
                 <p>
-                  <strong className="text-foreground">Welcome to life simulator!</strong> This simulator models career trajectories using tabletop RPG mechanics. 
-                  Each agent has 5 traits (INT, WORK, SOC, CHAR, RISK) that modify d20 rolls during life events. 
-                  The question: <em>How much of success is skill vs. luck?</em>
+                  <strong className="text-foreground">Welcome to life simulator!</strong> This app allows you to simulate life trajectories using D&D-style d20 mechanics. Each life consists of 8 big events, some good, some bad. Each agent has five traits: intelligence, work ethic, charisma, risk tolerance, and social capital (aka family money / influence). These traits influence their success or failure in each event. 
+
+                  Most events roll against multiple traits (for example, getting into an elite university requires intelligence, work ethic, and social capital). At the end, you see how much money the agent has accumulated (a proxy for life success), as well as how "lucky" they were (both in terms of dice rolls and in terms of which events they experienced).
                 </p>
                 <p className="mt-1.5">
-                  <strong className="text-foreground">How to use:</strong> In <em>Single Life</em>, configure an agent's traits and run their simulation to see each life event unfold. 
+                  <strong className="text-foreground">How to use:</strong> In <em>Single Life</em>, configure an agent's traits and run their simulation to see each life event unfold.  
                   In <em>Mass Simulation</em>, run thousands of random agents to see statistical patterns. 
+                  You can also run simulations using the same seed (which means every agent will have the same life events) to compare different trait configurations.
                   Share results via URL — seeds make simulations reproducible.
                 </p>
               </div>

@@ -446,5 +446,19 @@
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.003 },
     "fail": { "jumpPct": -0.15, "growthDelta": -0.012 }
+  },
+  {
+    "id": "crushing_debt",
+    "name": "Crushing Debt",
+    "icon": "CreditCard",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 12,
+    "checkTraits": { "NEPO": 1.5, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.03, "growthDelta": -0.001 },
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.002 }
   }
 ]

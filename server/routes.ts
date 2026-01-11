@@ -126,7 +126,7 @@ Marcus Chen: a smart and connected engineer who played it safe and never quite a
 INFO TO WORK FROM:
 Name: ${name}
 Career field: ${careerName}
-Letter Grade: ${letterGrade || 'C'}
+Letter Grade: ${letterGrade}
 Traits: INT ${traits.INT} CHAR ${traits.CHAR} WORK ${traits.WORK} NEPO ${traits.NEPO} RISK ${traits.RISK}
 Life events:
 ${lifeEventsDescription}`;

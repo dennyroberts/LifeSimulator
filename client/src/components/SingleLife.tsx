@@ -21,7 +21,6 @@ import {
   type WorldMode,
   type SimulationResult,
   type CareerAspiration,
-  CAREER_ASPIRATIONS,
   simulateLife,
   generateRandomTraits,
   generateRandomName,

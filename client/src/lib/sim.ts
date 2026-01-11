@@ -138,10 +138,6 @@ export interface SimulationResult {
 
 export type CareerAspiration = 'Healthcare' | 'Creative Fields' | 'Marketing' | 'Tech' | 'Finance' | 'Lawyer' | 'Doctor' | null;
 
-export const CAREER_ASPIRATIONS: CareerAspiration[] = [
-  null, 'Healthcare', 'Creative Fields', 'Marketing', 'Tech', 'Finance', 'Lawyer', 'Doctor'
-];
-
 export interface Agent {
   name: string;
   traits: Traits;

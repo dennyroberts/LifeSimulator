@@ -8,9 +8,40 @@ interface IncomeChartProps {
 export function IncomeChart({ stages }: IncomeChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   
+  const computeBestWorstPaths = () => {
+    const bestPath: number[] = [];
+    const worstPath: number[] = [];
+    let bestIncome = 30000;
+    let worstIncome = 30000;
+    
+    for (const stage of stages) {
+      if (stage.isEducation) {
+        bestPath.push(stage.incomeAfter);
+        worstPath.push(stage.incomeAfter);
+        bestIncome = stage.incomeAfter;
+        worstIncome = stage.incomeAfter;
+      } else if (stage.eventOutcome) {
+        const event = stage.eventOutcome.event;
+        const bestOutcome = bestIncome * (1 + (event.success.jumpPct || 0) / 100) * (1 + (event.success.growthDelta || 0) / 100);
+        const worstOutcome = worstIncome * (1 + (event.fail.jumpPct || 0) / 100) * (1 + (event.fail.growthDelta || 0) / 100);
+        bestPath.push(bestOutcome);
+        worstPath.push(worstOutcome);
+        bestIncome = bestOutcome;
+        worstIncome = worstOutcome;
+      } else {
+        bestPath.push(bestIncome);
+        worstPath.push(worstIncome);
+      }
+    }
+    return { bestPath, worstPath };
+  };
+  
+  const { bestPath, worstPath } = computeBestWorstPaths();
   const incomes = stages.map(s => s.incomeAfter);
-  const maxIncome = Math.max(...incomes);
-  const minIncome = Math.min(...incomes);
+  
+  const allValues = [...incomes, ...bestPath, ...worstPath];
+  const maxIncome = Math.max(...allValues);
+  const minIncome = Math.min(...allValues);
   const range = maxIncome - minIncome || 1;
   
   const width = 700;
@@ -47,9 +78,34 @@ export function IncomeChart({ stages }: IncomeChartProps) {
     eventInfo: getEventInfo(stage)
   }));
   
+  const bestPoints = bestPath.map((income, i) => ({
+    x: padding.left + (i / (stages.length - 1)) * chartWidth,
+    y: padding.top + chartHeight - ((income - minIncome) / range) * chartHeight
+  }));
+  
+  const worstPoints = worstPath.map((income, i) => ({
+    x: padding.left + (i / (stages.length - 1)) * chartWidth,
+    y: padding.top + chartHeight - ((income - minIncome) / range) * chartHeight
+  }));
+  
   const pathD = points
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
     .join(' ');
+  
+  const bestPathD = bestPoints
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+    .join(' ');
+  
+  const worstPathD = worstPoints
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+    .join(' ');
+  
+  const rangeFillD = bestPoints
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+    .join(' ') + ' ' +
+    [...worstPoints].reverse()
+    .map((p, i) => `${i === 0 ? 'L' : 'L'} ${p.x} ${p.y}`)
+    .join(' ') + ' Z';
   
   const yTicks = 5;
   const yLabels = Array.from({ length: yTicks }, (_, i) => {
@@ -68,9 +124,10 @@ export function IncomeChart({ stages }: IncomeChartProps) {
       style={{ overflow: 'visible' }}
     >
       <defs>
-        <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity="0" />
+        <linearGradient id="rangeGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity="0.25" />
+          <stop offset="50%" stopColor="hsl(var(--chart-1))" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity="0.25" />
         </linearGradient>
       </defs>
       
@@ -97,8 +154,30 @@ export function IncomeChart({ stages }: IncomeChartProps) {
       ))}
       
       <path
-        d={`${pathD} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${points[0].x} ${padding.top + chartHeight} Z`}
-        fill="url(#incomeGradient)"
+        d={rangeFillD}
+        fill="url(#rangeGradient)"
+      />
+      
+      <path
+        d={bestPathD}
+        fill="none"
+        stroke="hsl(var(--chart-2))"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="4,3"
+        opacity="0.7"
+      />
+      
+      <path
+        d={worstPathD}
+        fill="none"
+        stroke="hsl(var(--destructive))"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="4,3"
+        opacity="0.7"
       />
       
       <path

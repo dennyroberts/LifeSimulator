@@ -3,6 +3,7 @@ import configData from '../data/config.json';
 import eventsData from '../data/events.json';
 import worldModesData from '../data/worldModes.json';
 import namesData from '../data/names.json';
+import careersData from '../data/careers.json';
 
 export type TraitName = 'INT' | 'WORK' | 'NEPO' | 'CHAR' | 'RISK';
 export type WorldMode = 'normal' | 'nepo' | 'meritocracy';
@@ -39,6 +40,28 @@ export interface EducationOutcome {
   growthDelta: number;
 }
 
+export interface CareerDefinition {
+  name: string;
+  minRoll: number;
+  maxRoll: number;
+  baseSalary: number;
+  baseGrowth: number;
+}
+
+export interface CareerOutcome {
+  roll: number;
+  totalMod: number;
+  total: number;
+  educationBonus: number;
+  educationLabel: string;
+  career: CareerDefinition;
+  isNat20: boolean;
+  salaryMultiplier: number;
+  finalSalary: number;
+  finalGrowth: number;
+  traitContributions: TraitContribution[];
+}
+
 export interface TraitContribution {
   trait: TraitName;
   contribution: number;
@@ -68,7 +91,9 @@ export interface EventOutcome {
 export interface StageResult {
   stage: number;
   isEducation: boolean;
+  isCareer?: boolean;
   education?: EducationOutcome;
+  career?: CareerOutcome;
   eventOutcome?: EventOutcome;
   incomeAfter: number;
 }
@@ -103,6 +128,21 @@ const config = configData;
 const events: Event[] = eventsData as Event[];
 const worldModes = worldModesData as Record<WorldMode, Record<TraitName, number>>;
 const names = namesData;
+const careers: CareerDefinition[] = careersData as CareerDefinition[];
+
+const educationBonusMap: Record<string, number> = {
+  'Elite institution': 3,
+  'Strong university': 2,
+  'Regional / state school': 1,
+  'Community / vocational': 0,
+  'Straight to workforce': -2,
+};
+
+const careerCheckTraits: Partial<Record<TraitName, number>> = {
+  NEPO: 1.5,
+  INT: 0.75,
+  CHAR: 0.5,
+};
 
 export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -293,6 +333,50 @@ export function resolveEducation(
     total,
     label: 'Straight to workforce',
     growthDelta: 0
+  };
+}
+
+export function resolveCareer(
+  traits: Traits,
+  worldMode: WorldMode,
+  rng: () => number,
+  educationLabel: string
+): CareerOutcome {
+  const roll = rollD20(rng);
+  const isNat20 = roll === 20;
+  
+  const traitMod = computeTotalMod(traits, careerCheckTraits, worldMode);
+  const educationBonus = educationBonusMap[educationLabel] ?? 0;
+  const totalMod = traitMod + educationBonus;
+  
+  const total = clamp(roll + totalMod, 0, 20);
+  
+  let selectedCareer = careers[0];
+  for (const career of careers) {
+    if (total >= career.minRoll && total <= career.maxRoll) {
+      selectedCareer = career;
+      break;
+    }
+  }
+  
+  const salaryMultiplier = isNat20 ? 1.2 : 1.0;
+  const finalSalary = selectedCareer.baseSalary * salaryMultiplier;
+  const finalGrowth = selectedCareer.baseGrowth;
+  
+  const traitContributions = computeTraitContributions(traits, careerCheckTraits, worldMode);
+  
+  return {
+    roll,
+    totalMod,
+    total,
+    educationBonus,
+    educationLabel,
+    career: selectedCareer,
+    isNat20,
+    salaryMultiplier,
+    finalSalary,
+    finalGrowth,
+    traitContributions
   };
 }
 

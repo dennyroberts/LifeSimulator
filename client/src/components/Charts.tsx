@@ -12,15 +12,18 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   
   const width = 600;
   const height = 300;
-  const padding = { top: 30, right: 60, bottom: 40, left: 80 };
+  const padding = { top: 30, right: 60, bottom: 50, left: 80 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
+  
+  const stageToAge = (stageIndex: number) => 20 + stageIndex * 8;
   
   const points = stages.map((stage, i) => ({
     x: padding.left + (i / (stages.length - 1)) * chartWidth,
     y: padding.top + chartHeight - ((stage.incomeAfter - minIncome) / range) * chartHeight,
     income: stage.incomeAfter,
-    stage: stage.stage
+    stage: stage.stage,
+    age: stageToAge(i)
   }));
   
   const pathD = points
@@ -85,7 +88,7 @@ export function IncomeChart({ stages }: IncomeChartProps) {
         strokeLinejoin="round"
       />
       
-      {points.map((point) => (
+      {points.map((point, i) => (
         <g key={point.stage}>
           <circle
             cx={point.x}
@@ -97,11 +100,11 @@ export function IncomeChart({ stages }: IncomeChartProps) {
           />
           <text
             x={point.x}
-            y={height - 15}
+            y={height - 20}
             textAnchor="middle"
-            className="fill-muted-foreground text-[11px]"
+            className="fill-muted-foreground text-[11px] font-mono"
           >
-            {point.stage}
+            {i === 0 && '\u{1F393} '}{point.age}{i === points.length - 1 && ' \u{1FAA6}'}
           </text>
         </g>
       ))}
@@ -112,7 +115,7 @@ export function IncomeChart({ stages }: IncomeChartProps) {
         textAnchor="middle"
         className="fill-muted-foreground text-xs"
       >
-        Stage
+        Age
       </text>
     </svg>
   );

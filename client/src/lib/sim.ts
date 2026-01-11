@@ -80,6 +80,7 @@ export interface SimulationResult {
   traits: Traits;
   stages: StageResult[];
   finalIncome: number;
+  lifetimeEarnings: number;
   luck: LuckAnalysis;
 }
 
@@ -364,6 +365,7 @@ export function simulateLife(
   
   let income = config.startingIncome;
   let growth = config.startingGrowth;
+  let lifetimeEarnings = 0;
   const stages: StageResult[] = [];
   const drawnEvents: { event: Event; stage: number }[] = [];
   
@@ -381,6 +383,7 @@ export function simulateLife(
     education: educationOutcome,
     incomeAfter: income
   });
+  lifetimeEarnings += income * 8;
   
   for (const stageNum of config.eventStages) {
     let event: Event;
@@ -406,6 +409,7 @@ export function simulateLife(
       eventOutcome: result.outcome,
       incomeAfter: income
     });
+    lifetimeEarnings += income * 8;
   }
   
   const evBaselineHand = computeEvBaselineHand();
@@ -431,6 +435,7 @@ export function simulateLife(
     traits: agent.traits,
     stages,
     finalIncome: income,
+    lifetimeEarnings,
     luck: {
       evBaselineHand,
       evHand,

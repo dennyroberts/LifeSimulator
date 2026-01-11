@@ -5,7 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown, TrendingUp, TrendingDown, Minus, Sparkles, Dices, Brain, Calculator } from 'lucide-react';
+import { ChevronDown, TrendingUp, TrendingDown, Minus, Sparkles, Dices, Calculator } from 'lucide-react';
 import { useState } from 'react';
 
 interface LuckAnalysisProps {
@@ -28,8 +28,8 @@ export function LuckAnalysis({ luck }: LuckAnalysisProps) {
   };
 
   const identity = luck.evRealized - luck.evBaselineHand;
-  const components = luck.opportunityLuck + luck.traitAdvantage + luck.rollLuck;
-  const identityMatch = Math.abs(identity - components) < 0.001;
+  const components = luck.opportunityLuck + luck.rollLuck;
+  const identityMatch = Math.abs(identity - components - luck.traitAdvantage) < 0.001;
 
   return (
     <Card data-testid="luck-analysis">
@@ -40,7 +40,7 @@ export function LuckAnalysis({ luck }: LuckAnalysisProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="p-4 rounded-md bg-muted text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Dices className="h-4 w-4 text-chart-3" />
@@ -67,20 +67,6 @@ export function LuckAnalysis({ luck }: LuckAnalysisProps) {
               </span>
             </div>
             <div className="text-xs text-muted-foreground mt-1">Realized vs Expected</div>
-          </div>
-          
-          <div className="p-4 rounded-md bg-muted text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Brain className="h-4 w-4 text-chart-2" />
-              <span className="text-sm text-muted-foreground">Trait Advantage</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              {getLuckIcon(luck.traitAdvantage)}
-              <span className={`font-mono text-xl font-bold ${getLuckColor(luck.traitAdvantage)}`} data-testid="luck-trait">
-                {formatEV(luck.traitAdvantage)}
-              </span>
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">Skill Edge</div>
           </div>
           
           <div className="p-4 rounded-md bg-chart-4/10 border border-chart-4/20 text-center">

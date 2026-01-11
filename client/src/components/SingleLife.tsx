@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -26,13 +27,16 @@ import {
 } from '@/lib/sim';
 import { createRng } from '@/lib/rng';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Dices, Play, User, Settings, RefreshCw, Share2, Trophy } from 'lucide-react';
+import { Dices, Play, User, Settings, RefreshCw, Share2, Trophy, Coins } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function SingleLife() {
   const { toast } = useToast();
   
-  const [name, setName] = useState('');
+  const [name, setName] = useState(() => {
+    const rng = createRng(Date.now());
+    return generateRandomName(rng);
+  });
   const [avatarKey, setAvatarKey] = useState(() => Date.now());
   const [traits, setTraits] = useState<Traits>({
     INT: 10,
@@ -44,6 +48,7 @@ export function SingleLife() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [sameDeck, setSameDeck] = useState(false);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
+  const [seedLocked, setSeedLocked] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [hasRun, setHasRun] = useState(false);
   
@@ -102,11 +107,16 @@ export function SingleLife() {
   };
   
   const handleRun = () => {
+    let currentSeed = seed;
+    if (!seedLocked) {
+      currentSeed = String(Math.floor(Math.random() * 1000000));
+      setSeed(currentSeed);
+    }
     const agentName = name || 'Anonymous';
     const simResult = simulateLife(
       { name: agentName, traits, index: 0 },
       worldMode,
-      seed,
+      currentSeed,
       sameDeck
     );
     setResult(simResult);
@@ -133,10 +143,31 @@ export function SingleLife() {
               Agent Configuration
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Agent Name"
+                className="h-8"
+                data-testid="input-agent-name"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleRandomName}
+                title="Random name"
+                className="h-8 w-8 shrink-0"
+                data-testid="button-random-name"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+            </div>
+            
             <div className="flex gap-4">
-              <div className="flex flex-col items-center gap-2 w-32 shrink-0">
-                <Avatar className="h-28 w-28 border-2">
+              <div className="flex flex-col items-center gap-2 shrink-0">
+                <Avatar className="h-24 w-24 border-2">
                   <AvatarImage
                     src={`https://thispersondoesnotexist.com?${avatarKey}`}
                     alt="Agent avatar"
@@ -149,34 +180,12 @@ export function SingleLife() {
                   variant="outline"
                   size="sm"
                   onClick={handleNewAvatar}
-                  className="gap-1 w-full h-7 text-xs"
+                  className="gap-1 h-7 text-xs"
                   data-testid="button-new-avatar"
                 >
                   <RefreshCw className="h-3 w-3" />
                   New Face
                 </Button>
-                <div className="w-full">
-                  <div className="flex gap-1">
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Name"
-                      className="h-7 text-xs"
-                      data-testid="input-agent-name"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleRandomName}
-                      title="Random name"
-                      className="h-7 w-7 shrink-0"
-                      data-testid="button-random-name"
-                    >
-                      <RefreshCw className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
               </div>
               
               <div className="flex-1">
@@ -227,14 +236,28 @@ export function SingleLife() {
             </div>
             
             <div>
-              <Label htmlFor="seed" className="text-xs">Seed</Label>
-              <div className="flex gap-1 mt-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Label htmlFor="seed" className="text-xs">Seed</Label>
+                <div className="flex items-center gap-1.5">
+                  <Checkbox
+                    id="seed-locked"
+                    checked={seedLocked}
+                    onCheckedChange={(checked) => setSeedLocked(checked === true)}
+                    data-testid="checkbox-seed-locked"
+                  />
+                  <Label htmlFor="seed-locked" className="text-xs text-muted-foreground cursor-pointer">
+                    Lock
+                  </Label>
+                </div>
+              </div>
+              <div className="flex gap-1">
                 <Input
                   id="seed"
                   value={seed}
                   onChange={(e) => setSeed(e.target.value)}
                   placeholder="Seed"
-                  className="h-8"
+                  className="h-8 font-mono"
+                  disabled={!seedLocked}
                   data-testid="input-seed"
                 />
                 <Button
@@ -243,11 +266,15 @@ export function SingleLife() {
                   onClick={handleRandomSeed}
                   title="Random seed"
                   className="h-8 w-8 shrink-0"
+                  disabled={!seedLocked}
                   data-testid="button-random-seed"
                 >
                   <RefreshCw className="h-3 w-3" />
                 </Button>
               </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {seedLocked ? 'Seed is fixed for reproducible results' : 'Seed randomizes each run'}
+              </p>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -305,13 +332,21 @@ export function SingleLife() {
                   </div>
                   <TraitDisplay traits={result.traits} />
                 </div>
-                <div className="flex flex-col justify-center">
-                  <div className="text-sm text-muted-foreground mb-1">Final Income</div>
-                  <div className="text-4xl font-mono font-bold text-chart-4" data-testid="result-final-income">
-                    {formatCurrency(result.finalIncome)}
+                <div className="flex flex-col justify-center space-y-4">
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Final Income</div>
+                    <div className="text-3xl font-mono font-bold text-chart-4" data-testid="result-final-income">
+                      {formatCurrency(result.finalIncome)}
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    After 8 life stages
+                  <div>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
+                      <Coins className="h-4 w-4" />
+                      Lifetime Earnings
+                    </div>
+                    <div className="text-2xl font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
+                      {formatCurrency(result.lifetimeEarnings)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -321,7 +356,7 @@ export function SingleLife() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Income Progression</CardTitle>
+                <CardTitle>Lifetime Success</CardTitle>
               </CardHeader>
               <CardContent className="flex justify-center">
                 <IncomeChart stages={result.stages} />

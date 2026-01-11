@@ -79,6 +79,9 @@ Other rules:
 - If a person doesn't have any above average or below average traits, it's OK to just call them average. Just because a person's trait is their highest doesn't mean it's worth mentioning if it's only a 9-11
 - <5 on a trait is abysmal, 5-7 on a trait is bad, 8-12 is average, 13-17 is good, and 18-20 is elite.
 - For NEPO, <5 would be something like growing up in foster care. 10 would be average middle class family. 15 would be a wealthy family. 20 would be a billionaire family.
+- You can choose a more specific career for the person from within the field. For example, Creatives could be filmmakers, writers, or musicians. Doctors could be plastic surgeons, pediatricians, etc.
+- You can reframe the life events to be specific to the person's life / career. For example, "Put You In Charge" for a Creative who we have decided is a filmmaker might mean they are directing their first feature.
+- For the final summary sentence, focus on the traits that helped or hurt them the most, based on the life events. It should be short - you don't need to say something good and bad about everyone; i.e. if their life was mostly good, just say what helped them, if it was mostly bad, just say what hurt them.
 
 EXAMPLE INPUT:
 Name: Marcus Chen
@@ -102,7 +105,7 @@ At 36 he briefly toyed with the idea of getting his masters, but decided it wasn
 
 At 60, he decided weapons-grade robotics was no longer for him, and became a realtor. He tried to retire early, at 66, but ultimately decided not to take the chance.
 
-Marcus Chen: a smart and connected engineer whose ri kept him from achieving his dreams.
+Marcus Chen: a smart and connected engineer who played it safe and never quite achieved his dreams.
 
 INFO TO WORK FROM:
 Name: ${name}

@@ -450,10 +450,24 @@ export function resolveEvent(
   } else if (success) {
     jumpPct = event.success.jumpPct * multiplier * criticalMultiplier;
     growthDelta = event.success.growthDelta * multiplier * criticalMultiplier;
+    
+    // Critical success (nat 20): flip any negative outcomes to positive
+    if (isCritical && criticalType === 'success') {
+      if (jumpPct < 0) jumpPct = Math.abs(jumpPct);
+      if (growthDelta < 0) growthDelta = Math.abs(growthDelta);
+    }
+    
     evRealized = computeEvSuccess(stage, event);
   } else {
     jumpPct = event.fail.jumpPct * multiplier * criticalMultiplier;
     growthDelta = event.fail.growthDelta * multiplier * criticalMultiplier;
+    
+    // Critical failure (nat 1): flip any positive outcomes to negative
+    if (isCritical && criticalType === 'failure') {
+      if (jumpPct > 0) jumpPct = -Math.abs(jumpPct);
+      if (growthDelta > 0) growthDelta = -Math.abs(growthDelta);
+    }
+    
     evRealized = computeEvFail(stage, event);
   }
   

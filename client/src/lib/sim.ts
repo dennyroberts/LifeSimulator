@@ -521,9 +521,10 @@ function selectTraitMessage(
 export function resolveEducation(
   traits: Traits,
   worldMode: WorldMode,
-  rng: () => number
+  rng: () => number,
+  forcedRoll?: number
 ): EducationOutcome {
-  const roll = rollD20(rng);
+  const roll = forcedRoll ?? rollD20(rng);
   const checkTraits = config.education.checkTraits as Partial<Record<TraitName, number>>;
   const totalMod = computeTotalMod(traits, checkTraits, worldMode);
   const total = roll + totalMod;
@@ -633,9 +634,10 @@ export function resolveCareer(
   worldMode: WorldMode,
   rng: () => number,
   educationLabel: string,
-  aspiration?: CareerAspiration
+  aspiration?: CareerAspiration,
+  forcedRoll?: number
 ): CareerOutcome {
-  const roll = rollD20(rng);
+  const roll = forcedRoll ?? rollD20(rng);
   const isNat20 = roll === 20;
   
   const traitMod = computeTotalMod(traits, careerCheckTraits, worldMode);
@@ -701,7 +703,8 @@ export function resolveEvent(
   worldMode: WorldMode,
   rng: () => number,
   currentIncome: number,
-  currentGrowth: number
+  currentGrowth: number,
+  forcedRoll?: number
 ): { outcome: EventOutcome; newIncome: number; newGrowth: number } {
   let gateFailed = false;
   let gateRoll: number | undefined;
@@ -710,7 +713,7 @@ export function resolveEvent(
   let gatePass: boolean | undefined;
   
   if (event.riskGated && event.riskGateDC) {
-    gateRoll = rollD20(rng);
+    gateRoll = forcedRoll ?? rollD20(rng);
     gateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode);
     gateDC = event.riskGateDC;
     gatePass = gateRoll + gateMod >= gateDC;
@@ -728,7 +731,7 @@ export function resolveEvent(
   
   if (!gateFailed) {
     if (event.rollRequired && event.DC) {
-      mainRoll = rollD20(rng);
+      mainRoll = forcedRoll ?? rollD20(rng);
       mainMod = computeTotalMod(traits, event.checkTraits, worldMode);
       traitContributions = computeTraitContributions(traits, event.checkTraits, worldMode);
       mainDC = event.DC;
@@ -869,7 +872,8 @@ export function simulateLife(
   worldMode: WorldMode,
   seed: string,
   sameDeck: boolean,
-  sharedEvents?: Map<number, Event>
+  sharedEvents?: Map<number, Event>,
+  forcedRoll?: number
 ): SimulationResult {
   const agentRng = createRng(`${seed}|agent${agent.index}`);
   
@@ -878,7 +882,7 @@ export function simulateLife(
   const stages: StageResult[] = [];
   const drawnEvents: { event: Event; stage: number }[] = [];
   
-  const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng);
+  const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng, forcedRoll);
   
   stages.push({
     stage: 1,
@@ -887,7 +891,7 @@ export function simulateLife(
     incomeAfter: 0
   });
   
-  const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration);
+  const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration, forcedRoll);
   
   let income = careerOutcome.finalSalary;
   let growth = clamp(
@@ -921,7 +925,7 @@ export function simulateLife(
     
     drawnEvents.push({ event, stage: stageNum });
     
-    const result = resolveEvent(event, stageNum, agent.traits, worldMode, agentRng, income, growth);
+    const result = resolveEvent(event, stageNum, agent.traits, worldMode, agentRng, income, growth, forcedRoll);
     income = result.newIncome;
     growth = result.newGrowth;
     

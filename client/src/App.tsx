@@ -34,7 +34,7 @@ function App() {
               </div>
               <div className="mt-3 pt-3 border-t text-sm text-muted-foreground leading-relaxed max-w-3xl">
                 <p>
-                  <strong className="text-foreground">The Premise:</strong> This simulator models career trajectories using tabletop RPG mechanics. 
+                  <strong className="text-foreground">Welcome to life simulator!</strong> This simulator models career trajectories using tabletop RPG mechanics. 
                   Each agent has 5 traits (INT, WORK, SOC, CHAR, RISK) that modify d20 rolls during life events. 
                   The question: <em>How much of success is skill vs. luck?</em>
                 </p>

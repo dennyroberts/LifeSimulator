@@ -585,7 +585,7 @@ const careerOutcomes: Record<string, { normal: string; nat20: string }> = {
     normal: 'Following your passion, bills willing', 
     nat20: 'Your talent got noticed by the right people' 
   },
-  'Sales / Marketing': { 
+  'Marketing': { 
     normal: 'Commission-based, ceiling unlimited', 
     nat20: 'Premium territory with established accounts' 
   },

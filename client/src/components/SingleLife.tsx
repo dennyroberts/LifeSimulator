@@ -25,6 +25,7 @@ import {
   formatCurrency,
 } from '@/lib/sim';
 import { createRng } from '@/lib/rng';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dices, Play, User, Settings, RefreshCw, Share2, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,6 +33,7 @@ export function SingleLife() {
   const { toast } = useToast();
   
   const [name, setName] = useState('');
+  const [avatarKey, setAvatarKey] = useState(() => Date.now());
   const [traits, setTraits] = useState<Traits>({
     INT: 10,
     WORK: 10,
@@ -44,6 +46,10 @@ export function SingleLife() {
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [hasRun, setHasRun] = useState(false);
+  
+  const handleNewAvatar = () => {
+    setAvatarKey(Date.now());
+  };
   
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -127,7 +133,29 @@ export function SingleLife() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col items-center gap-2">
+              <Avatar className="h-24 w-24 border-2">
+                <AvatarImage
+                  src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                  alt="Agent avatar"
+                />
+                <AvatarFallback>
+                  <User className="h-10 w-10 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNewAvatar}
+                className="gap-1.5"
+                data-testid="button-new-avatar"
+              >
+                <RefreshCw className="h-3 w-3" />
+                New Face
+              </Button>
+            </div>
+            
             <div className="flex-1">
               <Label htmlFor="name">Agent Name</Label>
               <div className="flex gap-2 mt-1.5">

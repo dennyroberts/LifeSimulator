@@ -202,7 +202,7 @@ export function SingleLife() {
               <div className="flex flex-col items-center gap-2 shrink-0">
                 <Avatar className="h-24 w-24 border-2">
                   <AvatarImage
-                    src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                    src={`/api/avatar/${avatarKey}`}
                     alt="Agent avatar"
                   />
                   <AvatarFallback>
@@ -361,7 +361,7 @@ export function SingleLife() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 border">
                     <AvatarImage
-                      src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                      src={`/api/avatar/${avatarKey}`}
                       alt="Agent avatar"
                     />
                     <AvatarFallback>

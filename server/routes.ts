@@ -7,6 +7,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const avatarCache = new Map<string, Buffer>();
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express,
@@ -137,6 +139,40 @@ ${lifeEventsDescription}`;
     } catch (error: any) {
       console.error("Error generating biography:", error);
       res.status(500).json({ error: "Failed to generate biography" });
+    }
+  });
+
+  app.get("/api/avatar/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (avatarCache.has(id)) {
+        res.setHeader("Content-Type", "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        return res.send(avatarCache.get(id));
+      }
+
+      const response = await fetch("https://thispersondoesnotexist.com");
+      if (!response.ok) {
+        throw new Error("Failed to fetch avatar");
+      }
+      
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      avatarCache.set(id, buffer);
+      
+      if (avatarCache.size > 100) {
+        const firstKey = avatarCache.keys().next().value;
+        if (firstKey) avatarCache.delete(firstKey);
+      }
+      
+      res.setHeader("Content-Type", "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error fetching avatar:", error);
+      res.status(500).json({ error: "Failed to fetch avatar" });
     }
   });
 

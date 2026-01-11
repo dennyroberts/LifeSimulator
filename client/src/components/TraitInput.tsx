@@ -38,12 +38,12 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
             className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50 border"
             data-testid={`trait-card-${trait.toLowerCase()}`}
           >
-            <div className="flex-1 min-w-0">
+            <div className="w-28 shrink-0">
               <span className="font-bold text-xs">{name}</span>
-              <span className="text-[10px] text-muted-foreground ml-1 truncate">{description}</span>
+              <span className="text-[10px] text-muted-foreground ml-1">{description}</span>
             </div>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 ml-auto">
               <Button
                 variant="outline"
                 size="icon"

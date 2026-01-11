@@ -128,10 +128,6 @@ Traits: INT ${traits.INT} CHAR ${traits.CHAR} WORK ${traits.WORK} NEPO ${traits.
 Life events:
 ${lifeEventsDescription}`;
 
-      console.log("=== FULL PROMPT BEING SENT TO OPENAI ===");
-      console.log(prompt);
-      console.log("=== END PROMPT ===");
-
       const response = await openai.chat.completions.create({
         model: "gpt-5-mini",
         messages: [
@@ -140,7 +136,7 @@ ${lifeEventsDescription}`;
             content: prompt,
           },
         ],
-        max_completion_tokens: 400,
+        max_completion_tokens: 2000,
       });
 
       const biography =

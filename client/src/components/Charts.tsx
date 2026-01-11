@@ -154,10 +154,11 @@ export function IncomeChart({ stages }: IncomeChartProps) {
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
     .join(' ');
   
-  // Generate path that stops when going off-chart
-  const generateClippedPath = (pts: typeof bestPoints, goingUp: boolean) => {
+  // Generate path that stops when going off-chart and return exit point
+  const generateClippedPath = (pts: typeof bestPoints, goingUp: boolean): { path: string; exitPoint: { x: number; y: number } | null } => {
     const segments: string[] = [];
     let inChart = true;
+    let exitPoint: { x: number; y: number } | null = null;
     
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
@@ -177,15 +178,20 @@ export function IncomeChart({ stages }: IncomeChartProps) {
         const t = (edgeY - prev.y) / (p.y - prev.y);
         const edgeX = prev.x + t * (p.x - prev.x);
         segments.push(`L ${edgeX} ${edgeY}`);
+        exitPoint = { x: edgeX, y: edgeY };
         inChart = false;
       }
       // If already off-chart, don't draw anything more
     }
-    return segments.join(' ');
+    return { path: segments.join(' '), exitPoint };
   };
   
-  const bestPathD = generateClippedPath(bestPoints, true);
-  const worstPathD = generateClippedPath(worstPoints, false);
+  const bestResult = generateClippedPath(bestPoints, true);
+  const worstResult = generateClippedPath(worstPoints, false);
+  const bestPathD = bestResult.path;
+  const worstPathD = worstResult.path;
+  const bestExitPoint = bestResult.exitPoint;
+  const worstExitPoint = worstResult.exitPoint;
   
   const rangeFillD = bestPoints
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
@@ -364,22 +370,22 @@ export function IncomeChart({ stages }: IncomeChartProps) {
         <text x="136" y="12" className="fill-muted-foreground text-[10px]">Worst possible</text>
       </g>
       
-      {bestGoesOffTop && (
+      {bestGoesOffTop && bestExitPoint && (
         <text
-          x={width - padding.right + 5}
-          y={padding.top + 4}
-          textAnchor="start"
+          x={bestExitPoint.x}
+          y={bestExitPoint.y - 6}
+          textAnchor="middle"
           className="fill-chart-2 text-[9px] font-mono font-medium"
         >
           {formatCurrency(bestFinal)}
         </text>
       )}
       
-      {worstGoesOffBottom && (
+      {worstGoesOffBottom && worstExitPoint && (
         <text
-          x={width - padding.right + 5}
-          y={padding.top + chartHeight}
-          textAnchor="start"
+          x={worstExitPoint.x}
+          y={worstExitPoint.y + 12}
+          textAnchor="middle"
           className="fill-destructive text-[9px] font-mono font-medium"
         >
           {formatCurrency(worstFinal)}

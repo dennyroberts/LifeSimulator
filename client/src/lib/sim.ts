@@ -115,6 +115,9 @@ export interface LuckAnalysis {
   evRealized: number;
   opportunityLuck: number;
   rollLuck: number;
+  educationRollLuck: number;
+  careerRollLuck: number;
+  eventRollLuck: number;
   netLuck: number;
   traitAdvantage: number;
 }
@@ -220,46 +223,56 @@ export function computeTraitContributions(
   return contributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 }
 
-export function computeEvSuccess(stage: number, event: Event): number {
+// Compute EV for any given jump% and growth delta
+export function computeEV(stage: number, jumpPct: number, growthDelta: number): number {
   const g0 = config.baseGrowthEV;
   const remaining = 8 - stage + 1;
-  const jumpSuccess = event.success.jumpPct;
-  const growthSuccess = event.success.growthDelta;
   
   let baseline = 0;
-  let withSuccess = 0;
+  let withEffect = 0;
   
   for (let i = 0; i < remaining; i++) {
     baseline += Math.pow(1 + g0, i);
     if (i === 0) {
-      withSuccess += (1 + jumpSuccess) * Math.pow(1 + g0 + growthSuccess, i);
+      withEffect += (1 + jumpPct) * Math.pow(1 + g0 + growthDelta, i);
     } else {
-      withSuccess += Math.pow(1 + g0 + growthSuccess, i);
+      withEffect += Math.pow(1 + g0 + growthDelta, i);
     }
   }
   
-  return withSuccess - baseline;
+  return withEffect - baseline;
+}
+
+export function computeEvSuccess(stage: number, event: Event): number {
+  return computeEV(stage, event.success.jumpPct, event.success.growthDelta);
 }
 
 export function computeEvFail(stage: number, event: Event): number {
-  const g0 = config.baseGrowthEV;
-  const remaining = 8 - stage + 1;
-  const jumpFail = event.fail.jumpPct;
-  const growthFail = event.fail.growthDelta;
-  
-  let baseline = 0;
-  let withFail = 0;
-  
-  for (let i = 0; i < remaining; i++) {
-    baseline += Math.pow(1 + g0, i);
-    if (i === 0) {
-      withFail += (1 + jumpFail) * Math.pow(1 + g0 + growthFail, i);
-    } else {
-      withFail += Math.pow(1 + g0 + growthFail, i);
-    }
-  }
-  
-  return withFail - baseline;
+  return computeEV(stage, event.fail.jumpPct, event.fail.growthDelta);
+}
+
+// Compute EV for critical success (2x multiplier, always positive outcome)
+export function computeEvCritSuccess(stage: number, event: Event): number {
+  const critMultiplier = 2.0;
+  let jumpPct = event.success.jumpPct * critMultiplier;
+  let growthDelta = event.success.growthDelta * critMultiplier;
+  // Critical success flips negative to positive
+  if (jumpPct < 0) jumpPct = Math.abs(jumpPct);
+  if (growthDelta < 0) growthDelta = Math.abs(growthDelta);
+  return computeEV(stage, jumpPct, growthDelta);
+}
+
+// Compute EV for critical failure (2x multiplier, always negative outcome)
+export function computeEvCritFail(stage: number, event: Event): number {
+  const critMultiplier = 2.0;
+  let jumpPct = event.fail.jumpPct * critMultiplier;
+  let growthDelta = event.fail.growthDelta * critMultiplier;
+  // Critical failure flips positive to negative with minimum penalties
+  if (jumpPct > 0) jumpPct = -Math.abs(jumpPct);
+  if (growthDelta > 0) growthDelta = -Math.abs(growthDelta);
+  if (jumpPct > -0.05) jumpPct = -0.05;
+  if (growthDelta > -0.005) growthDelta = -0.005;
+  return computeEV(stage, jumpPct, growthDelta);
 }
 
 export function intrinsicExpectedEV(event: Event, stage: number): number {
@@ -291,14 +304,38 @@ export function agentExpectedEV(
     : 1;
   
   const mainMod = computeTotalMod(traits, event.checkTraits, worldMode);
-  const pMain = event.rollRequired && event.DC
-    ? pSuccess(event.DC, mainMod)
+  const DC = event.DC || 0;
+  
+  // Critical probabilities: nat 20 = 5%, nat 1 = 5%
+  const pCritSuccess = 0.05; // Always succeeds
+  const pCritFail = 0.05;    // Always fails
+  
+  // For non-critical rolls (90%), compute regular success probability
+  // Adjusted to exclude crit outcomes already counted
+  const regularSuccessProb = event.rollRequired && DC
+    ? Math.max(0, Math.min(1, (21 - DC + mainMod) / 20)) // Unadjusted pSuccess
     : 1;
+  
+  // Probability of regular success (excluding crit success which auto-succeeds)
+  // Probability of regular fail (excluding crit fail which auto-fails)
+  const pRegularSuccess = Math.max(0, regularSuccessProb - pCritSuccess);
+  const pRegularFail = Math.max(0, (1 - regularSuccessProb) - pCritFail);
   
   const evSuccess = computeEvSuccess(stage, event);
   const evFail = computeEvFail(stage, event);
+  const evCritSuccess = computeEvCritSuccess(stage, event);
+  const evCritFail = computeEvCritFail(stage, event);
   
-  return pGate * (pMain * evSuccess + (1 - pMain) * evFail);
+  if (!event.rollRequired) {
+    return pGate * evSuccess;
+  }
+  
+  return pGate * (
+    pCritSuccess * evCritSuccess +
+    pCritFail * evCritFail +
+    pRegularSuccess * evSuccess +
+    pRegularFail * evFail
+  );
 }
 
 export function computeEvBaselineHand(): number {
@@ -468,7 +505,8 @@ export function resolveEvent(
       if (growthDelta < 0) growthDelta = Math.abs(growthDelta);
     }
     
-    evRealized = computeEvSuccess(stage, event);
+    // Use actual values with critical effects for evRealized
+    evRealized = computeEV(stage, jumpPct, growthDelta);
   } else {
     jumpPct = event.fail.jumpPct * multiplier * criticalMultiplier;
     growthDelta = event.fail.growthDelta * multiplier * criticalMultiplier;
@@ -483,7 +521,8 @@ export function resolveEvent(
       if (growthDelta > -0.005) growthDelta = -0.005;
     }
     
-    evRealized = computeEvFail(stage, event);
+    // Use actual values with critical effects for evRealized
+    evRealized = computeEV(stage, jumpPct, growthDelta);
   }
   
   let newGrowth = clamp(
@@ -628,8 +667,28 @@ export function simulateLife(
     .filter(s => !s.isEducation && s.eventOutcome)
     .reduce((sum, s) => sum + (s.eventOutcome?.evRealized || 0), 0);
   
+  // Event roll luck
+  const eventRollLuck = evRealized - evExpected;
+  
+  // Education roll luck: compare actual roll to expected (10.5)
+  // Convert to EV scale: each point on the d20 roughly corresponds to ~0.01 EV
+  // since growth delta affects all 8 remaining stages
+  const expectedD20 = 10.5;
+  const eduRollDiff = educationOutcome.roll - expectedD20;
+  // Weight by how many stages education affects (all 8) and typical growth impact (~0.01 per threshold)
+  const educationRollLuck = eduRollDiff * 0.01;
+  
+  // Career roll luck: compare actual roll to expected
+  // Career is highly impactful as it sets starting salary for all future stages
+  const careerRollDiff = careerOutcome.roll - expectedD20;
+  // Nat 20 gives +20% salary bonus, so each roll point is worth more
+  // Weight by impact: career affects all 8 stages with compound effects
+  const careerRollLuck = careerRollDiff * 0.015;
+  
+  // Total roll luck combines all roll-based luck
+  const rollLuck = educationRollLuck + careerRollLuck + eventRollLuck;
+  
   const opportunityLuck = evHand - evBaselineHand;
-  const rollLuck = evRealized - evExpected;
   const netLuck = opportunityLuck + rollLuck;
   const traitAdvantage = evExpected - evHand;
   
@@ -647,6 +706,9 @@ export function simulateLife(
       evRealized,
       opportunityLuck,
       rollLuck,
+      educationRollLuck,
+      careerRollLuck,
+      eventRollLuck,
       netLuck,
       traitAdvantage
     }

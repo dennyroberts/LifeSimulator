@@ -20,6 +20,8 @@ import {
   type Traits,
   type WorldMode,
   type SimulationResult,
+  type CareerAspiration,
+  CAREER_ASPIRATIONS,
   simulateLife,
   generateRandomTraits,
   generateRandomName,
@@ -48,6 +50,7 @@ export function SingleLife() {
     RISK: 10,
   });
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
+  const [aspiration, setAspiration] = useState<CareerAspiration>(null);
   const [sameDeck, setSameDeck] = useState(false);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
@@ -196,7 +199,7 @@ export function SingleLife() {
     }
     const agentName = name || 'Anonymous';
     const simResult = simulateLife(
-      { name: agentName, traits, index: 0 },
+      { name: agentName, traits, index: 0, aspiration },
       worldMode,
       currentSeed,
       sameDeck
@@ -315,6 +318,31 @@ export function SingleLife() {
                 </div>
                 <TraitInput traits={traits} onChange={setTraits} />
               </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="aspiration" className="text-xs">Career Aspiration</Label>
+              <Select 
+                value={aspiration || 'none'} 
+                onValueChange={(v) => setAspiration(v === 'none' ? null : v as CareerAspiration)}
+              >
+                <SelectTrigger className="mt-1 h-8" data-testid="select-aspiration">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None (take best available)</SelectItem>
+                  <SelectItem value="Healthcare">Healthcare</SelectItem>
+                  <SelectItem value="Creative Fields">Creative Fields</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Tech">Tech</SelectItem>
+                  <SelectItem value="Finance">Finance</SelectItem>
+                  <SelectItem value="Lawyer">Lawyer</SelectItem>
+                  <SelectItem value="Doctor">Doctor</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                If available, agent will choose this career over higher options
+              </p>
             </div>
           </CardContent>
         </Card>

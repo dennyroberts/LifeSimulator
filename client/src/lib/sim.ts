@@ -136,10 +136,17 @@ export interface SimulationResult {
   luck: LuckAnalysis;
 }
 
+export type CareerAspiration = 'Healthcare' | 'Creative Fields' | 'Marketing' | 'Tech' | 'Finance' | 'Lawyer' | 'Doctor' | null;
+
+export const CAREER_ASPIRATIONS: CareerAspiration[] = [
+  null, 'Healthcare', 'Creative Fields', 'Marketing', 'Tech', 'Finance', 'Lawyer', 'Doctor'
+];
+
 export interface Agent {
   name: string;
   traits: Traits;
   index: number;
+  aspiration?: CareerAspiration;
 }
 
 const config = configData;
@@ -625,7 +632,8 @@ export function resolveCareer(
   traits: Traits,
   worldMode: WorldMode,
   rng: () => number,
-  educationLabel: string
+  educationLabel: string,
+  aspiration?: CareerAspiration
 ): CareerOutcome {
   const roll = rollD20(rng);
   const isNat20 = roll === 20;
@@ -636,11 +644,19 @@ export function resolveCareer(
   
   const total = Math.max(0, roll + totalMod);
   
-  let selectedCareer = careers[0];
+  let bestCareer = careers[0];
   for (const career of careers) {
     if (total >= career.minRoll && total <= career.maxRoll) {
-      selectedCareer = career;
+      bestCareer = career;
       break;
+    }
+  }
+  
+  let selectedCareer = bestCareer;
+  if (aspiration) {
+    const aspirationCareer = careers.find(c => c.name === aspiration);
+    if (aspirationCareer && total >= aspirationCareer.minRoll) {
+      selectedCareer = aspirationCareer;
     }
   }
   
@@ -871,7 +887,7 @@ export function simulateLife(
     incomeAfter: 0
   });
   
-  const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label);
+  const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration);
   
   let income = careerOutcome.finalSalary;
   let growth = clamp(

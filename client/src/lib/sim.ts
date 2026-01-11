@@ -499,24 +499,35 @@ export function simulateLife(
 ): SimulationResult {
   const agentRng = createRng(`${seed}|agent${agent.index}`);
   
-  let income = config.startingIncome;
-  let growth = config.startingGrowth;
   let lifetimeEarnings = 0;
   const stages: StageResult[] = [];
   const drawnEvents: { event: Event; stage: number }[] = [];
   
   const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng);
-  growth = clamp(
-    growth + educationOutcome.growthDelta,
-    config.growthClamp.min,
-    config.growthClamp.max
-  );
-  income = income * (1 + growth);
   
   stages.push({
     stage: 1,
     isEducation: true,
     education: educationOutcome,
+    incomeAfter: 0
+  });
+  
+  const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label);
+  
+  let income = careerOutcome.finalSalary;
+  let growth = clamp(
+    careerOutcome.finalGrowth + educationOutcome.growthDelta,
+    config.growthClamp.min,
+    config.growthClamp.max
+  );
+  
+  stages[0].incomeAfter = income;
+  
+  stages.push({
+    stage: 2,
+    isEducation: false,
+    isCareer: true,
+    career: careerOutcome,
     incomeAfter: income
   });
   lifetimeEarnings += income * 8;

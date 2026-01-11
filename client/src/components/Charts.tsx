@@ -11,25 +11,33 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const computeBestWorstPaths = () => {
     const bestPath: number[] = [];
     const worstPath: number[] = [];
-    let bestIncome = 40000;
-    let worstIncome = 40000;
-    const startingGrowth = 0.03;
+    
+    const bestCareerSalary = 72000 * 1.2;
+    const bestCareerGrowth = 0.055;
+    const worstCareerSalary = 32000;
+    const worstCareerGrowth = 0.01;
+    
+    let bestIncome = worstCareerSalary;
+    let worstIncome = worstCareerSalary;
     const growthMin = -0.10;
     const growthMax = 0.40;
     const effectMultiplier = 2.0;
-    let bestGrowth = startingGrowth;
-    let worstGrowth = startingGrowth;
+    let bestGrowth = bestCareerGrowth;
+    let worstGrowth = worstCareerGrowth;
     
     for (const stage of stages) {
       if (stage.isEducation) {
         bestPath.push(stage.incomeAfter);
         worstPath.push(stage.incomeAfter);
-        bestIncome = stage.incomeAfter;
-        worstIncome = stage.incomeAfter;
         if (stage.education) {
-          bestGrowth = Math.max(growthMin, Math.min(growthMax, startingGrowth + stage.education.growthDelta));
-          worstGrowth = bestGrowth;
+          bestGrowth = Math.max(growthMin, Math.min(growthMax, bestCareerGrowth + stage.education.growthDelta));
+          worstGrowth = Math.max(growthMin, Math.min(growthMax, worstCareerGrowth + stage.education.growthDelta));
         }
+      } else if (stage.isCareer) {
+        bestIncome = bestCareerSalary;
+        worstIncome = worstCareerSalary;
+        bestPath.push(bestIncome);
+        worstPath.push(worstIncome);
       } else if (stage.eventOutcome) {
         const event = stage.eventOutcome.event;
         
@@ -66,11 +74,17 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   
-  const stageToAge = (stageIndex: number) => 20 + stageIndex * 8;
+  const stageToAge = (stageIndex: number) => {
+    if (stageIndex <= 1) return 20;
+    return 20 + (stageIndex - 1) * 8;
+  };
   
   const getEventInfo = (stage: StageResult) => {
     if (stage.isEducation) {
       return { name: 'Education', outcome: stage.education?.label || 'Complete', color: 'hsl(var(--chart-2))' };
+    }
+    if (stage.isCareer && stage.career) {
+      return { name: 'Career', outcome: stage.career.career.name, color: 'hsl(var(--chart-1))' };
     }
     if (stage.eventOutcome) {
       const event = stage.eventOutcome;

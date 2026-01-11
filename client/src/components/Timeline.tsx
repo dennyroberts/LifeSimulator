@@ -20,7 +20,10 @@ interface TimelineProps {
   stages: StageResult[];
 }
 
-const stageToAge = (stageNum: number) => 20 + (stageNum - 1) * 8;
+const stageToAge = (stageNum: number) => {
+  if (stageNum <= 2) return 20;
+  return 20 + (stageNum - 2) * 8;
+};
 
 export function Timeline({ stages }: TimelineProps) {
   return (
@@ -36,7 +39,7 @@ export function Timeline({ stages }: TimelineProps) {
                 <div className="text-[10px] text-muted-foreground font-mono mb-0.5 flex items-center gap-0.5">
                   {stage.stage === 1 && <Baby className="h-3 w-3" />}
                   {age}
-                  {stage.stage === 8 && <Cross className="h-3 w-3" />}
+                  {stage.stage === 9 && <Cross className="h-3 w-3" />}
                 </div>
                 <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background" />
               </div>
@@ -67,7 +70,7 @@ export function Timeline({ stages }: TimelineProps) {
                   <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-0.5">
                     {stage.stage === 1 && <Baby className="h-3 w-3" />}
                     {age}
-                    {stage.stage === 8 && <Cross className="h-3 w-3" />}
+                    {stage.stage === 9 && <Cross className="h-3 w-3" />}
                   </div>
                   <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background mt-0.5 z-10" />
                 </div>
@@ -89,6 +92,10 @@ function TimelineCard({ stage }: { stage: StageResult }) {
     return <CompactEducationCard stage={stage} />;
   }
   
+  if (stage.isCareer && stage.career) {
+    return <CompactCareerCard stage={stage} />;
+  }
+  
   if (stage.eventOutcome) {
     return <CompactEventCard stage={stage} />;
   }
@@ -99,6 +106,10 @@ function TimelineCard({ stage }: { stage: StageResult }) {
 function MobileTimelineCard({ stage }: { stage: StageResult }) {
   if (stage.isEducation && stage.education) {
     return <MobileEducationCard stage={stage} />;
+  }
+  
+  if (stage.isCareer && stage.career) {
+    return <MobileCareerCard stage={stage} />;
   }
   
   if (stage.eventOutcome) {
@@ -142,6 +153,44 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
           </div>
           <div className="ml-auto font-mono font-bold text-chart-1">
             {formatCurrency(stage.incomeAfter)}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MobileCareerCard({ stage }: { stage: StageResult }) {
+  const career = stage.career!;
+  
+  return (
+    <Card className="border-l-4 border-l-chart-3" data-testid="mobile-career-card">
+      <CardContent className="p-2">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-1.5">
+            <Briefcase className="h-3 w-3 text-chart-3 shrink-0" />
+            <span className="text-xs font-medium">Career</span>
+          </div>
+          <Badge variant="secondary" className="text-[9px] px-1 py-0">
+            {career.career.name}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2 text-xs flex-wrap">
+          <div className="font-mono">
+            <span className="text-muted-foreground">Roll: </span>
+            <span className={career.isNat20 ? 'text-chart-4 font-bold' : 'font-bold'}>{career.roll}</span>
+            <span className="text-muted-foreground">+</span>
+            <span className={career.totalMod >= 0 ? 'text-chart-2' : 'text-destructive'}>
+              {career.totalMod >= 0 ? '+' : ''}{career.totalMod}
+            </span>
+            <span className="text-muted-foreground">=</span>
+            <span className="font-bold">{career.total}</span>
+          </div>
+          {career.isNat20 && (
+            <span className="text-chart-4 text-[10px] font-bold">+20% salary</span>
+          )}
+          <div className="ml-auto font-mono font-bold text-chart-1 shrink-0">
+            {formatCurrency(career.finalSalary)}
           </div>
         </div>
       </CardContent>
@@ -269,6 +318,79 @@ function CompactEducationCard({ stage }: { stage: StageResult }) {
           <div className="text-[10px] text-muted-foreground">Income</div>
           <div className="font-mono text-sm font-bold text-chart-1" data-testid="education-income">
             {formatCurrency(stage.incomeAfter)}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CompactCareerCard({ stage }: { stage: StageResult }) {
+  const career = stage.career!;
+  const age = stageToAge(stage.stage);
+  
+  return (
+    <Card className="border-t-4 border-t-chart-3 flex-1 min-w-0" data-testid="career-card">
+      <CardContent className="p-3 flex flex-col h-full">
+        <div className="flex items-center justify-between gap-1 mb-2">
+          <div className="flex items-center gap-1.5">
+            <Briefcase className="h-4 w-4 text-chart-3 shrink-0" />
+            <span className="text-xs text-muted-foreground">Age {age}</span>
+          </div>
+        </div>
+        
+        <div className="text-sm font-medium mb-2 leading-tight">
+          Career Placement
+        </div>
+        
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 mb-2 self-start" data-testid="career-result">
+          {career.career.name}
+        </Badge>
+        
+        <div className={`p-2 rounded mb-2 ${career.isNat20 ? 'bg-chart-4/20 border border-chart-4/40' : 'bg-muted'}`}>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground">Roll</span>
+            {career.isNat20 && (
+              <span className="text-[9px] font-bold text-chart-4 flex items-center gap-0.5">
+                <Sparkles className="h-3 w-3" />
+                NAT 20! +20% salary
+              </span>
+            )}
+          </div>
+          {career.traitContributions && career.traitContributions.length > 0 && (
+            <div className="text-[10px] font-mono mt-1 mb-1 space-y-0.5">
+              {career.traitContributions.map((tc) => (
+                <div key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                  {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                </div>
+              ))}
+              <div className="text-muted-foreground">
+                Edu {career.educationBonus >= 0 ? '+' : ''}{career.educationBonus}
+              </div>
+            </div>
+          )}
+          <div className="font-mono text-sm">
+            <span className={`font-bold ${career.isNat20 ? 'text-chart-4' : ''}`}>{career.roll}</span>
+            <span className="text-muted-foreground">+</span>
+            <span className={career.totalMod >= 0 ? 'text-chart-2' : 'text-destructive'}>
+              {career.totalMod >= 0 ? '+' : ''}{career.totalMod}
+            </span>
+            <span className="text-muted-foreground">=</span>
+            <span className="font-bold">{career.total}</span>
+          </div>
+        </div>
+        
+        <div className="p-2 rounded bg-muted mb-2">
+          <div className="text-[10px] text-muted-foreground">Base Growth</div>
+          <div className="font-mono text-sm font-semibold text-chart-2">
+            {formatPercent(career.finalGrowth)}
+          </div>
+        </div>
+        
+        <div className="mt-auto p-2 rounded bg-chart-1/10 border border-chart-1/20">
+          <div className="text-[10px] text-muted-foreground">Starting Salary</div>
+          <div className="font-mono text-sm font-bold text-chart-1" data-testid="career-salary">
+            {formatCurrency(career.finalSalary)}
           </div>
         </div>
       </CardContent>

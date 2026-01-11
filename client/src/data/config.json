@@ -1,6 +1,6 @@
 {
-  "stagesTotal": 8,
-  "eventStages": [2, 3, 4, 5, 6, 7, 8],
+  "stagesTotal": 9,
+  "eventStages": [3, 4, 5, 6, 7, 8, 9],
   "startingIncome": 40000,
   "startingGrowth": 0.03,
   "baseGrowthEV": 0.03,

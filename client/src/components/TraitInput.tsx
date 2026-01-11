@@ -25,7 +25,7 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2" data-testid="trait-input-grid">
+    <div className="flex flex-col gap-1.5 max-w-xs" data-testid="trait-input-grid">
       {TRAIT_ORDER.map((trait) => {
         const { name, description } = TRAIT_LABELS[trait];
         const value = traits[trait];
@@ -35,30 +35,28 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
         return (
           <div
             key={trait}
-            className="flex items-center justify-between gap-3 p-3 rounded-md bg-muted/50 border"
+            className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50 border"
             data-testid={`trait-card-${trait.toLowerCase()}`}
           >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2">
-                <span className="font-bold text-sm">{name}</span>
-                <span className="text-xs text-muted-foreground truncate">{description}</span>
-              </div>
+            <div className="w-20 shrink-0">
+              <span className="font-bold text-xs">{name}</span>
+              <span className="text-[10px] text-muted-foreground ml-1">{description}</span>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => handleChange(trait, -1)}
                 disabled={disabled || value <= 0}
-                className="h-8 w-8"
+                className="h-6 w-6"
                 data-testid={`button-decrement-${trait.toLowerCase()}`}
               >
-                <Minus className="h-3 w-3" />
+                <Minus className="h-2.5 w-2.5" />
               </Button>
               
-              <div className="w-12 text-center">
-                <div className="font-mono font-bold text-lg" data-testid={`value-${trait.toLowerCase()}`}>
+              <div className="w-8 text-center">
+                <div className="font-mono font-bold text-sm" data-testid={`value-${trait.toLowerCase()}`}>
                   {value}
                 </div>
               </div>
@@ -68,10 +66,10 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
                 size="icon"
                 onClick={() => handleChange(trait, 1)}
                 disabled={disabled || value >= 20}
-                className="h-8 w-8"
+                className="h-6 w-6"
                 data-testid={`button-increment-${trait.toLowerCase()}`}
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-2.5 w-2.5" />
               </Button>
               
               <div className="w-10 text-center">

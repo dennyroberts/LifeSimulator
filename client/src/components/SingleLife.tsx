@@ -37,7 +37,7 @@ export function SingleLife() {
   const [traits, setTraits] = useState<Traits>({
     INT: 10,
     WORK: 10,
-    SOC: 10,
+    NEPO: 10,
     CHAR: 10,
     RISK: 10,
   });
@@ -221,8 +221,8 @@ export function SingleLife() {
               </Select>
               <p className="text-[10px] text-muted-foreground mt-1">
                 {worldMode === 'normal' && 'Balanced trait multipliers'}
-                {worldMode === 'nepo' && 'SOC & CHAR boosted, INT & WORK reduced'}
-                {worldMode === 'meritocracy' && 'INT & WORK boosted, SOC & CHAR reduced'}
+                {worldMode === 'nepo' && 'NEPO & CHAR boosted, INT & WORK reduced'}
+                {worldMode === 'meritocracy' && 'INT & WORK boosted, NEPO & CHAR reduced'}
               </p>
             </div>
             

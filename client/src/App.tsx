@@ -44,12 +44,15 @@ function App() {
                   <span><strong className="text-foreground">INT</strong> Intelligence</span>
                   <span><strong className="text-foreground">WORK</strong> Work Ethic</span>
                   <span><strong className="text-foreground">CHAR</strong> Charisma</span>
+                  <span><strong className="text-foreground">NEPO</strong> Nepotism (family wealth/influence)</span>
                   <span><strong className="text-foreground">RISK</strong> Risk Tolerance</span>
-                  <span><strong className="text-foreground">SOC</strong> Social Capital</span>
                 </div>
+                <p className="text-muted-foreground text-xs mb-3">
+                  <strong className="text-foreground">Note on RISK:</strong> Some life events are risk-gated — a risk-averse agent won't take the big swings that could yield huge rewards or fail spectacularly.
+                </p>
                 <p className="text-muted-foreground mb-3">
-                  Most events roll against multiple traits (e.g., elite university admission checks INT + WORK + SOC). 
-                  Track accumulated wealth as a proxy for success, plus analyze luck — both dice rolls and which events occurred.
+                  Most events roll against multiple traits (e.g., elite university admission checks INT + WORK + NEPO). 
+                  Track accumulated wealth as a proxy for success, plus analyze luck — both from dice rolls and from which events occurred.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   <div className="p-2 rounded bg-muted/50">

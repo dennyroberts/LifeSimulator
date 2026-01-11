@@ -9,7 +9,7 @@
   "rarityWeights": { "common": 5, "uncommon": 3, "rare": 1, "jackpot": 0.3, "sinkhole": 0.7 },
   "education": {
     "name": "Where You Land After High School",
-    "checkTraits": { "INT": 1.0, "WORK": 0.5, "SOC": 1.0 },
+    "checkTraits": { "INT": 1.0, "WORK": 0.5, "NEPO": 1.0 },
     "thresholds": [
       { "minTotal": 20, "label": "Elite institution", "growthDelta": 0.020 },
       { "minTotal": 17, "label": "Strong university", "growthDelta": 0.010 },

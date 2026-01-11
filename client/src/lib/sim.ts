@@ -4,14 +4,14 @@ import eventsData from '../data/events.json';
 import worldModesData from '../data/worldModes.json';
 import namesData from '../data/names.json';
 
-export type TraitName = 'INT' | 'WORK' | 'SOC' | 'CHAR' | 'RISK';
+export type TraitName = 'INT' | 'WORK' | 'NEPO' | 'CHAR' | 'RISK';
 export type WorldMode = 'normal' | 'nepo' | 'meritocracy';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'jackpot' | 'sinkhole';
 
 export interface Traits {
   INT: number;
   WORK: number;
-  SOC: number;
+  NEPO: number;
   CHAR: number;
   RISK: number;
 }
@@ -448,7 +448,7 @@ export function generateRandomTraits(rng: () => number): Traits {
   return {
     INT: roll3d6Plus2(rng),
     WORK: roll3d6Plus2(rng),
-    SOC: roll3d6Plus2(rng),
+    NEPO: roll3d6Plus2(rng),
     CHAR: roll3d6Plus2(rng),
     RISK: roll3d6Plus2(rng)
   };

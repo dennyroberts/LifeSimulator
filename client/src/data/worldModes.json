@@ -1,5 +1,5 @@
 {
-  "normal": { "INT": 1.0, "WORK": 1.0, "SOC": 1.0, "CHAR": 1.0, "RISK": 1.0 },
-  "nepo": { "INT": 0.8, "WORK": 0.8, "SOC": 1.3, "CHAR": 1.2, "RISK": 1.0 },
-  "meritocracy": { "INT": 1.3, "WORK": 1.3, "SOC": 0.7, "CHAR": 0.8, "RISK": 1.0 }
+  "normal": { "INT": 1.0, "WORK": 1.0, "NEPO": 1.0, "CHAR": 1.0, "RISK": 1.0 },
+  "nepo": { "INT": 0.8, "WORK": 0.8, "NEPO": 1.3, "CHAR": 1.2, "RISK": 1.0 },
+  "meritocracy": { "INT": 1.3, "WORK": 1.3, "NEPO": 0.7, "CHAR": 0.8, "RISK": 1.0 }
 }

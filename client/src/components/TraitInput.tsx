@@ -11,12 +11,12 @@ interface TraitInputProps {
 const TRAIT_LABELS: Record<TraitName, { name: string; description: string }> = {
   INT: { name: 'INT', description: 'Intelligence' },
   WORK: { name: 'WORK', description: 'Work Ethic' },
-  SOC: { name: 'SOC', description: 'Social Capital' },
+  NEPO: { name: 'NEPO', description: 'Nepotism' },
   CHAR: { name: 'CHAR', description: 'Charisma' },
   RISK: { name: 'RISK', description: 'Risk Tolerance' },
 };
 
-const TRAIT_ORDER: TraitName[] = ['INT', 'WORK', 'SOC', 'CHAR', 'RISK'];
+const TRAIT_ORDER: TraitName[] = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'];
 
 export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
   const handleChange = (trait: TraitName, delta: number) => {

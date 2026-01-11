@@ -351,7 +351,7 @@ export function ScatterGrid({ results }: ScatterGridProps) {
   const plots = [
     { key: 'INT', label: 'Intelligence', color: 'hsl(var(--chart-1))' },
     { key: 'WORK', label: 'Work Ethic', color: 'hsl(var(--chart-2))' },
-    { key: 'SOC', label: 'Social Capital', color: 'hsl(var(--chart-3))' },
+    { key: 'NEPO', label: 'Nepotism', color: 'hsl(var(--chart-3))' },
     { key: 'CHAR', label: 'Charisma', color: 'hsl(var(--chart-4))' },
     { key: 'RISK', label: 'Risk Tolerance', color: 'hsl(var(--chart-5))' },
     { key: 'netLuck', label: 'Net Luck', color: 'hsl(var(--chart-1))' },

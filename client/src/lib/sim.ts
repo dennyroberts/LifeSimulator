@@ -840,24 +840,41 @@ export function simulateLife(
     .filter(s => !s.isEducation && s.eventOutcome)
     .reduce((sum, s) => sum + (s.eventOutcome?.evRealized || 0), 0);
   
-  // Event roll luck: difference between realized and expected event EV
-  const eventRollLuck = evRealized - evExpected;
+  // Roll luck is now calculated purely from raw d20 deviations from average (10.5)
+  // This measures "did the dice favor you?" independent of trait modifiers
+  const D20_AVERAGE = 10.5;
   
-  // Education roll luck: realized EV - expected EV (using proper EV framework)
-  const educationRealizedEV = computeEducationEV(educationOutcome.growthDelta);
-  const educationExpectedEV = computeEducationExpectedEV(agent.traits, worldMode);
-  const educationRollLuck = educationRealizedEV - educationExpectedEV;
+  // Education roll luck: raw roll deviation from average
+  // Scale by a factor to make it comparable to EV units (approx growth delta impact)
+  const educationRollDeviation = educationOutcome.roll - D20_AVERAGE;
+  const educationRollLuck = educationRollDeviation * 0.05; // Scale factor for display
   
-  // Career roll luck: realized EV - expected EV (using proper EV framework)
-  const careerRealizedEV = computeCareerEV(
-    careerOutcome.career.baseSalary, 
-    careerOutcome.career.baseGrowth, 
-    careerOutcome.isNat20
-  );
-  const careerExpectedEV = computeCareerExpectedEV(agent.traits, worldMode, careerOutcome.educationBonus);
-  const careerRollLuck = careerRealizedEV - careerExpectedEV;
+  // Career roll luck: raw roll deviation from average
+  // Nat 20 bonus is already reflected in the roll itself
+  const careerRollDeviation = careerOutcome.roll - D20_AVERAGE;
+  const careerRollLuck = careerRollDeviation * 0.05; // Scale factor for display
   
-  // Total roll luck combines all roll-based luck
+  // Event roll luck: sum of all raw roll deviations from events
+  let eventRollDeviationSum = 0;
+  let eventRollCount = 0;
+  for (const stage of stages) {
+    if (stage.eventOutcome) {
+      const outcome = stage.eventOutcome;
+      // Add gate roll deviation if there was a risk gate check
+      if (outcome.gateRoll !== undefined) {
+        eventRollDeviationSum += outcome.gateRoll - D20_AVERAGE;
+        eventRollCount++;
+      }
+      // Add main roll deviation if there was a main check
+      if (outcome.mainRoll !== undefined) {
+        eventRollDeviationSum += outcome.mainRoll - D20_AVERAGE;
+        eventRollCount++;
+      }
+    }
+  }
+  const eventRollLuck = eventRollDeviationSum * 0.05; // Scale factor for display
+  
+  // Total roll luck combines all roll-based luck (now purely dice-based)
   const rollLuck = educationRollLuck + careerRollLuck + eventRollLuck;
   
   const opportunityLuck = evHand - evBaselineHand;

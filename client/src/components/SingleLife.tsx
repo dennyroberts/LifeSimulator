@@ -357,12 +357,17 @@ export function SingleLife() {
             <CardHeader>
               <CardTitle>Lifetime Success</CardTitle>
             </CardHeader>
-            <CardContent className="flex justify-center">
-              <IncomeChart stages={result.stages} />
+            <CardContent>
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 flex justify-center">
+                  <IncomeChart stages={result.stages} />
+                </div>
+                <div className="lg:w-64 shrink-0">
+                  <LuckAnalysis luck={result.luck} embedded />
+                </div>
+              </div>
             </CardContent>
           </Card>
-          
-          <LuckAnalysis luck={result.luck} />
           
           <div>
             <h2 className="text-xl font-semibold mb-4">Life Timeline</h2>

@@ -13,9 +13,9 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const minIncome = Math.min(...incomes);
   const range = maxIncome - minIncome || 1;
   
-  const width = 600;
-  const height = 300;
-  const padding = { top: 30, right: 60, bottom: 50, left: 80 };
+  const width = 700;
+  const height = 320;
+  const padding = { top: 60, right: 60, bottom: 50, left: 80 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   
@@ -63,8 +63,9 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   return (
     <svg 
       viewBox={`0 0 ${width} ${height}`} 
-      className="w-full max-w-[600px] h-auto"
+      className="w-full max-w-[700px] h-auto"
       data-testid="income-chart"
+      style={{ overflow: 'visible' }}
     >
       <defs>
         <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
@@ -132,37 +133,51 @@ export function IncomeChart({ stages }: IncomeChartProps) {
           >
             {i === 0 && '\u{1F476} '}{point.age}{i === points.length - 1 && ' \u{1FAA6}'}
           </text>
-          {hoveredPoint === i && (
-            <g>
-              <rect
-                x={point.x - 70}
-                y={point.y - 55}
-                width="140"
-                height="45"
-                rx="4"
-                fill="hsl(var(--popover))"
-                stroke="hsl(var(--border))"
-                strokeWidth="1"
-              />
-              <text
-                x={point.x}
-                y={point.y - 38}
-                textAnchor="middle"
-                className="fill-foreground text-[11px] font-medium"
-              >
-                {point.eventInfo.name}
-              </text>
-              <text
-                x={point.x}
-                y={point.y - 22}
-                textAnchor="middle"
-                className="text-[10px] font-medium"
-                fill={point.eventInfo.color}
-              >
-                {point.eventInfo.outcome}
-              </text>
-            </g>
-          )}
+          {hoveredPoint === i && (() => {
+            const tooltipWidth = 150;
+            const tooltipHeight = 48;
+            let tooltipX = point.x - tooltipWidth / 2;
+            let tooltipY = point.y - tooltipHeight - 12;
+            
+            if (tooltipX < 5) tooltipX = 5;
+            if (tooltipX + tooltipWidth > width - 5) tooltipX = width - tooltipWidth - 5;
+            if (tooltipY < 5) {
+              tooltipY = point.y + 18;
+            }
+            
+            return (
+              <g style={{ pointerEvents: 'none' }}>
+                <rect
+                  x={tooltipX}
+                  y={tooltipY}
+                  width={tooltipWidth}
+                  height={tooltipHeight}
+                  rx="4"
+                  fill="hsl(var(--popover))"
+                  stroke="hsl(var(--border))"
+                  strokeWidth="1"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+                />
+                <text
+                  x={tooltipX + tooltipWidth / 2}
+                  y={tooltipY + 18}
+                  textAnchor="middle"
+                  className="fill-foreground text-[11px] font-medium"
+                >
+                  {point.eventInfo.name}
+                </text>
+                <text
+                  x={tooltipX + tooltipWidth / 2}
+                  y={tooltipY + 35}
+                  textAnchor="middle"
+                  className="text-[10px] font-medium"
+                  fill={point.eventInfo.color}
+                >
+                  {point.eventInfo.outcome}
+                </text>
+              </g>
+            );
+          })()}
         </g>
       ))}
       

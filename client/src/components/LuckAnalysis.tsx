@@ -10,9 +10,10 @@ import { useState } from 'react';
 
 interface LuckAnalysisProps {
   luck: LuckAnalysisType;
+  embedded?: boolean;
 }
 
-export function LuckAnalysis({ luck }: LuckAnalysisProps) {
+export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const getLuckIcon = (value: number) => {
@@ -30,6 +31,56 @@ export function LuckAnalysis({ luck }: LuckAnalysisProps) {
   const identity = luck.evRealized - luck.evBaselineHand;
   const components = luck.opportunityLuck + luck.rollLuck;
   const identityMatch = Math.abs(identity - components - luck.traitAdvantage) < 0.001;
+
+  if (embedded) {
+    return (
+      <div className="space-y-3" data-testid="luck-analysis">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-4 w-4 text-chart-4" />
+          <span className="text-sm font-medium">Luck Analysis</span>
+        </div>
+        
+        <div className="flex items-center justify-between p-2 rounded-md bg-muted">
+          <div className="flex items-center gap-1.5">
+            <Dices className="h-3 w-3 text-chart-3" />
+            <span className="text-xs text-muted-foreground">Opportunity</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {getLuckIcon(luck.opportunityLuck)}
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.opportunityLuck)}`}>
+              {formatEV(luck.opportunityLuck)}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between p-2 rounded-md bg-muted">
+          <div className="flex items-center gap-1.5">
+            <Dices className="h-3 w-3 text-chart-1" />
+            <span className="text-xs text-muted-foreground">Roll Luck</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {getLuckIcon(luck.rollLuck)}
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.rollLuck)}`}>
+              {formatEV(luck.rollLuck)}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between p-2 rounded-md bg-chart-4/10 border border-chart-4/20">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-3 w-3 text-chart-4" />
+            <span className="text-xs font-medium">Net Luck</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {getLuckIcon(luck.netLuck)}
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.netLuck)}`}>
+              {formatEV(luck.netLuck)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Card data-testid="luck-analysis">

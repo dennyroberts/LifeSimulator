@@ -408,11 +408,11 @@ export function SingleLife() {
                   <div className="mb-2">
                     <LuckAnalysis luck={result.luck} embedded compact />
                   </div>
-                  <div className="flex justify-center flex-1">
+                  <div className="flex justify-start flex-1">
                     <IncomeChart stages={result.stages} />
                   </div>
                 </div>
-                <div className="lg:w-72 shrink-0">
+                <div className="lg:w-[28rem] shrink-0">
                   <div className="flex items-center gap-2 mb-2">
                     <BookOpen className="h-4 w-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold">Life Biography</h3>

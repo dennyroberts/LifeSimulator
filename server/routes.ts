@@ -15,7 +15,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   app.post("/api/generate-biography", async (req, res) => {
     try {
-      const { name, traits, stages, careerName } = req.body;
+      const { name, traits, stages, careerName, letterGrade } = req.body;
 
       if (!traits || !stages) {
         return res
@@ -97,6 +97,7 @@ Other rules:
 - You should reframe the life events to be specific to the person's life / career. For example, "Put You In Charge" for a Creative who we have decided is a filmmaker might mean they are directing their first feature.
 - The vibe should be slightly dystopian
 - For the final summary sentence, focus on the traits that helped or hurt them the most, based on the life events. It should be short - you don't need to say something good and bad about everyone; i.e. if their life was mostly good, just say what helped them, if it was mostly bad, just say what hurt them. If a single life event really set them back or catapulted them, mention that here.
+- A letter grade for their life success is also provided - in the summary sentence, make sure that the tone of the summary reflects their level of success (A is very successful, B+ and above is successful, C is average, D and below is a pretty sad hard life)
 
 EXAMPLE INPUT:
 Name: Marcus Chen
@@ -125,6 +126,7 @@ Marcus Chen: a smart and connected engineer who played it safe and never quite a
 INFO TO WORK FROM:
 Name: ${name}
 Career field: ${careerName}
+Letter Grade: ${letterGrade || 'C'}
 Traits: INT ${traits.INT} CHAR ${traits.CHAR} WORK ${traits.WORK} NEPO ${traits.NEPO} RISK ${traits.RISK}
 Life events:
 ${lifeEventsDescription}`;

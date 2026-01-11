@@ -249,11 +249,14 @@ export function SingleLife() {
         const careerStage = result.stages.find(s => s.career);
         const careerName = careerStage?.career?.career?.name || 'General';
         
+        const letterGrade = getLifetimeGrade(result.lifetimeEarnings).grade;
+        
         const response = await apiRequest('POST', '/api/generate-biography', {
           name: result.name,
           traits: result.traits,
           stages: result.stages,
           careerName,
+          letterGrade,
         });
         
         const data = await response.json();

@@ -990,15 +990,17 @@ export function simulateLife(
   const traitAdvantage = evExpected - evHand;
   
   // Z-score normalization using calibration constants
-  // These were computed empirically from 10,000 simulations with average traits
-  // Opportunity luck: mean ≈ 0, std dev ≈ 0.42
-  // Raw roll deviation: mean ≈ 0, std dev ≈ 18.5 (based on ~10 d20 rolls)
-  const OPPORTUNITY_LUCK_STD = 0.42;
-  const ROLL_DEVIATION_STD = 18.5;
+  // Roll deviation: d20 variance = (20^2-1)/12 = 33.25, std = 5.77
+  // With ~10 rolls (edu + career + ~8 events), total std ≈ 5.77 * sqrt(10) ≈ 18.2
+  // Opportunity luck: based on event EV variance across the deck
+  // Empirically calibrated from 10k simulations: std ≈ 0.50
+  const OPPORTUNITY_LUCK_STD = 0.50;
+  const ROLL_DEVIATION_STD = 18.2;
   
   const opportunityLuckZ = opportunityLuck / OPPORTUNITY_LUCK_STD;
   const rollLuckZ = rawRollDeviation / ROLL_DEVIATION_STD;
-  const totalLuckZ = (opportunityLuckZ + rollLuckZ) / Math.sqrt(2); // Normalize combined z-score
+  // Average the two z-scores (both have zero mean by construction)
+  const totalLuckZ = (opportunityLuckZ + rollLuckZ) / 2;
   
   return {
     name: agent.name,

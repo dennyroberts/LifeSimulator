@@ -23,14 +23,14 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
   const [isOpen, setIsOpen] = useState(false);
   
   const getLuckIcon = (value: number) => {
-    if (value > 0.01) return <TrendingUp className="h-4 w-4 text-chart-2" />;
-    if (value < -0.01) return <TrendingDown className="h-4 w-4 text-destructive" />;
+    if (value > 0.3) return <TrendingUp className="h-4 w-4 text-chart-2" />;
+    if (value < -0.3) return <TrendingDown className="h-4 w-4 text-destructive" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
   
   const getLuckColor = (value: number) => {
-    if (value > 0.01) return 'text-chart-2';
-    if (value < -0.01) return 'text-destructive';
+    if (value > 0.3) return 'text-chart-2';
+    if (value < -0.3) return 'text-destructive';
     return 'text-muted-foreground';
   };
 

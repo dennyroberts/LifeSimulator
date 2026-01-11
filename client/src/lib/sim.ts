@@ -958,6 +958,31 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
+export interface LifetimeGrade {
+  grade: string;
+  color: string;
+}
+
+export function getLifetimeGrade(lifetimeEarnings: number): LifetimeGrade {
+  if (lifetimeEarnings >= 15_000_000) {
+    return { grade: 'A++', color: 'text-yellow-400' };
+  } else if (lifetimeEarnings >= 7_500_000) {
+    return { grade: 'A+', color: 'text-yellow-500' };
+  } else if (lifetimeEarnings >= 5_000_000) {
+    return { grade: 'A', color: 'text-green-400' };
+  } else if (lifetimeEarnings >= 3_000_000) {
+    return { grade: 'B', color: 'text-green-500' };
+  } else if (lifetimeEarnings >= 2_000_000) {
+    return { grade: 'C', color: 'text-blue-400' };
+  } else if (lifetimeEarnings >= 1_500_000) {
+    return { grade: 'D', color: 'text-orange-400' };
+  } else if (lifetimeEarnings >= 500_000) {
+    return { grade: 'F', color: 'text-red-500' };
+  } else {
+    return { grade: 'F-', color: 'text-red-600' };
+  }
+}
+
 export function formatEV(value: number): string {
   const sign = value >= 0 ? '+' : '';
   return `${sign}${value.toFixed(3)}`;

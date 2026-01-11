@@ -24,6 +24,7 @@ import {
   generateRandomTraits,
   generateRandomName,
   formatCurrency,
+  getLifetimeGrade,
 } from '@/lib/sim';
 import { createRng } from '@/lib/rng';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -339,13 +340,21 @@ export function SingleLife() {
                         {formatCurrency(result.peakIncome)}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Coins className="h-3 w-3" />
-                        Lifetime
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Coins className="h-3 w-3" />
+                          Lifetime
+                        </div>
+                        <div className="text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
+                          {formatCurrency(result.lifetimeEarnings)}
+                        </div>
                       </div>
-                      <div className="text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
-                        {formatCurrency(result.lifetimeEarnings)}
+                      <div 
+                        className={`text-4xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
+                        data-testid="result-lifetime-grade"
+                      >
+                        {getLifetimeGrade(result.lifetimeEarnings).grade}
                       </div>
                     </div>
                     <div className="lg:ml-auto">

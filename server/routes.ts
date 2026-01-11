@@ -21,9 +21,15 @@ export async function registerRoutes(
           .json({ error: "Missing required simulation data" });
       }
 
+      const stageToAge = (stageNum: number) => {
+        if (stageNum === 1) return 18;
+        if (stageNum === 2) return 24;
+        return 24 + (stageNum - 2) * 6;
+      };
+
       const lifeEventsDescription = stages
         .map((stage: any) => {
-          const age = stage.age;
+          const age = stageToAge(stage.stage);
           let eventType = "";
           let eventName = "";
           let outcome = "";
@@ -31,18 +37,18 @@ export async function registerRoutes(
 
           if (stage.education) {
             eventType = "Education";
-            eventName = stage.education.label;
+            eventName = stage.education.label || "";
             outcome = stage.education.outcomeMessage || "";
           } else if (stage.career) {
             eventType = "Career Placement";
-            eventName = stage.career.career?.name || "Unknown";
+            eventName = stage.career.career?.name || careerName || "Unknown";
             outcome = stage.career.outcomeMessage || "";
             success = true;
-          } else if (stage.event) {
+          } else if (stage.eventOutcome) {
             eventType = "Life Event";
-            eventName = stage.event.event?.name || "Unknown";
-            outcome = stage.event.outcomeMessage || "";
-            success = stage.event.success ?? true;
+            eventName = stage.eventOutcome.event?.name || "";
+            outcome = stage.eventOutcome.outcomeMessage || "";
+            success = stage.eventOutcome.success ?? true;
           }
 
           return `Age ${age}: [${eventType}] ${eventName} - ${success ? "Success" : "Failure"}. ${outcome}`;
@@ -91,7 +97,7 @@ At 60, he decided weapons-grade robotics was no longer for him, and became a pai
 INFO TO WORK FROM:
 Name: ${name}
 Career field: ${careerName}
-Traits: ${sortedTraits}
+Traits: INT ${traits.INT} CHAR ${traits.CHAR} WORK ${traits.WORK} NEPO ${traits.NEPO} RISK ${traits.RISK}
 Life events:
 ${lifeEventsDescription}`;
 

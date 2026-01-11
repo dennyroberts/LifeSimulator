@@ -113,12 +113,23 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
       return { name: 'Education', outcome: stage.education?.label || 'Complete', color: 'hsl(var(--chart-2))' };
     }
     if (stage.isCareer && stage.career) {
-      return { name: 'Career', outcome: stage.career.career.name, color: 'hsl(var(--chart-1))' };
+      const isCrit = stage.career.isNat20;
+      return { 
+        name: 'Career', 
+        outcome: isCrit ? `${stage.career.career.name} (Crit!)` : stage.career.career.name, 
+        color: 'hsl(var(--chart-1))' 
+      };
     }
     if (stage.eventOutcome) {
       const event = stage.eventOutcome;
       if (event.gateFailed) {
         return { name: event.event.name, outcome: "Didn't take the risk", color: 'hsl(var(--muted-foreground))' };
+      }
+      if (event.isCritical && event.criticalType === 'success') {
+        return { name: event.event.name, outcome: 'Critical Success!', color: 'hsl(var(--chart-2))' };
+      }
+      if (event.isCritical && event.criticalType === 'failure') {
+        return { name: event.event.name, outcome: 'Critical Failure!', color: 'hsl(var(--destructive))' };
       }
       if (event.success) {
         return { name: event.event.name, outcome: 'Success', color: 'hsl(var(--chart-2))' };

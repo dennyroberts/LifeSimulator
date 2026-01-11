@@ -51,6 +51,17 @@ export async function registerRoutes(
             eventName = stage.eventOutcome.event?.name || "";
             outcome = stage.eventOutcome.outcomeMessage || "";
             success = stage.eventOutcome.success ?? true;
+            
+            // Check for gate failure (didn't take risk)
+            if (stage.eventOutcome.gateFailed) {
+              return `Age ${age}: [${eventType}] ${eventName} - Did Not Try (Risk). ${outcome}`;
+            }
+            
+            // Check for critical success/failure
+            if (stage.eventOutcome.isCritical) {
+              const critType = stage.eventOutcome.criticalType === 'success' ? 'Critical Success' : 'Critical Failure';
+              return `Age ${age}: [${eventType}] ${eventName} - ${critType}. ${outcome}`;
+            }
           }
 
           return `Age ${age}: [${eventType}] ${eventName} - ${success ? "Success" : "Failure"}. ${outcome}`;

@@ -25,7 +25,7 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5 max-w-xs" data-testid="trait-input-grid">
+    <div className="flex flex-col gap-1" data-testid="trait-input-grid">
       {TRAIT_ORDER.map((trait) => {
         const { name, description } = TRAIT_LABELS[trait];
         const value = traits[trait];
@@ -38,9 +38,9 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
             className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50 border"
             data-testid={`trait-card-${trait.toLowerCase()}`}
           >
-            <div className="w-20 shrink-0">
+            <div className="flex-1 min-w-0">
               <span className="font-bold text-xs">{name}</span>
-              <span className="text-[10px] text-muted-foreground ml-1">{description}</span>
+              <span className="text-[10px] text-muted-foreground ml-1 truncate">{description}</span>
             </div>
             
             <div className="flex items-center gap-1">

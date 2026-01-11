@@ -125,93 +125,92 @@ export function SingleLife() {
 
   return (
     <div className="space-y-6" data-testid="single-life-view">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Agent Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex flex-col items-center gap-3 md:w-52 shrink-0">
-              <Avatar className="h-24 w-24 border-2">
-                <AvatarImage
-                  src={`https://thispersondoesnotexist.com?${avatarKey}`}
-                  alt="Agent avatar"
-                />
-                <AvatarFallback>
-                  <User className="h-10 w-10 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNewAvatar}
-                className="gap-1.5 w-full"
-                data-testid="button-new-avatar"
-              >
-                <RefreshCw className="h-3 w-3" />
-                New Face
-              </Button>
-              <div className="w-full">
-                <Label htmlFor="name" className="text-xs">Name</Label>
-                <div className="flex gap-1 mt-1">
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Name"
-                    className="h-8 text-sm"
-                    data-testid="input-agent-name"
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <User className="h-4 w-4" />
+              Agent Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              <div className="flex flex-col items-center gap-2 w-32 shrink-0">
+                <Avatar className="h-20 w-20 border-2">
+                  <AvatarImage
+                    src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                    alt="Agent avatar"
                   />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleRandomName}
-                    title="Generate random name"
-                    className="h-8 w-8 shrink-0"
-                    data-testid="button-random-name"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm">Traits (0-20)</Label>
+                  <AvatarFallback>
+                    <User className="h-8 w-8 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleRandomTraits}
-                  className="gap-1.5 h-7 text-xs"
-                  data-testid="button-random-traits"
+                  onClick={handleNewAvatar}
+                  className="gap-1 w-full h-7 text-xs"
+                  data-testid="button-new-avatar"
                 >
-                  <Dices className="h-3 w-3" />
-                  Random
+                  <RefreshCw className="h-3 w-3" />
+                  New Face
                 </Button>
+                <div className="w-full">
+                  <div className="flex gap-1">
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Name"
+                      className="h-7 text-xs"
+                      data-testid="input-agent-name"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleRandomName}
+                      title="Random name"
+                      className="h-7 w-7 shrink-0"
+                      data-testid="button-random-name"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <TraitInput traits={traits} onChange={setTraits} />
+              
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1.5">
+                  <Label className="text-xs text-muted-foreground">Traits</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRandomTraits}
+                    className="gap-1 h-6 text-xs px-2"
+                    data-testid="button-random-traits"
+                  >
+                    <Dices className="h-3 w-3" />
+                    Roll
+                  </Button>
+                </div>
+                <TraitInput traits={traits} onChange={setTraits} />
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Simulation Settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Settings className="h-4 w-4" />
+              Simulation Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="world-mode">World Mode</Label>
+              <Label htmlFor="world-mode" className="text-xs">World Mode</Label>
               <Select value={worldMode} onValueChange={(v) => setWorldMode(v as WorldMode)}>
-                <SelectTrigger className="mt-1.5" data-testid="select-world-mode">
+                <SelectTrigger className="mt-1 h-8" data-testid="select-world-mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -220,72 +219,73 @@ export function SingleLife() {
                   <SelectItem value="meritocracy">Meritocracy</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 {worldMode === 'normal' && 'Balanced trait multipliers'}
-                {worldMode === 'nepo' && 'Social & Charisma boosted, INT & WORK reduced'}
-                {worldMode === 'meritocracy' && 'INT & WORK boosted, Social & Charisma reduced'}
+                {worldMode === 'nepo' && 'SOC & CHAR boosted, INT & WORK reduced'}
+                {worldMode === 'meritocracy' && 'INT & WORK boosted, SOC & CHAR reduced'}
               </p>
             </div>
             
             <div>
-              <Label htmlFor="seed">Seed</Label>
-              <div className="flex gap-2 mt-1.5">
+              <Label htmlFor="seed" className="text-xs">Seed</Label>
+              <div className="flex gap-1 mt-1">
                 <Input
                   id="seed"
                   value={seed}
                   onChange={(e) => setSeed(e.target.value)}
-                  placeholder="Seed for reproducibility"
+                  placeholder="Seed"
+                  className="h-8"
                   data-testid="input-seed"
                 />
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={handleRandomSeed}
-                  title="Generate random seed"
+                  title="Random seed"
+                  className="h-8 w-8 shrink-0"
                   data-testid="button-random-seed"
                 >
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCw className="h-3 w-3" />
                 </Button>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3 pt-7">
+            <div className="flex items-center space-x-2">
               <Switch
                 id="same-deck"
                 checked={sameDeck}
                 onCheckedChange={setSameDeck}
                 data-testid="switch-same-deck"
               />
-              <Label htmlFor="same-deck" className="cursor-pointer">
-                Same deck for everyone
+              <Label htmlFor="same-deck" className="cursor-pointer text-sm">
+                Same deck for all
               </Label>
             </div>
-          </div>
-          
-          <div className="flex gap-3 mt-6">
-            <Button
-              onClick={handleRun}
-              className="gap-2"
-              size="lg"
-              data-testid="button-run-simulation"
-            >
-              <Play className="h-4 w-4" />
-              Run Simulation
-            </Button>
-            {hasRun && (
+            
+            <div className="flex gap-2 pt-2">
               <Button
-                variant="outline"
-                onClick={handleShare}
-                className="gap-2"
-                data-testid="button-share"
+                onClick={handleRun}
+                className="gap-2 flex-1"
+                data-testid="button-run-simulation"
               >
-                <Share2 className="h-4 w-4" />
-                Share
+                <Play className="h-4 w-4" />
+                Run Simulation
               </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              {hasRun && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleShare}
+                  title="Share"
+                  data-testid="button-share"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       
       {result && (
         <>

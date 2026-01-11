@@ -129,14 +129,15 @@ Life events:
 ${lifeEventsDescription}`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5-mini",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "user",
             content: prompt,
           },
         ],
-        max_completion_tokens: 2000,
+        max_tokens: 500,
+        temperature: 0.8,
       });
 
       const biography =

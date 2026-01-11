@@ -40,6 +40,7 @@ export function SingleLife() {
     return generateRandomName(rng);
   });
   const [avatarKey, setAvatarKey] = useState(() => Date.now());
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
   const [traits, setTraits] = useState<Traits>({
     INT: 10,
     WORK: 10,
@@ -58,6 +59,25 @@ export function SingleLife() {
   
   const handleNewAvatar = () => {
     setAvatarKey(Date.now());
+    setAvatarDataUrl(null);
+  };
+  
+  const handleAvatarLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (!avatarDataUrl) {
+      const img = e.currentTarget;
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        try {
+          setAvatarDataUrl(canvas.toDataURL('image/jpeg', 0.9));
+        } catch {
+          // CORS issue, keep using URL
+        }
+      }
+    }
   };
   
   useEffect(() => {
@@ -202,8 +222,10 @@ export function SingleLife() {
               <div className="flex flex-col items-center gap-2 shrink-0">
                 <Avatar className="h-24 w-24 border-2">
                   <AvatarImage
-                    src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                    src={avatarDataUrl || `https://thispersondoesnotexist.com?${avatarKey}`}
                     alt="Agent avatar"
+                    onLoad={handleAvatarLoad}
+                    crossOrigin="anonymous"
                   />
                   <AvatarFallback>
                     <User className="h-8 w-8 text-muted-foreground" />
@@ -361,7 +383,7 @@ export function SingleLife() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 border">
                     <AvatarImage
-                      src={`https://thispersondoesnotexist.com?${avatarKey}`}
+                      src={avatarDataUrl || `https://thispersondoesnotexist.com?${avatarKey}`}
                       alt="Agent avatar"
                     />
                     <AvatarFallback>

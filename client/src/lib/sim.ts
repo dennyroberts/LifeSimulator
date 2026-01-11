@@ -47,7 +47,7 @@ export interface EducationOutcome {
   total: number;
   label: string;
   growthDelta: number;
-  outcomeMessage: string;
+  outcomeMessage?: string;
 }
 
 export interface CareerDefinition {
@@ -70,7 +70,7 @@ export interface CareerOutcome {
   finalSalary: number;
   finalGrowth: number;
   traitContributions: TraitContribution[];
-  outcomeMessage: string;
+  outcomeMessage?: string;
 }
 
 export interface TraitContribution {

@@ -24,9 +24,7 @@ function App() {
                     <Brain className="h-6 w-6 text-chart-1" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold tracking-tight">
-                      Intelligence Is Overrated?
-                    </h1>
+                    <h1 className="text-xl font-bold tracking-tight">Life Simulator</h1>
                     <p className="text-sm text-muted-foreground">
                       Life Sim — D20 Career Simulator
                     </p>

@@ -228,17 +228,17 @@ export function SingleLife() {
     const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck);
     setResult(simResult);
     
-    const sharedEvents = new Map<number, typeof simResult.stages[0]['eventOutcome']>();
+    const sharedEvents = new Map<number, any>();
     simResult.stages.forEach(stage => {
       if (stage.eventOutcome?.event) {
-        sharedEvents.set(stage.stage, stage.eventOutcome.event as any);
+        sharedEvents.set(stage.stage, stage.eventOutcome.event);
       }
     });
     
-    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents as any, 20);
+    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 20);
     setBestResult(bestSimResult);
     
-    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents as any, 1);
+    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 1);
     setWorstResult(worstSimResult);
     
     setTimelineView('actual');
@@ -616,7 +616,45 @@ export function SingleLife() {
           
           <div>
             <h2 className="text-xl font-semibold mb-4">Life Timeline</h2>
-            <Timeline stages={result.stages} />
+            <Tabs value={timelineView} onValueChange={(v) => setTimelineView(v as 'actual' | 'best' | 'worst')} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="actual" data-testid="tab-actual">
+                  Actual Life
+                </TabsTrigger>
+                <TabsTrigger value="best" data-testid="tab-best" className="text-chart-2">
+                  Best Possible (All 20s)
+                </TabsTrigger>
+                <TabsTrigger value="worst" data-testid="tab-worst" className="text-destructive">
+                  Worst Possible (All 1s)
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="actual">
+                <Timeline stages={result.stages} />
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Lifetime Earnings: {formatCurrency(result.lifetimeEarnings)}
+                </div>
+              </TabsContent>
+              <TabsContent value="best">
+                {bestResult && (
+                  <>
+                    <Timeline stages={bestResult.stages} />
+                    <div className="mt-2 text-sm text-chart-2">
+                      Best Lifetime Earnings: {formatCurrency(bestResult.lifetimeEarnings)}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+              <TabsContent value="worst">
+                {worstResult && (
+                  <>
+                    <Timeline stages={worstResult.stages} />
+                    <div className="mt-2 text-sm text-destructive">
+                      Worst Lifetime Earnings: {formatCurrency(worstResult.lifetimeEarnings)}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </>
       )}

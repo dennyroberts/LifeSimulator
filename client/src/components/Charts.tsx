@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { type StageResult, type SimulationResult, formatCurrency } from '@/lib/sim';
 
 interface IncomeChartProps {
@@ -5,6 +6,8 @@ interface IncomeChartProps {
 }
 
 export function IncomeChart({ stages }: IncomeChartProps) {
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+  
   const incomes = stages.map(s => s.incomeAfter);
   const maxIncome = Math.max(...incomes);
   const minIncome = Math.min(...incomes);
@@ -18,12 +21,30 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   
   const stageToAge = (stageIndex: number) => 20 + stageIndex * 8;
   
+  const getEventInfo = (stage: StageResult) => {
+    if (stage.isEducation) {
+      return { name: 'Education', outcome: stage.education?.label || 'Complete', color: 'hsl(var(--chart-2))' };
+    }
+    if (stage.eventOutcome) {
+      const event = stage.eventOutcome;
+      if (event.gateFailed) {
+        return { name: event.event.name, outcome: "Didn't take the risk", color: 'hsl(var(--muted-foreground))' };
+      }
+      if (event.success) {
+        return { name: event.event.name, outcome: 'Success', color: 'hsl(var(--chart-2))' };
+      }
+      return { name: event.event.name, outcome: 'Failed', color: 'hsl(var(--destructive))' };
+    }
+    return { name: 'Unknown', outcome: '', color: 'hsl(var(--muted-foreground))' };
+  };
+  
   const points = stages.map((stage, i) => ({
     x: padding.left + (i / (stages.length - 1)) * chartWidth,
     y: padding.top + chartHeight - ((stage.incomeAfter - minIncome) / range) * chartHeight,
     income: stage.incomeAfter,
     stage: stage.stage,
-    age: stageToAge(i)
+    age: stageToAge(i),
+    eventInfo: getEventInfo(stage)
   }));
   
   const pathD = points
@@ -89,11 +110,16 @@ export function IncomeChart({ stages }: IncomeChartProps) {
       />
       
       {points.map((point, i) => (
-        <g key={point.stage}>
+        <g 
+          key={point.stage}
+          onMouseEnter={() => setHoveredPoint(i)}
+          onMouseLeave={() => setHoveredPoint(null)}
+          style={{ cursor: 'pointer' }}
+        >
           <circle
             cx={point.x}
             cy={point.y}
-            r="6"
+            r="8"
             fill="hsl(var(--background))"
             stroke="hsl(var(--chart-1))"
             strokeWidth="3"
@@ -104,8 +130,39 @@ export function IncomeChart({ stages }: IncomeChartProps) {
             textAnchor="middle"
             className="fill-muted-foreground text-[11px] font-mono"
           >
-            {i === 0 && '\u{1F393} '}{point.age}{i === points.length - 1 && ' \u{1FAA6}'}
+            {i === 0 && '\u{1F476} '}{point.age}{i === points.length - 1 && ' \u{1FAA6}'}
           </text>
+          {hoveredPoint === i && (
+            <g>
+              <rect
+                x={point.x - 70}
+                y={point.y - 55}
+                width="140"
+                height="45"
+                rx="4"
+                fill="hsl(var(--popover))"
+                stroke="hsl(var(--border))"
+                strokeWidth="1"
+              />
+              <text
+                x={point.x}
+                y={point.y - 38}
+                textAnchor="middle"
+                className="fill-foreground text-[11px] font-medium"
+              >
+                {point.eventInfo.name}
+              </text>
+              <text
+                x={point.x}
+                y={point.y - 22}
+                textAnchor="middle"
+                className="text-[10px] font-medium"
+                fill={point.eventInfo.color}
+              >
+                {point.eventInfo.outcome}
+              </text>
+            </g>
+          )}
         </g>
       ))}
       

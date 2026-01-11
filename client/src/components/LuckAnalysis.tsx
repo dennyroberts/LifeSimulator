@@ -28,9 +28,10 @@ export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
     return 'text-muted-foreground';
   };
 
+  // Identity check uses eventRollLuck only (education/career are separate EV ledgers)
   const identity = luck.evRealized - luck.evBaselineHand;
-  const components = luck.opportunityLuck + luck.rollLuck;
-  const identityMatch = Math.abs(identity - components - luck.traitAdvantage) < 0.001;
+  const eventComponents = luck.opportunityLuck + luck.eventRollLuck + luck.traitAdvantage;
+  const identityMatch = Math.abs(identity - eventComponents) < 0.001;
 
   if (embedded) {
     return (
@@ -53,16 +54,38 @@ export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
           </div>
         </div>
         
-        <div className="flex items-center justify-between p-2 rounded-md bg-muted">
-          <div className="flex items-center gap-1.5">
-            <Dices className="h-3 w-3 text-chart-1" />
-            <span className="text-xs text-muted-foreground">Roll Luck</span>
+        <div className="p-2 rounded-md bg-muted space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Dices className="h-3 w-3 text-chart-1" />
+              <span className="text-xs text-muted-foreground">Roll Luck</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {getLuckIcon(luck.rollLuck)}
+              <span className={`font-mono text-sm font-bold ${getLuckColor(luck.rollLuck)}`}>
+                {formatEV(luck.rollLuck)}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            {getLuckIcon(luck.rollLuck)}
-            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.rollLuck)}`}>
-              {formatEV(luck.rollLuck)}
-            </span>
+          <div className="pl-4 space-y-0.5 text-[10px]">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Edu</span>
+              <span className={`font-mono ${getLuckColor(luck.educationRollLuck)}`}>
+                {formatEV(luck.educationRollLuck)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Career</span>
+              <span className={`font-mono ${getLuckColor(luck.careerRollLuck)}`}>
+                {formatEV(luck.careerRollLuck)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Events</span>
+              <span className={`font-mono ${getLuckColor(luck.eventRollLuck)}`}>
+                {formatEV(luck.eventRollLuck)}
+              </span>
+            </div>
           </div>
         </div>
         
@@ -104,16 +127,38 @@ export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
           </div>
         </div>
         
-        <div className="flex items-center justify-between p-3 rounded-md bg-muted">
-          <div className="flex items-center gap-2">
-            <Dices className="h-4 w-4 text-chart-1" />
-            <span className="text-sm text-muted-foreground">Roll Luck</span>
+        <div className="p-3 rounded-md bg-muted space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Dices className="h-4 w-4 text-chart-1" />
+              <span className="text-sm text-muted-foreground">Roll Luck</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {getLuckIcon(luck.rollLuck)}
+              <span className={`font-mono text-lg font-bold ${getLuckColor(luck.rollLuck)}`} data-testid="luck-roll">
+                {formatEV(luck.rollLuck)}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            {getLuckIcon(luck.rollLuck)}
-            <span className={`font-mono text-lg font-bold ${getLuckColor(luck.rollLuck)}`} data-testid="luck-roll">
-              {formatEV(luck.rollLuck)}
-            </span>
+          <div className="pl-6 space-y-1 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Education Roll</span>
+              <span className={`font-mono ${getLuckColor(luck.educationRollLuck)}`}>
+                {formatEV(luck.educationRollLuck)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Career Roll</span>
+              <span className={`font-mono ${getLuckColor(luck.careerRollLuck)}`}>
+                {formatEV(luck.careerRollLuck)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Life Events</span>
+              <span className={`font-mono ${getLuckColor(luck.eventRollLuck)}`}>
+                {formatEV(luck.eventRollLuck)}
+              </span>
+            </div>
           </div>
         </div>
         
@@ -163,10 +208,13 @@ export function LuckAnalysis({ luck, embedded = false }: LuckAnalysisProps) {
                   EV_realized - EV_baseline = {formatEV(identity)}
                 </div>
                 <div className="font-mono text-xs">
-                  Opp + Trait + Roll = {formatEV(components)}
+                  Opp + Trait + EventRoll = {formatEV(eventComponents)}
                 </div>
                 <div className={`text-xs mt-1 ${identityMatch ? 'text-chart-2' : 'text-chart-4'}`}>
-                  {identityMatch ? 'Identity verified' : `Difference: ${formatEV(identity - components)}`}
+                  {identityMatch ? 'Events ledger verified' : `Difference: ${formatEV(identity - eventComponents)}`}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  (Education/Career roll luck tracked separately)
                 </div>
               </div>
             </div>

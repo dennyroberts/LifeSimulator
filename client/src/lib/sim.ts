@@ -354,6 +354,108 @@ export function computeEvBaselineHand(): number {
   return total;
 }
 
+// Compute EV for education outcome (growth delta affects all 8 remaining stages)
+export function computeEducationEV(growthDelta: number): number {
+  const g0 = config.baseGrowthEV;
+  const remainingStages = 8; // stages 2-9
+  
+  let baseline = 0;
+  let withEducation = 0;
+  
+  for (let i = 0; i < remainingStages; i++) {
+    baseline += Math.pow(1 + g0, i);
+    withEducation += Math.pow(1 + g0 + growthDelta, i);
+  }
+  
+  return withEducation - baseline;
+}
+
+// Expected education EV given traits
+export function computeEducationExpectedEV(traits: Traits, worldMode: WorldMode): number {
+  const totalMod = computeTotalMod(traits, config.education.checkTraits as Partial<Record<TraitName, number>>, worldMode);
+  let expectedEV = 0;
+  
+  // For each possible d20 roll (1-20), compute probability and resulting threshold
+  for (let roll = 1; roll <= 20; roll++) {
+    const total = roll + totalMod;
+    let growthDelta = 0;
+    
+    // Find which threshold this total hits
+    for (const threshold of config.education.thresholds) {
+      if (total >= threshold.minTotal) {
+        growthDelta = threshold.growthDelta;
+        break;
+      }
+    }
+    
+    expectedEV += (1 / 20) * computeEducationEV(growthDelta);
+  }
+  
+  return expectedEV;
+}
+
+// Compute EV for career outcome (salary and growth affect all 8 remaining stages)
+// Returns raw delta in the same units as education/event EV
+export function computeCareerEV(salary: number, growth: number, isNat20: boolean): number {
+  const g0 = config.baseGrowthEV;
+  const remainingStages = 8; // stages 2-9
+  const baseSalary = config.startingIncome; // reference baseline salary
+  const nat20Multiplier = isNat20 ? 1.2 : 1.0;
+  
+  // Compute baseline (what you'd get with average career)
+  // Using average career: ~$52K salary, ~0.03 growth (mid-tier)
+  const avgSalary = 52000;
+  const avgGrowth = 0.03;
+  
+  let baseline = 0;
+  let withCareer = 0;
+  
+  for (let i = 0; i < remainingStages; i++) {
+    baseline += avgSalary * Math.pow(1 + avgGrowth, i);
+    withCareer += salary * nat20Multiplier * Math.pow(1 + growth, i);
+  }
+  
+  // Normalize to EV scale (same as education: relative growth impact)
+  // Divide by baseline to get a unitless ratio comparable to other EV measures
+  const baselineWithBaseGrowth = remainingStages * baseSalary; // simplified reference
+  return (withCareer - baseline) / (baseline || 1);
+}
+
+// Expected career EV given traits and education bonus
+export function computeCareerExpectedEV(
+  traits: Traits, 
+  worldMode: WorldMode, 
+  educationBonus: number
+): number {
+  const nepoMod = getMod(traits.NEPO) * (worldModes[worldMode].NEPO || 1) * 1.5;
+  const intMod = getMod(traits.INT) * (worldModes[worldMode].INT || 1) * 0.75;
+  const charMod = getMod(traits.CHAR) * (worldModes[worldMode].CHAR || 1) * 0.5;
+  const totalMod = Math.floor(nepoMod + intMod + charMod + educationBonus);
+  
+  let expectedEV = 0;
+  
+  // For each possible d20 roll (1-20), compute probability and resulting career
+  for (let roll = 1; roll <= 20; roll++) {
+    const total = roll + totalMod;
+    const isNat20 = roll === 20;
+    
+    // Find which career this total maps to
+    let career = careers[0]; // Default to lowest
+    for (const c of careers) {
+      if (total >= c.minRoll && total <= c.maxRoll) {
+        career = c;
+        break;
+      } else if (total > c.maxRoll) {
+        career = c; // Keep updating to higher tiers
+      }
+    }
+    
+    expectedEV += (1 / 20) * computeCareerEV(career.baseSalary, career.baseGrowth, isNat20);
+  }
+  
+  return expectedEV;
+}
+
 export function resolveEducation(
   traits: Traits,
   worldMode: WorldMode,
@@ -667,23 +769,22 @@ export function simulateLife(
     .filter(s => !s.isEducation && s.eventOutcome)
     .reduce((sum, s) => sum + (s.eventOutcome?.evRealized || 0), 0);
   
-  // Event roll luck
+  // Event roll luck: difference between realized and expected event EV
   const eventRollLuck = evRealized - evExpected;
   
-  // Education roll luck: compare actual roll to expected (10.5)
-  // Convert to EV scale: each point on the d20 roughly corresponds to ~0.01 EV
-  // since growth delta affects all 8 remaining stages
-  const expectedD20 = 10.5;
-  const eduRollDiff = educationOutcome.roll - expectedD20;
-  // Weight by how many stages education affects (all 8) and typical growth impact (~0.01 per threshold)
-  const educationRollLuck = eduRollDiff * 0.01;
+  // Education roll luck: realized EV - expected EV (using proper EV framework)
+  const educationRealizedEV = computeEducationEV(educationOutcome.growthDelta);
+  const educationExpectedEV = computeEducationExpectedEV(agent.traits, worldMode);
+  const educationRollLuck = educationRealizedEV - educationExpectedEV;
   
-  // Career roll luck: compare actual roll to expected
-  // Career is highly impactful as it sets starting salary for all future stages
-  const careerRollDiff = careerOutcome.roll - expectedD20;
-  // Nat 20 gives +20% salary bonus, so each roll point is worth more
-  // Weight by impact: career affects all 8 stages with compound effects
-  const careerRollLuck = careerRollDiff * 0.015;
+  // Career roll luck: realized EV - expected EV (using proper EV framework)
+  const careerRealizedEV = computeCareerEV(
+    careerOutcome.career.baseSalary, 
+    careerOutcome.career.baseGrowth, 
+    careerOutcome.isNat20
+  );
+  const careerExpectedEV = computeCareerExpectedEV(agent.traits, worldMode, careerOutcome.educationBonus);
+  const careerRollLuck = careerRealizedEV - careerExpectedEV;
   
   // Total roll luck combines all roll-based luck
   const rollLuck = educationRollLuck + careerRollLuck + eventRollLuck;

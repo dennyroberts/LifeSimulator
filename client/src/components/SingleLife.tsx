@@ -316,51 +316,46 @@ export function SingleLife() {
       
       {result && (
         <>
-          <Card className="border-chart-4/30 bg-gradient-to-br from-chart-4/5 to-transparent">
-            <CardHeader>
+          <Card>
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-chart-4" />
-                Final Results
+                Lifetime Results
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Agent</div>
-                  <div className="text-2xl font-bold mb-3" data-testid="result-agent-name">
-                    {result.name}
-                  </div>
-                  <TraitDisplay traits={result.traits} />
-                </div>
-                <div className="flex flex-col justify-center space-y-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground mb-1">Peak Salary</div>
-                    <div className="text-3xl font-mono font-bold text-chart-4" data-testid="result-peak-income">
-                      {formatCurrency(result.peakIncome)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
-                      <Coins className="h-4 w-4" />
-                      Lifetime Earnings
-                    </div>
-                    <div className="text-2xl font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
-                      {formatCurrency(result.lifetimeEarnings)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Lifetime Success</CardTitle>
-            </CardHeader>
-            <CardContent>
               <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 flex justify-center">
-                  <IncomeChart stages={result.stages} />
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 pb-3 border-b">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Agent</div>
+                      <div className="text-lg font-bold" data-testid="result-agent-name">
+                        {result.name}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Peak Salary</div>
+                      <div className="text-lg font-mono font-bold text-chart-4" data-testid="result-peak-income">
+                        {formatCurrency(result.peakIncome)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Coins className="h-3 w-3" />
+                        Lifetime
+                      </div>
+                      <div className="text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
+                        {formatCurrency(result.lifetimeEarnings)}
+                      </div>
+                    </div>
+                    <div className="lg:ml-auto">
+                      <div className="text-xs text-muted-foreground mb-1">Traits</div>
+                      <TraitDisplay traits={result.traits} compact />
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <IncomeChart stages={result.stages} />
+                  </div>
                 </div>
                 <div className="lg:w-64 shrink-0">
                   <LuckAnalysis luck={result.luck} embedded />

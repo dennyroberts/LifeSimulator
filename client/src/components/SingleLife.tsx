@@ -576,7 +576,7 @@ export function SingleLife() {
                                   }}
                                   className={`transition-colors duration-300 ${
                                     highlightedSentenceIdx === sentence.idx 
-                                      ? 'bg-primary/20 text-foreground rounded px-0.5' 
+                                      ? 'text-white' 
                                       : ''
                                   }`}
                                 >

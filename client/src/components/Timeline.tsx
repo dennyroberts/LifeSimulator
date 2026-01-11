@@ -7,7 +7,14 @@ import {
   formatPercent,
   formatEV 
 } from '@/lib/sim';
+import * as LucideIcons from 'lucide-react';
 import { GraduationCap, Briefcase, Check, X, AlertTriangle, Sparkles, Skull, Baby, Cross } from 'lucide-react';
+
+const getEventIcon = (iconName?: string) => {
+  if (!iconName) return Briefcase;
+  const Icon = (LucideIcons as Record<string, any>)[iconName];
+  return Icon || Briefcase;
+};
 
 interface TimelineProps {
   stages: StageResult[];
@@ -151,12 +158,14 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
     return 'text-destructive';
   };
   
+  const EventIcon = getEventIcon(event.icon);
+  
   return (
     <Card className={`border-t-4 ${getBorderColor()} flex-1 min-w-0`} data-testid={`event-card-${stage.stage}`}>
       <CardContent className="p-3 flex flex-col h-full">
         <div className="flex items-center justify-between gap-1 mb-2">
           <div className="flex items-center gap-1.5">
-            <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
+            <EventIcon className="h-4 w-4 text-muted-foreground shrink-0" />
             <span className="text-xs text-muted-foreground">Age {age}</span>
           </div>
         </div>

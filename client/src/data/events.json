@@ -2,6 +2,7 @@
   {
     "id": "you_get_the_nod",
     "name": "You Get the Nod",
+    "icon": "ThumbsUp",
     "rarity": "common",
     "rollRequired": true,
     "DC": 12,
@@ -15,6 +16,7 @@
   {
     "id": "thrown_into_the_spotlight",
     "name": "Thrown Into the Spotlight",
+    "icon": "Spotlight",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
@@ -28,6 +30,7 @@
   {
     "id": "a_really_good_boss",
     "name": "A Really Good Boss",
+    "icon": "UserCheck",
     "rarity": "common",
     "rollRequired": true,
     "DC": 10,
@@ -41,6 +44,7 @@
   {
     "id": "a_really_bad_boss",
     "name": "A Really Bad Boss",
+    "icon": "UserX",
     "rarity": "common",
     "rollRequired": true,
     "DC": 10,
@@ -54,6 +58,7 @@
   {
     "id": "a_strategic_sidestep",
     "name": "A Strategic Sidestep",
+    "icon": "ArrowRightLeft",
     "rarity": "common",
     "rollRequired": true,
     "DC": 13,
@@ -67,6 +72,7 @@
   {
     "id": "they_put_you_in_charge",
     "name": "They Put You in Charge",
+    "icon": "Crown",
     "rarity": "common",
     "rollRequired": true,
     "DC": 15,
@@ -80,6 +86,7 @@
   {
     "id": "we_need_to_talk",
     "name": "The \"We Need to Talk\" Meeting",
+    "icon": "MessageSquareWarning",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 14,
@@ -93,6 +100,7 @@
   {
     "id": "you_reinvent_yourself",
     "name": "You Reinvent Yourself",
+    "icon": "RefreshCcw",
     "rarity": "common",
     "rollRequired": true,
     "DC": 15,
@@ -106,6 +114,7 @@
   {
     "id": "your_name_starts_circulating",
     "name": "Your Name Starts Circulating",
+    "icon": "Megaphone",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
@@ -119,6 +128,7 @@
   {
     "id": "someone_powerful_opens_a_door",
     "name": "Someone Powerful Opens a Door",
+    "icon": "DoorOpen",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 12,
@@ -132,6 +142,7 @@
   {
     "id": "youre_suddenly_known",
     "name": "You're Suddenly \"Known\"",
+    "icon": "Star",
     "rarity": "rare",
     "rollRequired": true,
     "DC": 16,
@@ -145,6 +156,7 @@
   {
     "id": "a_bigger_offer_comes_in",
     "name": "A Bigger Offer Comes In",
+    "icon": "HandCoins",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 16,
@@ -158,6 +170,7 @@
   {
     "id": "you_start_something_on_the_side",
     "name": "You Start Something on the Side",
+    "icon": "Rocket",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 17,
@@ -171,6 +184,7 @@
   {
     "id": "you_pack_up_and_move",
     "name": "You Pack Up and Move",
+    "icon": "Truck",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
@@ -184,6 +198,7 @@
   {
     "id": "you_go_all_in",
     "name": "You Go All In",
+    "icon": "Flame",
     "rarity": "rare",
     "rollRequired": true,
     "DC": 18,
@@ -197,6 +212,7 @@
   {
     "id": "the_exit_everyone_dreams_about",
     "name": "The Exit Everyone Dreams About",
+    "icon": "Gem",
     "rarity": "jackpot",
     "rollRequired": true,
     "DC": 20,
@@ -210,6 +226,7 @@
   {
     "id": "positioned_when_the_wave_hit",
     "name": "You Were Positioned When the Wave Hit",
+    "icon": "Waves",
     "rarity": "jackpot",
     "rollRequired": true,
     "DC": 14,
@@ -223,6 +240,7 @@
   {
     "id": "money_appears_from_nowhere",
     "name": "Money Appears From Nowhere",
+    "icon": "Banknote",
     "rarity": "jackpot",
     "rollRequired": false,
     "DC": null,
@@ -236,6 +254,7 @@
   {
     "id": "a_lucky_break_pays_off",
     "name": "A Lucky Break Pays Off",
+    "icon": "Clover",
     "rarity": "rare",
     "rollRequired": true,
     "DC": 5,
@@ -249,6 +268,7 @@
   {
     "id": "the_industry_turns",
     "name": "The Industry Turns",
+    "icon": "TrendingDown",
     "rarity": "sinkhole",
     "rollRequired": true,
     "DC": 14,
@@ -262,6 +282,7 @@
   {
     "id": "you_get_hit_by_a_bus",
     "name": "You Get Hit by a Bus",
+    "icon": "Bus",
     "rarity": "sinkhole",
     "rollRequired": true,
     "DC": 14,
@@ -275,6 +296,7 @@
   {
     "id": "you_burn_out",
     "name": "You Burn Out",
+    "icon": "BatteryWarning",
     "rarity": "sinkhole",
     "rollRequired": true,
     "DC": 17,
@@ -288,6 +310,7 @@
   {
     "id": "you_get_sued",
     "name": "You Get Sued",
+    "icon": "Scale",
     "rarity": "rare",
     "rollRequired": true,
     "DC": 16,
@@ -301,6 +324,7 @@
   {
     "id": "you_find_your_person",
     "name": "You Find Your Person",
+    "icon": "Heart",
     "rarity": "common",
     "rollRequired": true,
     "DC": 12,
@@ -314,6 +338,7 @@
   {
     "id": "under_their_wing",
     "name": "Someone Takes You Under Their Wing",
+    "icon": "Handshake",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 13,
@@ -327,6 +352,7 @@
   {
     "id": "a_big_name_on_your_resume",
     "name": "A Big Name on Your Resume",
+    "icon": "FileText",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
@@ -340,6 +366,7 @@
   {
     "id": "you_catch_a_small_tailwind",
     "name": "You Catch a Small Tailwind",
+    "icon": "Wind",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
@@ -353,6 +380,7 @@
   {
     "id": "you_invent_something_huge",
     "name": "You Invent Something Huge",
+    "icon": "Lightbulb",
     "rarity": "jackpot",
     "rollRequired": true,
     "DC": 18,
@@ -366,6 +394,7 @@
   {
     "id": "you_get_arrested",
     "name": "You Get Arrested",
+    "icon": "Siren",
     "rarity": "sinkhole",
     "rollRequired": true,
     "DC": 14,
@@ -379,6 +408,7 @@
   {
     "id": "you_get_laid_off",
     "name": "You Get Laid Off",
+    "icon": "Briefcase",
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
@@ -388,5 +418,19 @@
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": 0.002 },
     "fail": { "jumpPct": -0.15, "growthDelta": -0.015 }
+  },
+  {
+    "id": "you_go_to_grad_school",
+    "name": "You Go to Grad School",
+    "icon": "GraduationCap",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "INT": 1.5, "WORK": 1.0 },
+    "riskGated": true,
+    "riskGateDC": 12,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.02, "growthDelta": 0.015 },
+    "fail": { "jumpPct": -0.03, "growthDelta": -0.004 }
   }
 ]

@@ -8,6 +8,13 @@
   "incomeFloor": 1000,
   "effectMultiplier": 2.0,
   "rarityWeights": { "common": 5, "uncommon": 3, "rare": 1, "jackpot": 0.3, "sinkhole": 0.7 },
+  "traitIcons": {
+    "INT": "Brain",
+    "WORK": "Hammer",
+    "NEPO": "Crown",
+    "CHAR": "Sparkles",
+    "RISK": "Flame"
+  },
   "education": {
     "name": "Where You Land After High School",
     "checkTraits": { "INT": 1.0, "WORK": 0.5, "NEPO": 1.0 },

@@ -19,6 +19,7 @@ export interface Traits {
 export interface Event {
   id: string;
   name: string;
+  icon?: string;
   rarity: Rarity;
   rollRequired: boolean;
   DC: number | null;

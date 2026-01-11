@@ -328,7 +328,7 @@ interface HistogramProps {
 }
 
 export function IncomeHistogram({ results, bins = 25 }: HistogramProps) {
-  const incomes = results.map(r => r.finalIncome);
+  const incomes = results.map(r => r.peakIncome);
   const minIncome = Math.min(...incomes);
   const maxIncome = Math.max(...incomes);
   const range = maxIncome - minIncome || 1;
@@ -467,7 +467,7 @@ export function ScatterPlot({ results, xKey, xLabel, color }: ScatterPlotProps) 
   
   const data = results.map(r => ({
     x: getXValue(r),
-    y: r.finalIncome
+    y: r.peakIncome
   }));
   
   const xValues = data.map(d => d.x);

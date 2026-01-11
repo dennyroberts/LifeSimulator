@@ -99,11 +99,11 @@ export function MassSim() {
   const { topAgents, bottomAgents, stats } = useMemo(() => {
     if (!results) return { topAgents: [], bottomAgents: [], stats: null };
     
-    const sorted = [...results].sort((a, b) => b.finalIncome - a.finalIncome);
+    const sorted = [...results].sort((a, b) => b.peakIncome - a.peakIncome);
     const topAgents = sorted.slice(0, 10);
     const bottomAgents = sorted.slice(-10).reverse();
     
-    const incomes = results.map(r => r.finalIncome);
+    const incomes = results.map(r => r.peakIncome);
     const mean = incomes.reduce((a, b) => a + b, 0) / incomes.length;
     const sortedIncomes = [...incomes].sort((a, b) => a - b);
     const median = sortedIncomes[Math.floor(sortedIncomes.length / 2)];
@@ -332,7 +332,7 @@ function AgentTable({ agents, isTop }: { agents: SimulationResult[]; isTop: bool
                 <TraitDisplay traits={agent.traits} compact />
               </TableCell>
               <TableCell className={`text-right font-mono font-semibold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
-                {formatCurrency(agent.finalIncome)}
+                {formatCurrency(agent.peakIncome)}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex flex-col items-end gap-0.5 text-xs font-mono">

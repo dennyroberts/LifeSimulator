@@ -114,6 +114,7 @@ export interface SimulationResult {
   traits: Traits;
   stages: StageResult[];
   finalIncome: number;
+  peakIncome: number;
   lifetimeEarnings: number;
   luck: LuckAnalysis;
 }
@@ -518,6 +519,7 @@ export function simulateLife(
   const agentRng = createRng(`${seed}|agent${agent.index}`);
   
   let lifetimeEarnings = 0;
+  let peakIncome = 0;
   const stages: StageResult[] = [];
   const drawnEvents: { event: Event; stage: number }[] = [];
   
@@ -540,6 +542,7 @@ export function simulateLife(
   );
   
   stages[0].incomeAfter = income;
+  peakIncome = Math.max(peakIncome, income);
   
   stages.push({
     stage: 2,
@@ -574,6 +577,7 @@ export function simulateLife(
       eventOutcome: result.outcome,
       incomeAfter: income
     });
+    peakIncome = Math.max(peakIncome, income);
     lifetimeEarnings += income * 8;
   }
   
@@ -600,6 +604,7 @@ export function simulateLife(
     traits: agent.traits,
     stages,
     finalIncome: income,
+    peakIncome,
     lifetimeEarnings,
     luck: {
       evBaselineHand,

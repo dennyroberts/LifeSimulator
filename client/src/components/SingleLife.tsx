@@ -334,9 +334,9 @@ export function SingleLife() {
                 </div>
                 <div className="flex flex-col justify-center space-y-4">
                   <div>
-                    <div className="text-sm text-muted-foreground mb-1">Final Income</div>
-                    <div className="text-3xl font-mono font-bold text-chart-4" data-testid="result-final-income">
-                      {formatCurrency(result.finalIncome)}
+                    <div className="text-sm text-muted-foreground mb-1">Peak Salary</div>
+                    <div className="text-3xl font-mono font-bold text-chart-4" data-testid="result-peak-income">
+                      {formatCurrency(result.peakIncome)}
                     </div>
                   </div>
                   <div>

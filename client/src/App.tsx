@@ -17,20 +17,32 @@ function App() {
       <TooltipProvider>
         <div className="min-h-screen bg-background">
           <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container max-w-7xl mx-auto px-4 py-4">
+            <div className="container max-w-7xl mx-auto px-4 py-3">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-md bg-chart-1/10">
                     <Brain className="h-6 w-6 text-chart-1" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold tracking-tight">Life Simulator</h1>
+                    <h1 className="text-xl font-bold tracking-tight">Intelligence Is Overrated?</h1>
                     <p className="text-sm text-muted-foreground">
-                      Life Sim — D20 Career Simulator
+                      A D20-based career trajectory simulator
                     </p>
                   </div>
                 </div>
                 <ThemeToggle />
+              </div>
+              <div className="mt-3 pt-3 border-t text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                <p>
+                  <strong className="text-foreground">The Premise:</strong> This simulator models career trajectories using tabletop RPG mechanics. 
+                  Each agent has 5 traits (INT, WORK, SOC, CHAR, RISK) that modify d20 rolls during life events. 
+                  The question: <em>How much of success is skill vs. luck?</em>
+                </p>
+                <p className="mt-1.5">
+                  <strong className="text-foreground">How to use:</strong> In <em>Single Life</em>, configure an agent's traits and run their simulation to see each life event unfold. 
+                  In <em>Mass Simulation</em>, run thousands of random agents to see statistical patterns. 
+                  Share results via URL — seeds make simulations reproducible.
+                </p>
               </div>
             </div>
           </header>

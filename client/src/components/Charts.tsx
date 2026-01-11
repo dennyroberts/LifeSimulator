@@ -74,13 +74,14 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const { bestPath, worstPath } = computeBestWorstPaths();
   const incomes = stages.map(s => s.incomeAfter);
   
-  // Base chart range on user's actual experience only (with small padding)
+  // Base chart range on user's actual experience with generous headroom
   const userMax = Math.max(...incomes);
   const userMin = Math.min(...incomes);
-  const padding_pct = 0.1;
+  const headroom_pct = 0.5; // 50% headroom above max
+  const floor_padding_pct = 0.1; // 10% below min
   const userRange = userMax - userMin || 1;
-  const maxIncome = userMax + userRange * padding_pct;
-  const minIncome = Math.max(0, userMin - userRange * padding_pct);
+  const maxIncome = userMax + userRange * headroom_pct;
+  const minIncome = Math.max(0, userMin - userRange * floor_padding_pct);
   const range = maxIncome - minIncome || 1;
   
   // Check if best/worst go off chart
@@ -138,26 +139,53 @@ export function IncomeChart({ stages }: IncomeChartProps) {
   const bestPoints = bestPath.map((income, i) => ({
     x: padding.left + (i / (stages.length - 1)) * chartWidth,
     y: clampY(income),
-    clipped: income > maxIncome
+    income,
+    offChart: income > maxIncome
   }));
   
   const worstPoints = worstPath.map((income, i) => ({
     x: padding.left + (i / (stages.length - 1)) * chartWidth,
     y: clampY(income),
-    clipped: income < minIncome
+    income,
+    offChart: income < minIncome
   }));
   
   const pathD = points
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
     .join(' ');
   
-  const bestPathD = bestPoints
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-    .join(' ');
+  // Generate path that stops when going off-chart
+  const generateClippedPath = (pts: typeof bestPoints, goingUp: boolean) => {
+    const segments: string[] = [];
+    let inChart = true;
+    
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const prevInChart = i === 0 || !pts[i - 1].offChart;
+      const currInChart = !p.offChart;
+      
+      if (i === 0) {
+        inChart = currInChart;
+        segments.push(`M ${p.x} ${p.y}`);
+      } else if (inChart && currInChart) {
+        segments.push(`L ${p.x} ${p.y}`);
+      } else if (inChart && !currInChart) {
+        // Line goes off chart - draw to edge and stop
+        const prev = pts[i - 1];
+        const edgeY = goingUp ? padding.top : padding.top + chartHeight;
+        // Interpolate x position where line hits edge
+        const t = (edgeY - prev.y) / (p.y - prev.y);
+        const edgeX = prev.x + t * (p.x - prev.x);
+        segments.push(`L ${edgeX} ${edgeY}`);
+        inChart = false;
+      }
+      // If already off-chart, don't draw anything more
+    }
+    return segments.join(' ');
+  };
   
-  const worstPathD = worstPoints
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-    .join(' ');
+  const bestPathD = generateClippedPath(bestPoints, true);
+  const worstPathD = generateClippedPath(worstPoints, false);
   
   const rangeFillD = bestPoints
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)

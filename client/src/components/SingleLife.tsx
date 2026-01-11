@@ -403,28 +403,39 @@ export function SingleLife() {
                 </div>
               </div>
               
-              <div className="mt-6 pt-4 border-t">
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="text-sm font-semibold">Life Biography</h3>
-                </div>
-                {biographyLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating biography...
-                  </div>
-                ) : biography ? (
-                  <p className="text-sm italic text-muted-foreground leading-relaxed whitespace-pre-line" data-testid="biography-text">
-                    {biography}
-                  </p>
-                ) : null}
-              </div>
             </CardContent>
           </Card>
           
           <div>
             <h2 className="text-xl font-semibold mb-4">Life Timeline</h2>
             <Timeline stages={result.stages} />
+          </div>
+          
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Life Biography</h3>
+            </div>
+            {biographyLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating biography...
+              </div>
+            ) : biography ? (
+              (() => {
+                const firstSentenceMatch = biography.match(/^[^.!?]+[.!?]/);
+                const firstSentence = firstSentenceMatch ? firstSentenceMatch[0] : '';
+                const restOfBio = firstSentence ? biography.slice(firstSentence.length).trim() : biography;
+                return (
+                  <div className="text-muted-foreground leading-relaxed whitespace-pre-line" data-testid="biography-text">
+                    {firstSentence && (
+                      <p className="text-base font-semibold mb-2">{firstSentence}</p>
+                    )}
+                    <p className="text-sm italic">{restOfBio}</p>
+                  </div>
+                );
+              })()
+            ) : null}
           </div>
         </>
       )}

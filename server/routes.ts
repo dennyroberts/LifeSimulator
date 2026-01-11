@@ -68,9 +68,9 @@ export async function registerRoutes(
 
       const prompt = `Based only on the information provided, write a short, wry, biography for a person. I will give you their name, traits (intelligence, charisma, risk tolerance, work ethic, and "nepotism" which is proxy for family wealth/connections), career field, and 9 life events to work from. The life events contain a title (what happened), and a success/failure/did not try note, plus a brief plain-text description of how the event resolved (sometimes events are resolved based on the traits - like "due you your intelligence..."). The biography should be witty but not try too hard. The bio should be solely based on the information provided plus some embellishment (like if they work in Finance, you can make up the name of the company they work for), and should mention every single life event and the age it happened at, in order. 
 
-The output should be concise while still hitting all the points mentioned. The first sentence should summarize their traits, noting any that are well above average or below average (traits are scored 1-20). Then the remaining sentences should cover the life events, in order, and adding color and embellishment when appropriate (if a life event says they were sued, invent what the lawsuit was about; if it says they went to an elite college, choose a real-world elite college to mention).
+The output should be concise while still hitting all the points mentioned. The first sentence should sum up the person's life in a few words. The second should summarize their traits, noting any that are well above average or below average (traits are scored 1-20). Then the remaining sentences should cover the life events, in order, and adding color and embellishment when appropriate (if a life event says they were sued, invent what the lawsuit was about; if it says they went to an elite college, choose a real-world elite college to mention).
 
-Other rules: No dollar amounts. Write in past tense. Elite colleges = Yale, Harvard, Penn, etc. State schools = UCLA, Auburn, etc. Don't make up other ages that things happened, stick to the exact life events. Pay attention to if a life event Succeeded or Failed (for example "Catch a Small Tailwind" - Failure means they missed the opportunity).
+Other rules: No dollar amounts. Write in past tense. Elite colleges = Yale, Harvard, Penn, etc. State schools = UCLA, Auburn, etc. Don't make up other ages that things happened, stick to the exact life events. Pay attention to if a life event Succeeded or Failed (for example "Catch a Small Tailwind" - Failure means they missed the opportunity). "We Need To Talk" meeting is like a performance improvement plan.
 
 EXAMPLE INPUT:
 Name: Marcus Chen
@@ -88,6 +88,8 @@ Age 60: [Life Event] Change Careers - Success. Your connections came through aga
 Age 66: [Life Event] Retire Early - Failure. Too risky for your taste.
 
 EXAMPLE OUTPUT:
+Marcus Chen: a smart and connected engineer whose ri kept him from achieving his dreams.
+
 Marcus Chen was a brilliant student from a wealthy family, but never much of a risk taker. At 18, his early academic success landed him a spot at Yale University, where he studied Computer Science. By 24, thanks to family connections, he had began a successful career at an AI lab, designing autonomous nerve agent delivery systems for use against protesters. He quickly rose through the ranks, being promoted to a senior role at age 30. 
 
 At 36 he briefly toyed with the idea of getting his masters, but decided it wasn't worth it. At 42, after years of stagnation, Marcus left his role to found a company designing high energy low-earth-orbit weapons, which ultimately fizzled. Redoubling his efforts at work, he rose to senior leadership with another promotion in his late 40s. At 54, he passed up an opportunity to invest in an early-stage riotbot startup, a decision he regretted for the rest of his life.

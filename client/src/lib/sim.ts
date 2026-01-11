@@ -474,6 +474,43 @@ const educationOutcomes: Record<string, string> = {
   'Straight to workforce': 'No debt, but you\'ll need to work harder to stand out'
 };
 
+const educationTraitSuccess: Partial<Record<TraitName, string>> = {
+  INT: 'Your brilliant mind made the coursework look easy',
+  WORK: 'Your relentless study habits paid off big time',
+  NEPO: 'Your family connections bought your way into an elite program',
+  CHAR: 'Your charm won over the admissions committee'
+};
+
+const educationTraitFail: Partial<Record<TraitName, string>> = {
+  INT: 'You never were book-smart... maybe college isn\'t for you',
+  WORK: 'Your lack of discipline caught up with you—too many skipped classes',
+  NEPO: 'With no connections to pull strings, you\'re on your own',
+  CHAR: 'Your application essay was... underwhelming'
+};
+
+function selectTraitMessage(
+  traitContributions: TraitContribution[],
+  successMessages: Partial<Record<TraitName, string>>,
+  failMessages: Partial<Record<TraitName, string>>,
+  isSuccess: boolean,
+  defaultMessage: string
+): string {
+  if (isSuccess) {
+    const topPositive = traitContributions.find(tc => tc.contribution > 0);
+    if (topPositive && successMessages[topPositive.trait]) {
+      return successMessages[topPositive.trait]!;
+    }
+  } else {
+    const worstNegative = traitContributions
+      .filter(tc => tc.contribution < 0)
+      .sort((a, b) => a.contribution - b.contribution)[0];
+    if (worstNegative && failMessages[worstNegative.trait]) {
+      return failMessages[worstNegative.trait]!;
+    }
+  }
+  return defaultMessage;
+}
+
 export function resolveEducation(
   traits: Traits,
   worldMode: WorldMode,
@@ -485,19 +522,32 @@ export function resolveEducation(
   const total = roll + totalMod;
   const traitContributions = computeTraitContributions(traits, checkTraits, worldMode);
   
+  const isGoodOutcome = total >= 15;
+  const isBadOutcome = total < 10;
+  
   for (const threshold of config.education.thresholds) {
     if (total >= threshold.minTotal) {
+      let outcomeMessage = educationOutcomes[threshold.label] || 'Your education shapes your path';
+      
+      if (isGoodOutcome) {
+        outcomeMessage = selectTraitMessage(traitContributions, educationTraitSuccess, educationTraitFail, true, outcomeMessage);
+      } else if (isBadOutcome) {
+        outcomeMessage = selectTraitMessage(traitContributions, educationTraitSuccess, educationTraitFail, false, outcomeMessage);
+      }
+      
       return {
         roll,
         totalMod,
         total,
         label: threshold.label,
         growthDelta: threshold.growthDelta,
-        outcomeMessage: educationOutcomes[threshold.label] || 'Your education shapes your path',
+        outcomeMessage,
         traitContributions
       };
     }
   }
+  
+  const outcomeMessage = selectTraitMessage(traitContributions, educationTraitSuccess, educationTraitFail, false, educationOutcomes['Straight to workforce']);
   
   return {
     roll,
@@ -505,7 +555,7 @@ export function resolveEducation(
     total,
     label: 'Straight to workforce',
     growthDelta: 0,
-    outcomeMessage: educationOutcomes['Straight to workforce'],
+    outcomeMessage,
     traitContributions
   };
 }
@@ -557,6 +607,20 @@ const careerOutcomes: Record<string, { normal: string; nat20: string }> = {
   }
 };
 
+const careerTraitSuccess: Partial<Record<TraitName, string>> = {
+  INT: 'Your sharp mind landed you a job others only dream of',
+  WORK: 'Your reputation as a hard worker preceded you',
+  NEPO: 'Uncle\'s golf buddy pulled some strings—welcome aboard',
+  CHAR: 'You charmed your way through every interview round'
+};
+
+const careerTraitFail: Partial<Record<TraitName, string>> = {
+  INT: 'The technical interview didn\'t go so well...',
+  WORK: 'They saw through your embellished work history',
+  NEPO: 'Without connections, your resume went straight to the bottom of the pile',
+  CHAR: 'The interviewer said you lacked "executive presence"'
+};
+
 export function resolveCareer(
   traits: Traits,
   worldMode: WorldMode,
@@ -587,7 +651,16 @@ export function resolveCareer(
   const traitContributions = computeTraitContributions(traits, careerCheckTraits, worldMode);
   
   const careerMessages = careerOutcomes[selectedCareer.name] || { normal: 'Your career begins', nat20: 'Your career begins with a bang' };
-  const outcomeMessage = isNat20 ? careerMessages.nat20 : careerMessages.normal;
+  let outcomeMessage = isNat20 ? careerMessages.nat20 : careerMessages.normal;
+  
+  const isGoodCareer = total >= 20;
+  const isBadCareer = total < 10;
+  
+  if (isGoodCareer && !isNat20) {
+    outcomeMessage = selectTraitMessage(traitContributions, careerTraitSuccess, careerTraitFail, true, outcomeMessage);
+  } else if (isBadCareer) {
+    outcomeMessage = selectTraitMessage(traitContributions, careerTraitSuccess, careerTraitFail, false, outcomeMessage);
+  }
   
   return {
     roll,

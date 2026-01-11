@@ -72,7 +72,7 @@
   {
     "name": "Doctor",
     "minRoll": 20,
-    "maxRoll": 20,
+    "maxRoll": 999,
     "baseSalary": 72000,
     "baseGrowth": 0.055
   }

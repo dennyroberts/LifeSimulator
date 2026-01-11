@@ -349,7 +349,7 @@ export function resolveCareer(
   const educationBonus = educationBonusMap[educationLabel] ?? 0;
   const totalMod = traitMod + educationBonus;
   
-  const total = clamp(roll + totalMod, 0, 20);
+  const total = Math.max(0, roll + totalMod);
   
   let selectedCareer = careers[0];
   for (const career of careers) {

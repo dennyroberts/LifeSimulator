@@ -351,7 +351,7 @@ export function SingleLife() {
                         </div>
                       </div>
                       <div 
-                        className="text-6xl font-bold text-chart-4"
+                        className={`text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
                         data-testid="result-lifetime-grade"
                       >
                         {getLifetimeGrade(result.lifetimeEarnings).grade}

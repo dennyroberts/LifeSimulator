@@ -283,6 +283,14 @@ export function IncomeChart({ stages }: IncomeChartProps) {
       >
         Age
       </text>
+      
+      <g className="legend" transform={`translate(${width - padding.right - 140}, ${padding.top - 45})`}>
+        <line x1="0" y1="8" x2="20" y2="8" stroke="hsl(var(--chart-2))" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7" />
+        <text x="26" y="12" className="fill-muted-foreground text-[10px]">Best possible</text>
+        
+        <line x1="75" y1="8" x2="95" y2="8" stroke="hsl(var(--destructive))" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7" />
+        <text x="101" y="12" className="fill-muted-foreground text-[10px]">Worst possible</text>
+      </g>
     </svg>
   );
 }

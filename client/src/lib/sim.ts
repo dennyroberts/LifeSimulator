@@ -17,6 +17,14 @@ export interface Traits {
   RISK: number;
 }
 
+export interface EventOutcomes {
+  success: string;
+  fail: string;
+  critSuccess?: string;
+  critFail?: string;
+  traitSuccess?: Partial<Record<TraitName, string>>;
+}
+
 export interface Event {
   id: string;
   name: string;
@@ -30,6 +38,7 @@ export interface Event {
   riskGateWeight: number;
   success: { jumpPct: number; growthDelta: number };
   fail: { jumpPct: number; growthDelta: number };
+  outcomes?: EventOutcomes;
 }
 
 export interface EducationOutcome {
@@ -86,6 +95,7 @@ export interface EventOutcome {
   isCritical?: boolean;
   criticalType?: 'success' | 'failure';
   traitContributions?: TraitContribution[];
+  outcomeMessage?: string;
 }
 
 export interface StageResult {
@@ -485,6 +495,30 @@ export function resolveEvent(
   let newIncome = currentIncome * (1 + newGrowth) * (1 + jumpPct);
   newIncome = Math.max(config.incomeFloor, newIncome);
   
+  // Select outcome message
+  let outcomeMessage: string | undefined;
+  if (event.outcomes && !gateFailed) {
+    if (isCritical && criticalType === 'success' && event.outcomes.critSuccess) {
+      outcomeMessage = event.outcomes.critSuccess;
+    } else if (isCritical && criticalType === 'failure' && event.outcomes.critFail) {
+      outcomeMessage = event.outcomes.critFail;
+    } else if (success) {
+      // Check for trait-specific success message
+      if (event.outcomes.traitSuccess && traitContributions.length > 0) {
+        const topTrait = traitContributions.find(tc => tc.contribution > 0);
+        if (topTrait && event.outcomes.traitSuccess[topTrait.trait]) {
+          outcomeMessage = event.outcomes.traitSuccess[topTrait.trait];
+        } else {
+          outcomeMessage = event.outcomes.success;
+        }
+      } else {
+        outcomeMessage = event.outcomes.success;
+      }
+    } else {
+      outcomeMessage = event.outcomes.fail;
+    }
+  }
+  
   const outcome: EventOutcome = {
     event,
     stage,
@@ -503,7 +537,8 @@ export function resolveEvent(
     evRealized,
     isCritical,
     criticalType,
-    traitContributions
+    traitContributions,
+    outcomeMessage
   };
   
   return { outcome, newIncome, newGrowth };

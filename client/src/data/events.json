@@ -11,7 +11,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.10, "growthDelta": 0.003 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "You get promoted",
+      "fail": "Passed over again",
+      "critSuccess": "Fast-tracked to executive",
+      "critFail": "Publicly humiliated",
+      "traitSuccess": { "WORK": "Hard work gets noticed", "CHAR": "Your charm wins them over" }
+    }
   },
   {
     "id": "thrown_into_the_spotlight",
@@ -25,7 +32,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.08, "growthDelta": 0.005 },
-    "fail": { "jumpPct": -0.04, "growthDelta": -0.006 }
+    "fail": { "jumpPct": -0.04, "growthDelta": -0.006 },
+    "outcomes": {
+      "success": "You shine bright",
+      "fail": "Froze under pressure",
+      "critSuccess": "Standing ovation moment",
+      "critFail": "Career-ending embarrassment",
+      "traitSuccess": { "WORK": "Preparation pays off", "INT": "Quick thinking saves you", "CHAR": "Natural stage presence" }
+    }
   },
   {
     "id": "a_really_good_boss",
@@ -39,7 +53,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Mentorship flourishes",
+      "fail": "Connection never forms",
+      "critSuccess": "Lifelong advocate gained",
+      "critFail": "Boss becomes rival",
+      "traitSuccess": { "CHAR": "You click instantly", "WORK": "Your effort impresses them" }
+    }
   },
   {
     "id": "a_really_bad_boss",
@@ -53,7 +74,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.00, "growthDelta": -0.002 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.008 }
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.008 },
+    "outcomes": {
+      "success": "Survived the tyrant",
+      "fail": "Crushed your spirit",
+      "critSuccess": "Outlasted and thrived",
+      "critFail": "Completely destroyed you",
+      "traitSuccess": { "CHAR": "Stayed on their good side", "WORK": "Too valuable to target" }
+    }
   },
   {
     "id": "a_strategic_sidestep",
@@ -67,7 +95,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.003 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.001 }
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.001 },
+    "outcomes": {
+      "success": "Smart lateral move",
+      "fail": "Went nowhere fast",
+      "critSuccess": "Perfect positioning achieved",
+      "critFail": "Career dead end",
+      "traitSuccess": { "RISK": "Bold move paid off", "CHAR": "Talked your way in", "NEPO": "Connections opened doors" }
+    }
   },
   {
     "id": "they_put_you_in_charge",
@@ -81,7 +116,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.10, "growthDelta": 0.010 },
-    "fail": { "jumpPct": -0.08, "growthDelta": -0.008 }
+    "fail": { "jumpPct": -0.08, "growthDelta": -0.008 },
+    "outcomes": {
+      "success": "Leadership suits you",
+      "fail": "Not ready for this",
+      "critSuccess": "Born to lead",
+      "critFail": "Spectacular public failure",
+      "traitSuccess": { "WORK": "Earned their respect", "CHAR": "Team rallies behind you", "INT": "Strategic vision impresses", "NEPO": "Family name opens doors" }
+    }
   },
   {
     "id": "we_need_to_talk",
@@ -95,7 +137,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.00, "growthDelta": -0.001 },
-    "fail": { "jumpPct": -0.05, "growthDelta": -0.010 }
+    "fail": { "jumpPct": -0.05, "growthDelta": -0.010 },
+    "outcomes": {
+      "success": "Dodged the bullet",
+      "fail": "Written up officially",
+      "critSuccess": "Turned it around completely",
+      "critFail": "Escorted out immediately",
+      "traitSuccess": { "WORK": "Track record saves you", "CHAR": "Talked your way out" }
+    }
   },
   {
     "id": "you_reinvent_yourself",
@@ -109,7 +158,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.010 },
-    "fail": { "jumpPct": -0.05, "growthDelta": -0.008 }
+    "fail": { "jumpPct": -0.05, "growthDelta": -0.008 },
+    "outcomes": {
+      "success": "New chapter begins",
+      "fail": "Old habits return",
+      "critSuccess": "Complete transformation",
+      "critFail": "Identity crisis spiral",
+      "traitSuccess": { "WORK": "Put in the work", "INT": "Learned new skills fast", "RISK": "Embraced the change" }
+    }
   },
   {
     "id": "your_name_starts_circulating",
@@ -123,7 +179,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.004 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Reputation growing",
+      "fail": "Still unknown",
+      "critSuccess": "Industry darling now",
+      "critFail": "Known for wrong reasons",
+      "traitSuccess": { "CHAR": "People love talking about you", "INT": "Known as the expert", "NEPO": "Family name precedes you" }
+    }
   },
   {
     "id": "someone_powerful_opens_a_door",
@@ -137,7 +200,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.06, "growthDelta": 0.004 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Golden opportunity seized",
+      "fail": "Door slams shut",
+      "critSuccess": "VIP access unlocked",
+      "critFail": "Burned that bridge forever",
+      "traitSuccess": { "NEPO": "Family friend comes through", "CHAR": "Made a great impression" }
+    }
   },
   {
     "id": "youre_suddenly_known",
@@ -151,7 +221,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.08, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Fame finds you",
+      "fail": "Moment passes unnoticed",
+      "critSuccess": "Overnight sensation",
+      "critFail": "Viral for wrong reasons",
+      "traitSuccess": { "CHAR": "Natural star power", "NEPO": "Already in the right circles", "WORK": "Your work speaks volumes" }
+    }
   },
   {
     "id": "a_bigger_offer_comes_in",
@@ -165,7 +242,14 @@
     "riskGateDC": 13,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.12, "growthDelta": 0.004 },
-    "fail": { "jumpPct": -0.03, "growthDelta": -0.004 }
+    "fail": { "jumpPct": -0.03, "growthDelta": -0.004 },
+    "outcomes": {
+      "success": "Landed the big one",
+      "fail": "Offer falls through",
+      "critSuccess": "Dream job secured",
+      "critFail": "Lost current job too",
+      "traitSuccess": { "CHAR": "Negotiated masterfully", "NEPO": "Inside connection helped", "RISK": "Bold ask paid off", "WORK": "Track record sealed it" }
+    }
   },
   {
     "id": "you_start_something_on_the_side",
@@ -179,7 +263,14 @@
     "riskGateDC": 14,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.10, "growthDelta": 0.012 },
-    "fail": { "jumpPct": -0.03, "growthDelta": -0.006 }
+    "fail": { "jumpPct": -0.03, "growthDelta": -0.006 },
+    "outcomes": {
+      "success": "Side hustle takes off",
+      "fail": "Project fizzles out",
+      "critSuccess": "Built an empire",
+      "critFail": "Lost everything trying",
+      "traitSuccess": { "WORK": "Outworked everyone", "RISK": "Bet on yourself", "INT": "Brilliant execution", "CHAR": "Customers love you" }
+    }
   },
   {
     "id": "you_pack_up_and_move",
@@ -193,7 +284,14 @@
     "riskGateDC": 13,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
-    "fail": { "jumpPct": -0.02, "growthDelta": -0.003 }
+    "fail": { "jumpPct": -0.02, "growthDelta": -0.003 },
+    "outcomes": {
+      "success": "Fresh start works",
+      "fail": "Grass wasn't greener",
+      "critSuccess": "Found your place",
+      "critFail": "Stranded and alone",
+      "traitSuccess": { "RISK": "Leap of faith rewarded", "NEPO": "Family helped you land", "CHAR": "Made friends fast" }
+    }
   },
   {
     "id": "you_go_all_in",
@@ -207,7 +305,14 @@
     "riskGateDC": 16,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.08, "growthDelta": 0.015 },
-    "fail": { "jumpPct": -0.05, "growthDelta": -0.010 }
+    "fail": { "jumpPct": -0.05, "growthDelta": -0.010 },
+    "outcomes": {
+      "success": "Big bet pays off",
+      "fail": "Crashed and burned",
+      "critSuccess": "Legendary success story",
+      "critFail": "Lost absolutely everything",
+      "traitSuccess": { "RISK": "Fortune favors the bold", "WORK": "Obsessive focus wins", "CHAR": "Inspired believers", "INT": "Calculated perfectly", "NEPO": "Safety net caught you" }
+    }
   },
   {
     "id": "the_exit_everyone_dreams_about",
@@ -221,7 +326,14 @@
     "riskGateDC": 15,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.50, "growthDelta": 0.040 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.010 }
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.010 },
+    "outcomes": {
+      "success": "Cashed out rich",
+      "fail": "Deal fell apart",
+      "critSuccess": "Generational wealth achieved",
+      "critFail": "Watched millions vanish",
+      "traitSuccess": { "RISK": "Held on long enough", "NEPO": "Right investors involved", "CHAR": "Closed the deal", "WORK": "Built something valuable" }
+    }
   },
   {
     "id": "positioned_when_the_wave_hit",
@@ -235,7 +347,14 @@
     "riskGateDC": 12,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.35, "growthDelta": 0.020 },
-    "fail": { "jumpPct": -0.15, "growthDelta": -0.010 }
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.010 },
+    "outcomes": {
+      "success": "Rode the wave up",
+      "fail": "Wiped out completely",
+      "critSuccess": "Perfect timing magic",
+      "critFail": "Crushed by the wave",
+      "traitSuccess": { "RISK": "Positioned early enough", "INT": "Saw it coming" }
+    }
   },
   {
     "id": "money_appears_from_nowhere",
@@ -249,7 +368,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.30, "growthDelta": 0.015 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Windfall arrives",
+      "fail": "Nothing happens",
+      "critSuccess": "Jackpot beyond dreams",
+      "critFail": "It was a scam",
+      "traitSuccess": {}
+    }
   },
   {
     "id": "a_lucky_break_pays_off",
@@ -263,7 +389,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.000 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Stars aligned perfectly",
+      "fail": "Luck runs out",
+      "critSuccess": "Once in a lifetime",
+      "critFail": "Cursed timing",
+      "traitSuccess": { "WORK": "Ready when luck struck" }
+    }
   },
   {
     "id": "the_industry_turns",
@@ -277,7 +410,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.008 },
-    "fail": { "jumpPct": -0.25, "growthDelta": -0.025 }
+    "fail": { "jumpPct": -0.25, "growthDelta": -0.025 },
+    "outcomes": {
+      "success": "Weathered the storm",
+      "fail": "Swept away by change",
+      "critSuccess": "Pivoted beautifully",
+      "critFail": "Skills now worthless",
+      "traitSuccess": { "WORK": "Adapted quickly", "NEPO": "Connections found you work", "CHAR": "Networked to safety" }
+    }
   },
   {
     "id": "you_get_hit_by_a_bus",
@@ -291,7 +431,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.010 },
-    "fail": { "jumpPct": -0.20, "growthDelta": -0.020 }
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.020 },
+    "outcomes": {
+      "success": "Made a full recovery",
+      "fail": "Long road to recovery",
+      "critSuccess": "Bounced back stronger",
+      "critFail": "Life-altering injuries",
+      "traitSuccess": { "WORK": "Job waited for you", "NEPO": "Family covered expenses" }
+    }
   },
   {
     "id": "you_burn_out",
@@ -305,7 +452,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.00, "growthDelta": -0.010 },
-    "fail": { "jumpPct": -0.20, "growthDelta": -0.025 }
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.025 },
+    "outcomes": {
+      "success": "Took time, recovered",
+      "fail": "Completely broke down",
+      "critSuccess": "Found better balance",
+      "critFail": "Never the same again",
+      "traitSuccess": { "WORK": "Discipline saved you", "NEPO": "Support system helped" }
+    }
   },
   {
     "id": "you_get_sued",
@@ -319,7 +473,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.02, "growthDelta": -0.002 },
-    "fail": { "jumpPct": -0.10, "growthDelta": -0.006 }
+    "fail": { "jumpPct": -0.10, "growthDelta": -0.006 },
+    "outcomes": {
+      "success": "Case dismissed",
+      "fail": "Paid the settlement",
+      "critSuccess": "Won and countersued",
+      "critFail": "Financially ruined",
+      "traitSuccess": { "NEPO": "Family lawyers crushed it", "CHAR": "Jury loved you", "WORK": "Documentation saved you" }
+    }
   },
   {
     "id": "you_find_your_person",
@@ -333,7 +494,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Love finds you",
+      "fail": "Still searching",
+      "critSuccess": "Soulmate discovered",
+      "critFail": "Heart shattered",
+      "traitSuccess": { "CHAR": "Irresistible chemistry", "WORK": "Built something together" }
+    }
   },
   {
     "id": "under_their_wing",
@@ -347,7 +515,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.00, "growthDelta": 0.007 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Mentorship begins",
+      "fail": "They moved on",
+      "critSuccess": "Career-defining guidance",
+      "critFail": "Mentor exploited you",
+      "traitSuccess": { "CHAR": "They see potential", "WORK": "Earned their respect" }
+    }
   },
   {
     "id": "a_big_name_on_your_resume",
@@ -361,7 +536,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Prestige unlocked",
+      "fail": "Didn't make the cut",
+      "critSuccess": "Elite credential secured",
+      "critFail": "Rejected and blacklisted",
+      "traitSuccess": { "NEPO": "Connections got you in", "WORK": "Earned your spot", "INT": "Impressed in interviews" }
+    }
   },
   {
     "id": "you_catch_a_small_tailwind",
@@ -375,7 +557,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.03, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "outcomes": {
+      "success": "Momentum building",
+      "fail": "Wind died down",
+      "critSuccess": "Perfect timing",
+      "critFail": "Headwinds instead",
+      "traitSuccess": { "INT": "Spotted the trend", "WORK": "Ready to capitalize", "NEPO": "Insider tip helped" }
+    }
   },
   {
     "id": "you_invent_something_huge",
@@ -389,7 +578,14 @@
     "riskGateDC": 14,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.60, "growthDelta": 0.050 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.010 }
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.010 },
+    "outcomes": {
+      "success": "Patent pending",
+      "fail": "Idea didn't work",
+      "critSuccess": "Changed the world",
+      "critFail": "Someone stole the idea",
+      "traitSuccess": { "INT": "Genius breakthrough", "WORK": "Years of research paid off" }
+    }
   },
   {
     "id": "you_get_arrested",
@@ -403,7 +599,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.005 },
-    "fail": { "jumpPct": -0.30, "growthDelta": -0.030 }
+    "fail": { "jumpPct": -0.30, "growthDelta": -0.030 },
+    "outcomes": {
+      "success": "Charges dropped",
+      "fail": "Convicted as charged",
+      "critSuccess": "Walked away clean",
+      "critFail": "Maximum sentence",
+      "traitSuccess": { "NEPO": "Family hired top lawyers", "CHAR": "Judge showed mercy" }
+    }
   },
   {
     "id": "you_get_laid_off",
@@ -417,7 +620,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": 0.002 },
-    "fail": { "jumpPct": -0.15, "growthDelta": -0.015 }
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.015 },
+    "outcomes": {
+      "success": "Landed on your feet",
+      "fail": "Months of unemployment",
+      "critSuccess": "Better job immediately",
+      "critFail": "Career derailed completely",
+      "traitSuccess": { "WORK": "Reputation preceded you", "NEPO": "Network found you work", "CHAR": "Interviewed like a pro" }
+    }
   },
   {
     "id": "you_go_to_grad_school",
@@ -431,7 +641,14 @@
     "riskGateDC": 12,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.02, "growthDelta": 0.015 },
-    "fail": { "jumpPct": -0.03, "growthDelta": -0.004 }
+    "fail": { "jumpPct": -0.03, "growthDelta": -0.004 },
+    "outcomes": {
+      "success": "Degree earned",
+      "fail": "Dropped out",
+      "critSuccess": "Top of your class",
+      "critFail": "Debt with nothing to show",
+      "traitSuccess": { "INT": "Academic excellence", "WORK": "Powered through" }
+    }
   },
   {
     "id": "divorce",
@@ -445,7 +662,14 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.003 },
-    "fail": { "jumpPct": -0.15, "growthDelta": -0.012 }
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.012 },
+    "outcomes": {
+      "success": "Amicable settlement reached",
+      "fail": "Ugly court battle",
+      "critSuccess": "You come out ahead",
+      "critFail": "Lost everything",
+      "traitSuccess": { "NEPO": "Family lawyers protect you", "CHAR": "Stayed on good terms" }
+    }
   },
   {
     "id": "crushing_debt",
@@ -459,6 +683,13 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.03, "growthDelta": -0.001 },
-    "fail": { "jumpPct": -0.20, "growthDelta": -0.002 }
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.002 },
+    "outcomes": {
+      "success": "Dug yourself out",
+      "fail": "Drowning in debt",
+      "critSuccess": "Turned it around completely",
+      "critFail": "Declared bankruptcy",
+      "traitSuccess": { "NEPO": "Family bails you out", "WORK": "Worked extra to pay it off" }
+    }
   }
 ]

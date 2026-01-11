@@ -463,9 +463,13 @@ export function resolveEvent(
     growthDelta = event.fail.growthDelta * multiplier * criticalMultiplier;
     
     // Critical failure (nat 1): flip any positive outcomes to negative
+    // and ensure at least some minimum negative effect
     if (isCritical && criticalType === 'failure') {
       if (jumpPct > 0) jumpPct = -Math.abs(jumpPct);
       if (growthDelta > 0) growthDelta = -Math.abs(growthDelta);
+      // Ensure minimum negative effects on critical failure
+      if (jumpPct > -0.05) jumpPct = -0.05;
+      if (growthDelta > -0.005) growthDelta = -0.005;
     }
     
     evRealized = computeEvFail(stage, event);

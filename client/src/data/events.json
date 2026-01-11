@@ -432,5 +432,19 @@
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.02, "growthDelta": 0.015 },
     "fail": { "jumpPct": -0.03, "growthDelta": -0.004 }
+  },
+  {
+    "id": "divorce",
+    "name": "Divorce",
+    "icon": "HeartCrack",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 13,
+    "checkTraits": { "NEPO": 1.0, "CHAR": 0.75 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.05, "growthDelta": -0.003 },
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.012 }
   }
 ]

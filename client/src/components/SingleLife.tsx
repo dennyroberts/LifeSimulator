@@ -140,7 +140,7 @@ export function SingleLife() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <User className="h-4 w-4" />
-              Agent Configuration
+              Who are you?
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

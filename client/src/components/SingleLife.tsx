@@ -132,9 +132,9 @@ export function SingleLife() {
             Agent Configuration
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3 md:w-40 shrink-0">
               <Avatar className="h-24 w-24 border-2">
                 <AvatarImage
                   src={`https://thispersondoesnotexist.com?${avatarKey}`}
@@ -148,52 +148,53 @@ export function SingleLife() {
                 variant="outline"
                 size="sm"
                 onClick={handleNewAvatar}
-                className="gap-1.5"
+                className="gap-1.5 w-full"
                 data-testid="button-new-avatar"
               >
                 <RefreshCw className="h-3 w-3" />
                 New Face
               </Button>
+              <div className="w-full">
+                <Label htmlFor="name" className="text-xs">Name</Label>
+                <div className="flex gap-1 mt-1">
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Name"
+                    className="h-8 text-sm"
+                    data-testid="input-agent-name"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleRandomName}
+                    title="Generate random name"
+                    className="h-8 w-8 shrink-0"
+                    data-testid="button-random-name"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             </div>
             
             <div className="flex-1">
-              <Label htmlFor="name">Agent Name</Label>
-              <div className="flex gap-2 mt-1.5">
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter name or generate random"
-                  data-testid="input-agent-name"
-                />
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm">Traits (0-20)</Label>
                 <Button
                   variant="outline"
-                  size="icon"
-                  onClick={handleRandomName}
-                  title="Generate random name"
-                  data-testid="button-random-name"
+                  size="sm"
+                  onClick={handleRandomTraits}
+                  className="gap-1.5 h-7 text-xs"
+                  data-testid="button-random-traits"
                 >
-                  <RefreshCw className="h-4 w-4" />
+                  <Dices className="h-3 w-3" />
+                  Random
                 </Button>
               </div>
+              <TraitInput traits={traits} onChange={setTraits} />
             </div>
-          </div>
-          
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <Label>Traits (0-20)</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRandomTraits}
-                className="gap-2"
-                data-testid="button-random-traits"
-              >
-                <Dices className="h-4 w-4" />
-                Random Traits
-              </Button>
-            </div>
-            <TraitInput traits={traits} onChange={setTraits} />
           </div>
         </CardContent>
       </Card>

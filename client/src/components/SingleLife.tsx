@@ -147,8 +147,12 @@ export function SingleLife() {
       
       if (sentenceIdx !== undefined) {
         const el = sentenceRefs.current.get(sentenceIdx);
-        if (el && bioScrollRef.current) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const container = bioScrollRef.current;
+        if (el && container) {
+          const containerRect = container.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+          const scrollTop = container.scrollTop + (elRect.top - containerRect.top) - (containerRect.height / 2) + (elRect.height / 2);
+          container.scrollTo({ top: scrollTop, behavior: 'smooth' });
         }
       }
     }

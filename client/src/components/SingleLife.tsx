@@ -563,7 +563,7 @@ export function SingleLife() {
                           data-testid="biography-text"
                         >
                           {parsedBiography.lastSentence && (
-                            <p className="text-sm font-semibold mb-2">{parsedBiography.lastSentence}</p>
+                            <p className="text-sm font-semibold mb-2" style={{ color: '#FFFFFF' }}>{parsedBiography.lastSentence}</p>
                           )}
                           {parsedBiography.paragraphs.map((para, pIdx) => (
                             <p key={pIdx} className="text-xs italic mb-2 last:mb-0">

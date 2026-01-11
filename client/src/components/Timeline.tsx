@@ -21,8 +21,9 @@ interface TimelineProps {
 }
 
 const stageToAge = (stageNum: number) => {
-  if (stageNum <= 2) return 20;
-  return 20 + (stageNum - 2) * 8;
+  if (stageNum === 1) return 18;
+  if (stageNum === 2) return 24;
+  return 24 + (stageNum - 2) * 6;
 };
 
 export function Timeline({ stages }: TimelineProps) {

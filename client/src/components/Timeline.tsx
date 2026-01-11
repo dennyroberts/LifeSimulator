@@ -52,31 +52,33 @@ export function Timeline({ stages }: TimelineProps) {
         ))}
       </div>
       
-      {/* Mobile: Vertical scrollable layout */}
-      <div className="md:hidden flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
-        {stages.map((stage) => {
-          const age = stageToAge(stage.stage);
-          return (
-            <div key={stage.stage} className="flex items-start gap-3">
-              {/* Vertical age marker */}
-              <div className="flex flex-col items-center shrink-0 pt-3">
-                <div className="text-xs text-muted-foreground font-mono flex items-center gap-0.5">
-                  {stage.stage === 1 && <Baby className="h-3 w-3" />}
-                  {age}
-                  {stage.stage === 8 && <Cross className="h-3 w-3" />}
+      {/* Mobile: Vertical scrollable layout with continuous line */}
+      <div className="md:hidden relative max-h-[70vh] overflow-y-auto pr-1">
+        {/* Continuous vertical line */}
+        <div className="absolute left-[18px] top-4 bottom-4 w-0.5 bg-border" />
+        
+        <div className="flex flex-col gap-1">
+          {stages.map((stage) => {
+            const age = stageToAge(stage.stage);
+            return (
+              <div key={stage.stage} className="flex items-stretch gap-2 relative">
+                {/* Age marker column */}
+                <div className="flex flex-col items-center shrink-0 w-10 py-2">
+                  <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-0.5">
+                    {stage.stage === 1 && <Baby className="h-3 w-3" />}
+                    {age}
+                    {stage.stage === 8 && <Cross className="h-3 w-3" />}
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background mt-0.5 z-10" />
                 </div>
-                <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background mt-1" />
-                {stage.stage < stages.length && (
-                  <div className="w-0.5 flex-1 bg-border min-h-[20px]" />
-                )}
+                {/* Card */}
+                <div className="flex-1 min-w-0 py-1">
+                  <MobileTimelineCard stage={stage} />
+                </div>
               </div>
-              {/* Card */}
-              <div className="flex-1 min-w-0">
-                <TimelineCard stage={stage} />
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -92,6 +94,133 @@ function TimelineCard({ stage }: { stage: StageResult }) {
   }
   
   return null;
+}
+
+function MobileTimelineCard({ stage }: { stage: StageResult }) {
+  if (stage.isEducation && stage.education) {
+    return <MobileEducationCard stage={stage} />;
+  }
+  
+  if (stage.eventOutcome) {
+    return <MobileEventCard stage={stage} />;
+  }
+  
+  return null;
+}
+
+function MobileEducationCard({ stage }: { stage: StageResult }) {
+  const edu = stage.education!;
+  
+  return (
+    <Card className="border-l-4 border-l-chart-1" data-testid="mobile-education-card">
+      <CardContent className="p-2">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-1.5">
+            <GraduationCap className="h-3 w-3 text-chart-1 shrink-0" />
+            <span className="text-xs font-medium">Education</span>
+          </div>
+          <Badge variant="secondary" className="text-[9px] px-1 py-0">
+            {edu.label}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-3 text-xs">
+          <div className="font-mono">
+            <span className="text-muted-foreground">Roll: </span>
+            <span className="font-bold">{edu.roll}</span>
+            <span className="text-muted-foreground">+</span>
+            <span className={edu.totalMod >= 0 ? 'text-chart-2' : 'text-destructive'}>
+              {edu.totalMod >= 0 ? '+' : ''}{edu.totalMod}
+            </span>
+            <span className="text-muted-foreground">=</span>
+            <span className="font-bold">{edu.total}</span>
+          </div>
+          <div className="font-mono">
+            <span className="text-muted-foreground">Growth: </span>
+            <span className={edu.growthDelta > 0 ? 'text-chart-2' : 'text-muted-foreground'}>
+              {formatPercent(edu.growthDelta)}
+            </span>
+          </div>
+          <div className="ml-auto font-mono font-bold text-chart-1">
+            {formatCurrency(stage.incomeAfter)}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MobileEventCard({ stage }: { stage: StageResult }) {
+  const outcome = stage.eventOutcome!;
+  const event = outcome.event;
+  
+  const getBorderColor = () => {
+    if (outcome.gateFailed) return 'border-l-muted-foreground';
+    if (outcome.success) return 'border-l-chart-2';
+    return 'border-l-destructive';
+  };
+  
+  const getStatusText = () => {
+    if (outcome.gateFailed) return "Skipped";
+    if (outcome.success) return "Pass";
+    return "Fail";
+  };
+  
+  const getStatusColor = () => {
+    if (outcome.gateFailed) return 'text-muted-foreground';
+    if (outcome.success) return 'text-chart-2';
+    return 'text-destructive';
+  };
+  
+  const EventIcon = getEventIcon(event.icon);
+  
+  return (
+    <Card className={`border-l-4 ${getBorderColor()}`} data-testid={`mobile-event-card-${stage.stage}`}>
+      <CardContent className="p-2">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <EventIcon className="h-3 w-3 text-muted-foreground shrink-0" />
+            <span className="text-xs font-medium truncate">{event.name}</span>
+          </div>
+          <span className={`text-[10px] font-medium shrink-0 ${getStatusColor()}`}>
+            {getStatusText()}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-xs flex-wrap">
+          {!outcome.gateFailed && event.rollRequired && (
+            <div className="font-mono">
+              <span className="text-muted-foreground">DC{outcome.mainDC}: </span>
+              <span className={outcome.isCritical ? (outcome.criticalType === 'success' ? 'text-chart-4 font-bold' : 'text-destructive font-bold') : ''}>
+                {outcome.mainRoll}
+              </span>
+              <span className="text-muted-foreground">+</span>
+              <span className={outcome.mainMod! >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {outcome.mainMod! >= 0 ? '+' : ''}{outcome.mainMod}
+              </span>
+              <span className="text-muted-foreground">=</span>
+              <span className={outcome.success ? 'text-chart-2' : 'text-destructive'}>
+                {(outcome.mainRoll || 0) + (outcome.mainMod || 0)}
+              </span>
+            </div>
+          )}
+          {outcome.traitContributions && outcome.traitContributions.length > 0 && (
+            <div className="font-mono text-[10px] text-muted-foreground">
+              ({outcome.traitContributions.map((tc, i) => (
+                <span key={tc.trait}>
+                  {i > 0 && ' '}
+                  <span className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                    {tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                  </span>
+                </span>
+              ))})
+            </div>
+          )}
+          <div className="ml-auto font-mono font-bold text-chart-1 shrink-0">
+            {formatCurrency(outcome.incomeAfter)}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function CompactEducationCard({ stage }: { stage: StageResult }) {

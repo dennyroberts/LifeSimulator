@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,84 @@ export function SingleLife() {
   const [hasRun, setHasRun] = useState(false);
   const [biography, setBiography] = useState<string | null>(null);
   const [biographyLoading, setBiographyLoading] = useState(false);
+  const [hoveredStageIndex, setHoveredStageIndex] = useState<number | null>(null);
+  const bioScrollRef = useRef<HTMLDivElement>(null);
+  const sentenceRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
+  
+  const stageToAge = (stageIndex: number) => {
+    if (stageIndex === 0) return 18;
+    if (stageIndex === 1) return 24;
+    return 24 + (stageIndex - 1) * 6;
+  };
+  
+  const parsedBiography = useMemo(() => {
+    if (!biography) return { sentences: [], lastSentence: '', mainBio: '' };
+    
+    const lastSentenceMatch = biography.match(/[^.!?]*[.!?]$/);
+    const lastSentence = lastSentenceMatch ? lastSentenceMatch[0].trim() : '';
+    const mainBio = lastSentence ? biography.slice(0, biography.lastIndexOf(lastSentence)).trim() : biography;
+    
+    const sentenceRegex = /[^.!?]+[.!?]+/g;
+    const allSentences: { text: string; age: number | null }[] = [];
+    const matches = mainBio.match(sentenceRegex) || [];
+    
+    const ages = [18, 24, 30, 36, 42, 48, 54, 60, 66];
+    
+    matches.forEach((sentence) => {
+      const trimmed = sentence.trim();
+      let matchedAge: number | null = null;
+      for (const age of ages) {
+        if (trimmed.includes(`${age}`) || trimmed.includes(`age ${age}`) || trimmed.includes(`Age ${age}`)) {
+          matchedAge = age;
+          break;
+        }
+      }
+      allSentences.push({ text: trimmed, age: matchedAge });
+    });
+    
+    const ageSentenceMap = new Map<number, number>();
+    allSentences.forEach((s, idx) => {
+      if (s.age !== null) {
+        ageSentenceMap.set(s.age, idx);
+      }
+    });
+    
+    for (let i = 0; i < ages.length; i++) {
+      const age = ages[i];
+      if (!ageSentenceMap.has(age)) {
+        const prevAge = ages[i - 1];
+        const nextAge = ages[i + 1];
+        const prevIdx = prevAge ? ageSentenceMap.get(prevAge) : undefined;
+        const nextIdx = nextAge ? ageSentenceMap.get(nextAge) : undefined;
+        
+        if (prevIdx !== undefined && nextIdx !== undefined) {
+          const expectedIdx = prevIdx + 1;
+          if (expectedIdx < nextIdx && allSentences[expectedIdx]) {
+            ageSentenceMap.set(age, expectedIdx);
+            allSentences[expectedIdx].age = age;
+          }
+        }
+      }
+    }
+    
+    return { sentences: allSentences, lastSentence, mainBio, ageSentenceMap };
+  }, [biography]);
+  
+  const handleChartHover = useCallback((stageIndex: number | null) => {
+    setHoveredStageIndex(stageIndex);
+    
+    if (stageIndex !== null && parsedBiography.ageSentenceMap) {
+      const age = stageToAge(stageIndex);
+      const sentenceIdx = parsedBiography.ageSentenceMap.get(age);
+      
+      if (sentenceIdx !== undefined) {
+        const el = sentenceRefs.current.get(sentenceIdx);
+        if (el && bioScrollRef.current) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  }, [parsedBiography.ageSentenceMap]);
   
   const handleNewAvatar = () => {
     setAvatarKey(Date.now());
@@ -409,7 +487,7 @@ export function SingleLife() {
                     <LuckAnalysis luck={result.luck} embedded compact />
                   </div>
                   <div className="flex justify-start flex-1">
-                    <IncomeChart stages={result.stages} />
+                    <IncomeChart stages={result.stages} onHoverStage={handleChartHover} />
                   </div>
                 </div>
                 <div className="lg:w-[28rem] shrink-0">
@@ -424,15 +502,38 @@ export function SingleLife() {
                     </div>
                   ) : biography ? (
                     (() => {
-                      const lastSentenceMatch = biography.match(/[^.!?]*[.!?]$/);
-                      const lastSentence = lastSentenceMatch ? lastSentenceMatch[0].trim() : '';
-                      const mainBio = lastSentence ? biography.slice(0, biography.lastIndexOf(lastSentence)).trim() : biography;
+                      const highlightedAge = hoveredStageIndex !== null ? stageToAge(hoveredStageIndex) : null;
+                      const highlightedSentenceIdx = highlightedAge && parsedBiography.ageSentenceMap 
+                        ? parsedBiography.ageSentenceMap.get(highlightedAge) 
+                        : null;
+                      
                       return (
-                        <div className="max-h-64 overflow-y-auto text-muted-foreground leading-relaxed" data-testid="biography-text">
-                          {lastSentence && (
-                            <p className="text-sm font-semibold mb-2">{lastSentence}</p>
+                        <div 
+                          ref={bioScrollRef}
+                          className="max-h-64 overflow-y-auto text-muted-foreground leading-relaxed scroll-smooth" 
+                          data-testid="biography-text"
+                        >
+                          {parsedBiography.lastSentence && (
+                            <p className="text-sm font-semibold mb-2">{parsedBiography.lastSentence}</p>
                           )}
-                          <p className="text-xs italic whitespace-pre-line">{mainBio}</p>
+                          <p className="text-xs italic">
+                            {parsedBiography.sentences.map((sentence, idx) => (
+                              <span
+                                key={idx}
+                                ref={(el) => {
+                                  if (el) sentenceRefs.current.set(idx, el);
+                                  else sentenceRefs.current.delete(idx);
+                                }}
+                                className={`transition-all duration-300 ${
+                                  highlightedSentenceIdx === idx 
+                                    ? 'bg-primary/20 text-foreground font-medium rounded px-0.5' 
+                                    : ''
+                                }`}
+                              >
+                                {sentence.text}{' '}
+                              </span>
+                            ))}
+                          </p>
                         </div>
                       );
                     })()

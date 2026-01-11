@@ -3,10 +3,16 @@ import { type StageResult, type SimulationResult, formatCurrency } from '@/lib/s
 
 interface IncomeChartProps {
   stages: StageResult[];
+  onHoverStage?: (stageIndex: number | null) => void;
 }
 
-export function IncomeChart({ stages }: IncomeChartProps) {
+export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+  
+  const handleHover = (index: number | null) => {
+    setHoveredPoint(index);
+    onHoverStage?.(index);
+  };
   
   const computeBestWorstPaths = () => {
     const bestPath: number[] = [];
@@ -285,8 +291,8 @@ export function IncomeChart({ stages }: IncomeChartProps) {
       {points.map((point, i) => (
         <g 
           key={point.stage}
-          onMouseEnter={() => setHoveredPoint(i)}
-          onMouseLeave={() => setHoveredPoint(null)}
+          onMouseEnter={() => handleHover(i)}
+          onMouseLeave={() => handleHover(null)}
           style={{ cursor: 'pointer' }}
         >
           <circle

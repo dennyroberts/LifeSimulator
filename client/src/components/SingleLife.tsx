@@ -68,37 +68,55 @@ export function SingleLife() {
   };
   
   const parsedBiography = useMemo(() => {
-    if (!biography) return { sentences: [], lastSentence: '', mainBio: '' };
+    if (!biography) return { paragraphs: [], lastSentence: '', mainBio: '', ageSentenceMap: new Map() };
     
     const lastSentenceMatch = biography.match(/[^.!?]*[.!?]$/);
     const lastSentence = lastSentenceMatch ? lastSentenceMatch[0].trim() : '';
     const mainBio = lastSentence ? biography.slice(0, biography.lastIndexOf(lastSentence)).trim() : biography;
     
-    const sentenceRegex = /[^.!?]+[.!?]+/g;
-    const allSentences: { text: string; age: number | null }[] = [];
-    const matches = mainBio.match(sentenceRegex) || [];
+    const abbreviations = ['St', 'Mr', 'Ms', 'Mrs', 'Rev', 'Dr', 'Jr', 'Sr', 'Prof', 'Gen', 'Col', 'Lt', 'Sgt', 'Capt', 'Inc', 'Ltd', 'Corp', 'vs', 'etc', 'e\\.g', 'i\\.e'];
+    const abbrevPattern = abbreviations.join('|');
+    const sentenceEndRegex = new RegExp(`(?<!\\b(?:${abbrevPattern}))\\.\\s+|[!?]\\s+`, 'g');
     
+    const paragraphs = mainBio.split(/\n+/).filter(p => p.trim());
+    const allParagraphs: { sentences: { text: string; age: number | null; idx: number }[] }[] = [];
     const ages = [18, 24, 30, 36, 42, 48, 54, 60, 66];
+    let globalIdx = 0;
     
-    matches.forEach((sentence) => {
-      const trimmed = sentence.trim();
-      let matchedAge: number | null = null;
-      for (const age of ages) {
-        if (trimmed.includes(`${age}`) || trimmed.includes(`age ${age}`) || trimmed.includes(`Age ${age}`)) {
-          matchedAge = age;
-          break;
+    paragraphs.forEach((para) => {
+      const parts = para.split(sentenceEndRegex).filter(s => s.trim());
+      const sentences: { text: string; age: number | null; idx: number }[] = [];
+      
+      parts.forEach((part) => {
+        const trimmed = part.trim();
+        if (!trimmed) return;
+        
+        let matchedAge: number | null = null;
+        for (const age of ages) {
+          if (trimmed.includes(`${age}`) || trimmed.includes(`age ${age}`) || trimmed.includes(`Age ${age}`)) {
+            matchedAge = age;
+            break;
+          }
         }
+        sentences.push({ text: trimmed, age: matchedAge, idx: globalIdx });
+        globalIdx++;
+      });
+      
+      if (sentences.length > 0) {
+        allParagraphs.push({ sentences });
       }
-      allSentences.push({ text: trimmed, age: matchedAge });
     });
     
     const ageSentenceMap = new Map<number, number>();
-    allSentences.forEach((s, idx) => {
-      if (s.age !== null) {
-        ageSentenceMap.set(s.age, idx);
-      }
+    allParagraphs.forEach((para) => {
+      para.sentences.forEach((s) => {
+        if (s.age !== null) {
+          ageSentenceMap.set(s.age, s.idx);
+        }
+      });
     });
     
+    const allSentencesFlat = allParagraphs.flatMap(p => p.sentences);
     for (let i = 0; i < ages.length; i++) {
       const age = ages[i];
       if (!ageSentenceMap.has(age)) {
@@ -109,15 +127,15 @@ export function SingleLife() {
         
         if (prevIdx !== undefined && nextIdx !== undefined) {
           const expectedIdx = prevIdx + 1;
-          if (expectedIdx < nextIdx && allSentences[expectedIdx]) {
+          if (expectedIdx < nextIdx && allSentencesFlat[expectedIdx]) {
             ageSentenceMap.set(age, expectedIdx);
-            allSentences[expectedIdx].age = age;
+            allSentencesFlat[expectedIdx].age = age;
           }
         }
       }
     }
     
-    return { sentences: allSentences, lastSentence, mainBio, ageSentenceMap };
+    return { paragraphs: allParagraphs, lastSentence, mainBio, ageSentenceMap };
   }, [biography]);
   
   const handleChartHover = useCallback((stageIndex: number | null) => {
@@ -543,24 +561,26 @@ export function SingleLife() {
                           {parsedBiography.lastSentence && (
                             <p className="text-sm font-semibold mb-2">{parsedBiography.lastSentence}</p>
                           )}
-                          <p className="text-xs italic">
-                            {parsedBiography.sentences.map((sentence, idx) => (
-                              <span
-                                key={idx}
-                                ref={(el) => {
-                                  if (el) sentenceRefs.current.set(idx, el);
-                                  else sentenceRefs.current.delete(idx);
-                                }}
-                                className={`transition-all duration-300 ${
-                                  highlightedSentenceIdx === idx 
-                                    ? 'bg-primary/20 text-foreground font-medium rounded px-0.5' 
-                                    : ''
-                                }`}
-                              >
-                                {sentence.text}{' '}
-                              </span>
-                            ))}
-                          </p>
+                          {parsedBiography.paragraphs.map((para, pIdx) => (
+                            <p key={pIdx} className="text-xs italic mb-2 last:mb-0">
+                              {para.sentences.map((sentence) => (
+                                <span
+                                  key={sentence.idx}
+                                  ref={(el) => {
+                                    if (el) sentenceRefs.current.set(sentence.idx, el);
+                                    else sentenceRefs.current.delete(sentence.idx);
+                                  }}
+                                  className={`transition-colors duration-300 ${
+                                    highlightedSentenceIdx === sentence.idx 
+                                      ? 'bg-primary/20 text-foreground rounded px-0.5' 
+                                      : ''
+                                  }`}
+                                >
+                                  {sentence.text}.{' '}
+                                </span>
+                              ))}
+                            </p>
+                          ))}
                         </div>
                       );
                     })()

@@ -13,6 +13,8 @@ export function IncomeChart({ stages }: IncomeChartProps) {
     const worstPath: number[] = [];
     let bestIncome = 30000;
     let worstIncome = 30000;
+    let bestGrowth = 0;
+    let worstGrowth = 0;
     
     for (const stage of stages) {
       if (stage.isEducation) {
@@ -20,14 +22,24 @@ export function IncomeChart({ stages }: IncomeChartProps) {
         worstPath.push(stage.incomeAfter);
         bestIncome = stage.incomeAfter;
         worstIncome = stage.incomeAfter;
+        if (stage.education) {
+          bestGrowth = Math.max(-0.1, Math.min(0.2, stage.education.growthDelta));
+          worstGrowth = bestGrowth;
+        }
       } else if (stage.eventOutcome) {
         const event = stage.eventOutcome.event;
-        const bestOutcome = bestIncome * (1 + (event.success.jumpPct || 0) / 100) * (1 + (event.success.growthDelta || 0) / 100);
-        const worstOutcome = worstIncome * (1 + (event.fail.jumpPct || 0) / 100) * (1 + (event.fail.growthDelta || 0) / 100);
-        bestPath.push(bestOutcome);
-        worstPath.push(worstOutcome);
+        
+        const newBestGrowth = Math.max(-0.1, Math.min(0.2, bestGrowth + event.success.growthDelta));
+        const bestOutcome = bestIncome * (1 + newBestGrowth) * (1 + event.success.jumpPct);
+        bestGrowth = newBestGrowth;
         bestIncome = bestOutcome;
+        bestPath.push(bestOutcome);
+        
+        const newWorstGrowth = Math.max(-0.1, Math.min(0.2, worstGrowth + event.fail.growthDelta));
+        const worstOutcome = worstIncome * (1 + newWorstGrowth) * (1 + event.fail.jumpPct);
+        worstGrowth = newWorstGrowth;
         worstIncome = worstOutcome;
+        worstPath.push(worstOutcome);
       } else {
         bestPath.push(bestIncome);
         worstPath.push(worstIncome);

@@ -102,6 +102,7 @@ Other rules:
 EXAMPLE INPUT:
 Name: Marcus Chen
 Career field: Tech
+Letter Grade: B
 Traits: INT 15 CHAR 10 WORK 10 NEPO 10 RISK 6
 Life events:
 Age 18: [Education] Elite Program - Success. Your natural brilliance made this look easy.
@@ -121,7 +122,7 @@ At 36 he briefly toyed with the idea of getting his masters, but decided it wasn
 
 At 60, he decided weapons-grade robotics was no longer for him, and became a realtor. He tried to retire early, at 66, but ultimately decided not to take the chance.
 
-Marcus Chen: a smart and connected engineer who played it safe and never quite achieved his dreams.
+Marcus Chen: a smart, connected engineer who played it too safe, whose early success never quite translated into achieving his full potential.
 
 INFO TO WORK FROM:
 Name: ${name}

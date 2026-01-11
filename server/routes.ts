@@ -141,7 +141,6 @@ ${lifeEventsDescription}`;
           },
         ],
         max_completion_tokens: 400,
-        temperature: 0.7,
       });
 
       const biography =

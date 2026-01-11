@@ -414,7 +414,7 @@ export function computeCareerEV(salary: number, growth: number, isNat20: boolean
   const nat20Multiplier = isNat20 ? 1.2 : 1.0;
   
   // Compute baseline (what you'd get with average career)
-  // Using average career: ~$52K salary, ~0.03 growth (mid-tier)
+  // Using average career: ~§52K salary, ~0.03 growth (mid-tier)
   const avgSalary = 52000;
   const avgGrowth = 0.03;
   
@@ -473,7 +473,7 @@ const educationOutcomes: Record<string, string> = {
   'PhD': 'Years of study pay off with specialized career opportunities',
   'Elite Masters': 'Your graduate degree fast-tracks you into management',
   'Top Masters': 'The network you built is worth more than the degree',
-  'Masters': 'An extra credential means an extra $10K starting salary',
+  'Masters': 'An extra credential means an extra §10K starting salary',
   'Elite Bachelors': 'Recruiters are already fighting over you',
   'Top Bachelors': 'Big companies are sliding into your inbox',
   'Bachelors': 'You check the box most employers are looking for',
@@ -1082,12 +1082,11 @@ export function runMassSimulation(
 }
 
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value);
+  return `§${formatted}`;
 }
 
 export interface LifetimeGrade {

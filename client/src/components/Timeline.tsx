@@ -6,7 +6,7 @@ import {
   formatPercent,
   formatEV 
 } from '@/lib/sim';
-import { GraduationCap, Briefcase, Check, X, AlertTriangle } from 'lucide-react';
+import { GraduationCap, Briefcase, Check, X, AlertTriangle, Sparkles, Skull, Baby, Cross } from 'lucide-react';
 
 interface TimelineProps {
   stages: StageResult[];
@@ -16,10 +16,30 @@ const stageToAge = (stageNum: number) => 20 + (stageNum - 1) * 8;
 
 export function Timeline({ stages }: TimelineProps) {
   return (
-    <div className="flex flex-row gap-2" data-testid="timeline">
-      {stages.map((stage) => (
-        <TimelineCard key={stage.stage} stage={stage} />
-      ))}
+    <div className="space-y-2" data-testid="timeline">
+      <div className="relative h-8 mx-2">
+        <div className="absolute top-3 left-0 right-0 h-0.5 bg-border" />
+        <div className="flex justify-between">
+          {stages.map((stage) => {
+            const age = stageToAge(stage.stage);
+            return (
+              <div key={stage.stage} className="flex flex-col items-center">
+                <div className="text-[10px] text-muted-foreground font-mono mb-0.5 flex items-center gap-0.5">
+                  {stage.stage === 1 && <Baby className="h-3 w-3" />}
+                  {age}
+                  {stage.stage === 8 && <Cross className="h-3 w-3" />}
+                </div>
+                <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="flex flex-row gap-2">
+        {stages.map((stage) => (
+          <TimelineCard key={stage.stage} stage={stage} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -140,7 +160,7 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
           </div>
         </div>
         
-        <div className="text-sm font-medium mb-2 leading-tight line-clamp-2" title={event.name}>
+        <div className="text-xs font-medium mb-2 leading-tight min-h-[2.5rem]" title={event.name}>
           {event.name}
         </div>
         
@@ -155,10 +175,18 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
         </div>
         
         {!outcome.gateFailed && event.rollRequired && (
-          <div className="p-2 rounded bg-muted mb-2">
-            <div className="text-[10px] text-muted-foreground">Roll (DC {outcome.mainDC})</div>
+          <div className={`p-2 rounded mb-2 ${outcome.isCritical ? (outcome.criticalType === 'success' ? 'bg-chart-4/20 border border-chart-4/40' : 'bg-destructive/20 border border-destructive/40') : 'bg-muted'}`}>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground">Roll (DC {outcome.mainDC})</span>
+              {outcome.isCritical && (
+                <span className={`text-[9px] font-bold flex items-center gap-0.5 ${outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive'}`}>
+                  {outcome.criticalType === 'success' ? <Sparkles className="h-3 w-3" /> : <Skull className="h-3 w-3" />}
+                  NAT {outcome.mainRoll}!
+                </span>
+              )}
+            </div>
             <div className="font-mono text-sm">
-              <span className="font-bold">{outcome.mainRoll}</span>
+              <span className={`font-bold ${outcome.isCritical ? (outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive') : ''}`}>{outcome.mainRoll}</span>
               <span className="text-muted-foreground">+</span>
               <span className={outcome.mainMod! >= 0 ? 'text-chart-2' : 'text-destructive'}>
                 {outcome.mainMod! >= 0 ? '+' : ''}{outcome.mainMod}
@@ -189,7 +217,14 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
         )}
         
         <div className="p-2 rounded bg-muted mb-2">
-          <div className="text-[10px] text-muted-foreground">Effects</div>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground">Effects</span>
+            {outcome.isCritical && (
+              <span className={`text-[9px] font-bold ${outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive'}`}>
+                (2x)
+              </span>
+            )}
+          </div>
           <div className="font-mono text-xs">
             <span className="text-muted-foreground">J:</span>
             <span className={outcome.jumpPct !== 0 ? (outcome.jumpPct > 0 ? 'text-chart-2' : 'text-destructive') : 'text-muted-foreground'}>

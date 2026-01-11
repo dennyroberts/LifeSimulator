@@ -23,7 +23,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.08, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.002 }
+    "fail": { "jumpPct": -0.04, "growthDelta": -0.006 }
   },
   {
     "id": "a_really_good_boss",
@@ -75,7 +75,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.10, "growthDelta": 0.010 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+    "fail": { "jumpPct": -0.08, "growthDelta": -0.008 }
   },
   {
     "id": "we_need_to_talk",
@@ -101,7 +101,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.010 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.003 }
+    "fail": { "jumpPct": -0.05, "growthDelta": -0.008 }
   },
   {
     "id": "your_name_starts_circulating",
@@ -349,5 +349,44 @@
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.03, "growthDelta": 0.005 },
     "fail": { "jumpPct": 0.00, "growthDelta": 0.000 }
+  },
+  {
+    "id": "you_invent_something_huge",
+    "name": "You Invent Something Huge",
+    "rarity": "jackpot",
+    "rollRequired": true,
+    "DC": 18,
+    "checkTraits": { "INT": 1.5, "WORK": 1.0 },
+    "riskGated": true,
+    "riskGateDC": 14,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.60, "growthDelta": 0.050 },
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.010 }
+  },
+  {
+    "id": "you_get_arrested",
+    "name": "You Get Arrested",
+    "rarity": "sinkhole",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "NEPO": 1.5, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.05, "growthDelta": -0.005 },
+    "fail": { "jumpPct": -0.30, "growthDelta": -0.030 }
+  },
+  {
+    "id": "you_get_laid_off",
+    "name": "You Get Laid Off",
+    "rarity": "uncommon",
+    "rollRequired": true,
+    "DC": 15,
+    "checkTraits": { "WORK": 1.0, "NEPO": 0.5, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.05, "growthDelta": 0.002 },
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.015 }
   }
 ]

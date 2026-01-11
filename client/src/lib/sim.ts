@@ -54,6 +54,8 @@ export interface EventOutcome {
   growthDelta: number;
   incomeAfter: number;
   evRealized: number;
+  isCritical?: boolean;
+  criticalType?: 'success' | 'failure';
 }
 
 export interface StageResult {
@@ -298,13 +300,31 @@ export function resolveEvent(
   let mainMod: number | undefined;
   let mainDC: number | undefined;
   let success = true;
+  let isCritical = false;
+  let criticalType: 'success' | 'failure' | undefined;
   
   if (!gateFailed) {
     if (event.rollRequired && event.DC) {
       mainRoll = rollD20(rng);
       mainMod = computeTotalMod(traits, event.checkTraits, worldMode);
       mainDC = event.DC;
-      success = mainRoll + mainMod >= mainDC;
+      
+      // Check for critical success (nat 20) or critical failure (nat 1)
+      // Nat 20 always succeeds, Nat 1 always fails, regardless of modifiers
+      const isNat20 = mainRoll === 20;
+      const isNat1 = mainRoll === 1;
+      
+      if (isNat20) {
+        success = true;
+        isCritical = true;
+        criticalType = 'success';
+      } else if (isNat1) {
+        success = false;
+        isCritical = true;
+        criticalType = 'failure';
+      } else {
+        success = mainRoll + mainMod >= mainDC;
+      }
     }
   }
   
@@ -313,16 +333,17 @@ export function resolveEvent(
   let evRealized = 0;
   
   const multiplier = (config as any).effectMultiplier || 1.0;
+  const criticalMultiplier = isCritical ? 2.0 : 1.0;
   
   if (gateFailed) {
     evRealized = 0;
   } else if (success) {
-    jumpPct = event.success.jumpPct * multiplier;
-    growthDelta = event.success.growthDelta * multiplier;
+    jumpPct = event.success.jumpPct * multiplier * criticalMultiplier;
+    growthDelta = event.success.growthDelta * multiplier * criticalMultiplier;
     evRealized = computeEvSuccess(stage, event);
   } else {
-    jumpPct = event.fail.jumpPct * multiplier;
-    growthDelta = event.fail.growthDelta * multiplier;
+    jumpPct = event.fail.jumpPct * multiplier * criticalMultiplier;
+    growthDelta = event.fail.growthDelta * multiplier * criticalMultiplier;
     evRealized = computeEvFail(stage, event);
   }
   
@@ -350,7 +371,9 @@ export function resolveEvent(
     jumpPct,
     growthDelta,
     incomeAfter: newIncome,
-    evRealized
+    evRealized,
+    isCritical,
+    criticalType
   };
   
   return { outcome, newIncome, newGrowth };

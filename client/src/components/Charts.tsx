@@ -429,6 +429,8 @@ interface HistogramProps {
 }
 
 export function IncomeHistogram({ results, bins = 25, compact = false }: HistogramProps) {
+  const [hoveredBin, setHoveredBin] = useState<number | null>(null);
+  
   const incomes = results.map(r => r.lifetimeEarnings);
   const minIncome = Math.min(...incomes);
   const maxIncome = Math.max(...incomes);
@@ -447,25 +449,33 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
   const median = sorted[Math.floor(sorted.length / 2)];
   
   const width = 700;
-  const height = 350;
-  const padding = { top: 30, right: 40, bottom: 60, left: 80 };
+  const height = 380;
+  const padding = { top: 50, right: 40, bottom: 70, left: 80 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const barWidth = chartWidth / bins - 2;
   
   const meanX = padding.left + ((mean - minIncome) / range) * chartWidth;
   const medianX = padding.left + ((median - minIncome) / range) * chartWidth;
+  
+  const getBinRange = (binIndex: number) => {
+    const binStart = minIncome + binIndex * binSize;
+    const binEnd = minIncome + (binIndex + 1) * binSize;
+    return { binStart, binEnd };
+  };
 
   return (
     <svg 
       viewBox={`0 0 ${width} ${height}`} 
       className="w-full h-auto"
       data-testid="income-histogram"
+      onMouseLeave={() => setHoveredBin(null)}
     >
       {binCounts.map((count, i) => {
         const x = padding.left + (i / bins) * chartWidth + 1;
         const barHeight = (count / maxCount) * chartHeight;
         const y = padding.top + chartHeight - barHeight;
+        const isHovered = hoveredBin === i;
         return (
           <rect
             key={i}
@@ -473,12 +483,56 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
             y={y}
             width={barWidth}
             height={barHeight}
-            fill="hsl(var(--chart-1))"
-            opacity="0.8"
+            fill={isHovered ? "hsl(var(--chart-4))" : "hsl(var(--chart-1))"}
+            opacity={isHovered ? "1" : "0.8"}
             rx="2"
+            className="cursor-pointer transition-all duration-150"
+            onMouseEnter={() => setHoveredBin(i)}
           />
         );
       })}
+      
+      {hoveredBin !== null && (
+        <>
+          {(() => {
+            const { binStart, binEnd } = getBinRange(hoveredBin);
+            const count = binCounts[hoveredBin];
+            const x = padding.left + (hoveredBin / bins) * chartWidth + barWidth / 2;
+            const barHeight = (count / maxCount) * chartHeight;
+            const y = padding.top + chartHeight - barHeight - 10;
+            return (
+              <g>
+                <rect
+                  x={x - 70}
+                  y={y - 35}
+                  width={140}
+                  height={40}
+                  rx="4"
+                  fill="hsl(var(--popover))"
+                  stroke="hsl(var(--border))"
+                  strokeWidth="1"
+                />
+                <text
+                  x={x}
+                  y={y - 18}
+                  textAnchor="middle"
+                  className="fill-foreground text-xs font-bold"
+                >
+                  {count.toLocaleString()} agents
+                </text>
+                <text
+                  x={x}
+                  y={y - 3}
+                  textAnchor="middle"
+                  className="fill-muted-foreground text-[10px] font-mono"
+                >
+                  {formatCurrency(binStart)} - {formatCurrency(binEnd)}
+                </text>
+              </g>
+            );
+          })()}
+        </>
+      )}
       
       <line
         x1={meanX}
@@ -493,7 +547,7 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
         x={meanX}
         y={padding.top - 10}
         textAnchor="middle"
-        className="fill-chart-4 text-[10px] font-medium"
+        className="fill-chart-4 text-xs font-semibold"
       >
         Mean: {formatCurrency(mean)}
       </text>
@@ -509,9 +563,9 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
       />
       <text
         x={medianX}
-        y={padding.top - 22}
+        y={padding.top - 26}
         textAnchor="middle"
-        className="fill-chart-2 text-[10px] font-medium"
+        className="fill-chart-2 text-xs font-semibold"
       >
         Median: {formatCurrency(median)}
       </text>
@@ -528,9 +582,9 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
         <text
           key={pct}
           x={padding.left + pct * chartWidth}
-          y={height - 25}
+          y={height - 30}
           textAnchor="middle"
-          className="fill-muted-foreground text-[10px] font-mono"
+          className="fill-muted-foreground text-xs font-mono"
         >
           {formatCurrency(minIncome + pct * range)}
         </text>
@@ -538,9 +592,9 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
       
       <text
         x={width / 2}
-        y={height - 5}
+        y={height - 8}
         textAnchor="middle"
-        className="fill-muted-foreground text-xs"
+        className="fill-muted-foreground text-sm font-medium"
       >
         Lifetime Earnings
       </text>
@@ -643,7 +697,7 @@ export function ScatterPlot({ results, xKey, xLabel, color, compact = false }: S
         transform={`rotate(-90, 10, ${height / 2})`}
         className="fill-muted-foreground text-[10px]"
       >
-        Income
+        Lifetime Earnings
       </text>
     </svg>
   );

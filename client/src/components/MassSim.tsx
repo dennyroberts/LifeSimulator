@@ -35,7 +35,8 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2 } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 type AgentCount = 1000 | 10000 | 50000;
 
@@ -257,7 +258,7 @@ export function MassSim() {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">Mean Income</div>
+                <div className="text-sm text-muted-foreground">Mean Lifetime Earnings</div>
                 <div className="text-2xl font-bold font-mono text-chart-1" data-testid="stat-mean">
                   {formatCurrency(stats.mean)}
                 </div>
@@ -265,7 +266,7 @@ export function MassSim() {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">Median Income</div>
+                <div className="text-sm text-muted-foreground">Median Lifetime Earnings</div>
                 <div className="text-2xl font-bold font-mono text-chart-2" data-testid="stat-median">
                   {formatCurrency(stats.median)}
                 </div>
@@ -288,7 +289,7 @@ export function MassSim() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm">
                   <BarChart3 className="h-4 w-4" />
-                  Income Distribution
+                  Lifetime Earnings Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -391,6 +392,36 @@ function AgentCard({ agentData, rank, isTop }: {
   const actualGrade = getLifetimeGrade(actual.lifetimeEarnings);
   const bestGrade = getLifetimeGrade(best.lifetimeEarnings);
   const worstGrade = getLifetimeGrade(worst.lifetimeEarnings);
+  
+  const [biography, setBiography] = useState<string | null>(null);
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioError, setBioError] = useState(false);
+  
+  const careerStage = actual.stages.find(s => s.career);
+  const careerName = careerStage?.career?.career?.name;
+  
+  const handleGenerateBio = async () => {
+    if (bioLoading) return;
+    setBioLoading(true);
+    setBioError(false);
+    try {
+      const letterGrade = actualGrade.grade;
+      const response = await apiRequest('POST', '/api/generate-biography', {
+        name: actual.name,
+        traits: actual.traits,
+        stages: actual.stages,
+        careerName: careerName || 'General',
+        letterGrade,
+      });
+      const data = await response.json();
+      setBiography(data.biography);
+    } catch (error) {
+      console.error('Failed to generate biography:', error);
+      setBioError(true);
+    } finally {
+      setBioLoading(false);
+    }
+  };
 
   return (
     <Card className="p-3" data-testid={`agent-card-${isTop ? 'top' : 'bottom'}-${rank}`}>
@@ -415,22 +446,73 @@ function AgentCard({ agentData, rank, isTop }: {
                 {formatCurrency(actual.lifetimeEarnings)}
               </span>
               <TraitDisplay traits={actual.traits} compact />
+              {careerName && (
+                <span className="text-muted-foreground">
+                  Career: <span className="text-foreground font-medium">{careerName}</span>
+                </span>
+              )}
               {actual.aspiration && (
                 <span className="text-muted-foreground">
-                  Aspires: <span className="text-foreground">{actual.aspiration}</span>
+                  Aspired: <span className="text-foreground">{actual.aspiration}</span>
                 </span>
               )}
             </div>
           </div>
-          <div className="text-right shrink-0">
-            <div className="text-[10px] text-muted-foreground">Roll Luck</div>
-            <div className={`text-sm font-mono font-semibold ${actual.luck.rollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
-              {formatEV(actual.luck.rollLuck)}
+          <div className="text-right shrink-0 space-y-1">
+            <div className="grid grid-cols-3 gap-2 text-[10px]">
+              <div>
+                <div className="text-muted-foreground">Edu</div>
+                <div className={`font-mono font-semibold ${actual.luck.educationRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+                  {formatEV(actual.luck.educationRollLuck)}
+                </div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">Career</div>
+                <div className={`font-mono font-semibold ${actual.luck.careerRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+                  {formatEV(actual.luck.careerRollLuck)}
+                </div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">Events</div>
+                <div className={`font-mono font-semibold ${actual.luck.eventRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+                  {formatEV(actual.luck.eventRollLuck)}
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
-        <MiniTimeline stages={actual.stages} />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 overflow-x-auto">
+            <MiniTimeline stages={actual.stages} />
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleGenerateBio}
+            disabled={bioLoading}
+            className="shrink-0 h-7 text-xs"
+            data-testid={`button-bio-${rank}`}
+          >
+            {bioLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <BookOpen className="h-3 w-3" />
+            )}
+            <span className="ml-1">{biography ? 'Regen' : 'Bio'}</span>
+          </Button>
+        </div>
+        
+        {bioError && (
+          <div className="text-xs text-destructive p-2 bg-destructive/10 rounded" data-testid={`bio-error-${rank}`}>
+            Failed to generate bio. Click to retry.
+          </div>
+        )}
+        {biography && !bioError && (
+          <div className="text-xs text-muted-foreground leading-relaxed p-2 bg-muted rounded" data-testid={`bio-${rank}`}>
+            {biography}
+          </div>
+        )}
       </div>
     </Card>
   );
@@ -442,37 +524,73 @@ function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   const career = stages.find(s => s.isCareer);
   
   return (
-    <div className="flex flex-wrap gap-1 text-[10px]" data-testid="mini-timeline">
+    <div className="flex gap-0.5 text-[9px] whitespace-nowrap" data-testid="mini-timeline">
       {education && (
-        <div className="px-1.5 py-0.5 rounded bg-chart-1/20 text-chart-1 font-medium truncate max-w-[80px]" title={education.education?.label}>
-          {education.education?.label}
+        <div 
+          className={`px-1 py-0.5 rounded flex items-center gap-0.5 ${
+            education.education?.roll === 20 ? 'bg-chart-4/20 text-chart-4' : 
+            education.education?.roll === 1 ? 'bg-destructive/20 text-destructive' : 
+            'bg-chart-1/20 text-chart-1'
+          }`}
+          title={`Education: ${education.education?.label}${education.education?.roll === 20 ? ' (NAT 20!)' : education.education?.roll === 1 ? ' (NAT 1!)' : ''}`}
+        >
+          {education.education?.roll === 20 && <Sparkles className="h-2.5 w-2.5" />}
+          {education.education?.roll === 1 && <Skull className="h-2.5 w-2.5" />}
+          <span className="truncate max-w-[50px]">{education.education?.label?.split(' ')[0]}</span>
         </div>
       )}
       {career && (
-        <div className="px-1.5 py-0.5 rounded bg-chart-2/20 text-chart-2 font-medium truncate max-w-[100px]" title={career.career?.career.name}>
-          {career.career?.career.name}
+        <div 
+          className={`px-1 py-0.5 rounded flex items-center gap-0.5 ${
+            career.career?.isNat20 ? 'bg-chart-4/20 text-chart-4' : 
+            career.career?.roll === 1 ? 'bg-destructive/20 text-destructive' : 
+            'bg-chart-3/20 text-chart-3'
+          }`}
+          title={`Career: ${career.career?.career.name}${career.career?.isNat20 ? ' (NAT 20!)' : career.career?.roll === 1 ? ' (NAT 1!)' : ''}`}
+        >
+          {career.career?.isNat20 && <Sparkles className="h-2.5 w-2.5" />}
+          {career.career?.roll === 1 && <Skull className="h-2.5 w-2.5" />}
+          <span className="truncate max-w-[60px]">{career.career?.career.name}</span>
         </div>
       )}
       {eventStages.map((stage) => {
         const outcome = stage.eventOutcome!;
+        const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
+        const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
+        
         const bgColor = outcome.gateFailed 
           ? 'bg-muted/50' 
+          : isCritSuccess
+            ? 'bg-chart-4/20'
+          : isCritFail
+            ? 'bg-destructive/30'
           : outcome.success 
             ? 'bg-chart-2/20' 
             : 'bg-destructive/20';
         const textColor = outcome.gateFailed 
           ? 'text-muted-foreground' 
+          : isCritSuccess
+            ? 'text-chart-4'
+          : isCritFail
+            ? 'text-destructive'
           : outcome.success 
             ? 'text-chart-2' 
             : 'text-destructive';
         
+        const shortName = outcome.event.name.split(' ')[0];
+        
         return (
           <div 
             key={stage.stage} 
-            className={`px-1.5 py-0.5 rounded ${bgColor} ${textColor} truncate max-w-[100px]`}
-            title={`${outcome.event.name}: ${outcome.success ? 'Success' : outcome.gateFailed ? 'Skipped' : 'Failed'}`}
+            className={`px-1 py-0.5 rounded flex items-center gap-0.5 ${bgColor} ${textColor}`}
+            title={`${outcome.event.name}: ${outcome.success ? 'Success' : outcome.gateFailed ? 'Skipped' : 'Failed'}${isCritSuccess ? ' (NAT 20!)' : isCritFail ? ' (NAT 1!)' : ''}`}
           >
-            {outcome.success ? '+' : outcome.gateFailed ? '~' : '-'} {outcome.event.name}
+            {isCritSuccess && <Sparkles className="h-2.5 w-2.5" />}
+            {isCritFail && <Skull className="h-2.5 w-2.5" />}
+            <span className="truncate max-w-[40px]">
+              {!isCritSuccess && !isCritFail && (outcome.success ? '+' : outcome.gateFailed ? '~' : '-')}
+              {shortName}
+            </span>
           </div>
         );
       })}

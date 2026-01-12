@@ -716,15 +716,15 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
 
 type TraitRange = 'any' | 'terrible' | 'bad' | 'average' | 'good' | 'elite';
 type LuckRange = 'any' | 'terrible' | 'bad' | 'average' | 'good' | 'elite';
-type TotalTraitRange = 'any' | '<35' | '35-50' | '50-65' | '65-80' | '>80';
+type TotalTraitRange = 'any' | '<25' | '25-40' | '40-55' | '55-70' | '>70';
 
 const traitRanges: { value: TraitRange; label: string }[] = [
   { value: 'any', label: 'Any' },
   { value: 'terrible', label: 'Terrible (<5)' },
   { value: 'bad', label: 'Bad (5-8)' },
   { value: 'average', label: 'Average (9-11)' },
-  { value: 'good', label: 'Good (12-15)' },
-  { value: 'elite', label: 'Elite (16+)' },
+  { value: 'good', label: 'Good (12-14)' },
+  { value: 'elite', label: 'Elite (15+)' },
 ];
 
 const luckRanges: { value: LuckRange; label: string }[] = [
@@ -738,11 +738,11 @@ const luckRanges: { value: LuckRange; label: string }[] = [
 
 const totalTraitRanges: { value: TotalTraitRange; label: string }[] = [
   { value: 'any', label: 'Any' },
-  { value: '<35', label: 'Low (<35)' },
-  { value: '35-50', label: 'Below Avg (35-50)' },
-  { value: '50-65', label: 'Above Avg (50-65)' },
-  { value: '65-80', label: 'High (65-80)' },
-  { value: '>80', label: 'Elite (>80)' },
+  { value: '<25', label: 'Very Low (<25)' },
+  { value: '25-40', label: 'Low (25-40)' },
+  { value: '40-55', label: 'Average (40-55)' },
+  { value: '55-70', label: 'High (55-70)' },
+  { value: '>70', label: 'Elite (>70)' },
 ];
 
 const careerList = [
@@ -755,8 +755,8 @@ function matchesTraitRange(value: number, range: TraitRange): boolean {
   if (range === 'terrible') return value < 5;
   if (range === 'bad') return value >= 5 && value <= 8;
   if (range === 'average') return value >= 9 && value <= 11;
-  if (range === 'good') return value >= 12 && value <= 15;
-  if (range === 'elite') return value >= 16;
+  if (range === 'good') return value >= 12 && value <= 14;
+  if (range === 'elite') return value >= 15;
   return true;
 }
 
@@ -772,11 +772,11 @@ function matchesLuckRange(value: number, range: LuckRange): boolean {
 
 function matchesTotalTraitRange(total: number, range: TotalTraitRange): boolean {
   if (range === 'any') return true;
-  if (range === '<35') return total < 35;
-  if (range === '35-50') return total >= 35 && total < 50;
-  if (range === '50-65') return total >= 50 && total < 65;
-  if (range === '65-80') return total >= 65 && total <= 80;
-  if (range === '>80') return total > 80;
+  if (range === '<25') return total < 25;
+  if (range === '25-40') return total >= 25 && total < 40;
+  if (range === '40-55') return total >= 40 && total < 55;
+  if (range === '55-70') return total >= 55 && total <= 70;
+  if (range === '>70') return total > 70;
   return true;
 }
 

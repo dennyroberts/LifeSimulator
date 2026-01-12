@@ -434,20 +434,20 @@ function AgentCard({ agentData, rank, isTop }: {
             {rank}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="font-semibold truncate">{actual.name}</span>
               <div className="flex items-center gap-1">
-                <span className={`text-2xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
-                <div className="flex flex-col text-[10px] font-bold leading-tight">
+                <span className={`text-3xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
+                <div className="flex flex-col text-xs font-bold leading-tight">
                   <span className={bestGrade.color} title="Best possible">{bestGrade.grade}</span>
                   <span className={worstGrade.color} title="Worst possible">{worstGrade.grade}</span>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
-              <span className={`font-mono font-semibold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
+              <span className={`text-xl font-mono font-bold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
                 {formatCurrency(actual.lifetimeEarnings)}
               </span>
+            </div>
+            <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
               <TraitDisplay traits={actual.traits} compact />
               {careerName && (
                 <span className="text-muted-foreground">
@@ -459,10 +459,25 @@ function AgentCard({ agentData, rank, isTop }: {
                   Aspired: <span className="text-foreground">{actual.aspiration}</span>
                 </span>
               )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateBio}
+                disabled={bioLoading}
+                className="shrink-0 h-6 text-xs"
+                data-testid={`button-bio-${rank}`}
+              >
+                {bioLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <BookOpen className="h-3 w-3" />
+                )}
+                <span className="ml-1">{biography ? 'Regen' : 'Bio'}</span>
+              </Button>
             </div>
           </div>
           <div className="text-right shrink-0 space-y-1">
-            <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div className="grid grid-cols-3 gap-2 text-xs">
               <div>
                 <div className="text-muted-foreground">Edu</div>
                 <div className={`font-mono font-semibold ${actual.luck.educationRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
@@ -483,24 +498,6 @@ function AgentCard({ agentData, rank, isTop }: {
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2 justify-end">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleGenerateBio}
-            disabled={bioLoading}
-            className="shrink-0 h-7 text-xs"
-            data-testid={`button-bio-${rank}`}
-          >
-            {bioLoading ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <BookOpen className="h-3 w-3" />
-            )}
-            <span className="ml-1">{biography ? 'Regen' : 'Bio'}</span>
-          </Button>
         </div>
         
         <div className="overflow-x-auto">
@@ -539,22 +536,22 @@ const rarityColors: Record<string, string> = {
 function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   return (
     <div className="relative" data-testid="mini-timeline">
-      <div className="relative h-4 mb-1">
-        <div className="absolute top-2 left-0 right-0 h-0.5 bg-border" />
+      <div className="relative h-5 mb-1">
+        <div className="absolute top-2.5 left-0 right-0 h-0.5 bg-border" />
         <div className="flex justify-between">
           {stages.map((stage) => {
             const age = stageToAge(stage.stage);
             return (
               <div key={stage.stage} className="flex flex-col items-center">
-                <div className="text-[8px] text-muted-foreground font-mono">{age}</div>
-                <div className="w-1.5 h-1.5 rounded-full bg-chart-1 border border-background" />
+                <div className="text-[10px] text-muted-foreground font-mono">{age}</div>
+                <div className="w-2 h-2 rounded-full bg-chart-1 border border-background" />
               </div>
             );
           })}
         </div>
       </div>
       
-      <div className="flex gap-0.5">
+      <div className="flex gap-1">
         {stages.map((stage) => (
           <MiniEventCard key={stage.stage} stage={stage} />
         ))}
@@ -581,7 +578,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     
     return (
       <div 
-        className={`flex-1 min-w-0 p-1 rounded text-[8px] border ${
+        className={`flex-1 min-w-0 p-1.5 rounded text-[10px] border ${
           isCrit20 ? 'bg-chart-4/10 border-chart-4/30' : 
           isCrit1 ? 'bg-destructive/10 border-destructive/30' : 
           'bg-chart-1/10 border-chart-1/20'
@@ -589,14 +586,14 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
         title={`Education: ${edu.label}`}
       >
         <div className="flex items-center gap-0.5 mb-0.5">
-          <GraduationCap className="h-2.5 w-2.5 text-chart-1" />
-          {isCrit20 && <Sparkles className="h-2 w-2 text-chart-4" />}
-          {isCrit1 && <Skull className="h-2 w-2 text-destructive" />}
+          <GraduationCap className="h-3 w-3 text-chart-1" />
+          {isCrit20 && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
+          {isCrit1 && <Skull className="h-2.5 w-2.5 text-destructive" />}
         </div>
-        <div className="font-medium truncate text-foreground">Education</div>
-        <div className="text-muted-foreground truncate">{edu.label}</div>
+        <div className="font-medium text-foreground leading-tight">Education</div>
+        <div className="text-muted-foreground leading-tight">{edu.label}</div>
         {edu.traitContributions && edu.traitContributions.length > 0 && (
-          <div className="font-mono text-[7px] mt-0.5">
+          <div className="font-mono text-[8px] mt-0.5">
             {edu.traitContributions.filter(tc => tc.contribution !== 0).map((tc, i) => (
               <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
                 {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
@@ -615,7 +612,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     
     return (
       <div 
-        className={`flex-1 min-w-0 p-1 rounded text-[8px] border ${
+        className={`flex-1 min-w-0 p-1.5 rounded text-[10px] border ${
           isCrit20 ? 'bg-chart-4/10 border-chart-4/30' : 
           isCrit1 ? 'bg-destructive/10 border-destructive/30' : 
           'bg-chart-3/10 border-chart-3/20'
@@ -623,14 +620,14 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
         title={`Career: ${career.career.name}`}
       >
         <div className="flex items-center gap-0.5 mb-0.5">
-          <Briefcase className="h-2.5 w-2.5 text-chart-3" />
-          {isCrit20 && <Sparkles className="h-2 w-2 text-chart-4" />}
-          {isCrit1 && <Skull className="h-2 w-2 text-destructive" />}
+          <Briefcase className="h-3 w-3 text-chart-3" />
+          {isCrit20 && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
+          {isCrit1 && <Skull className="h-2.5 w-2.5 text-destructive" />}
         </div>
-        <div className="font-medium truncate text-foreground">Career</div>
-        <div className="text-muted-foreground truncate">{career.career.name}</div>
+        <div className="font-medium text-foreground leading-tight">Career</div>
+        <div className="text-muted-foreground leading-tight">{career.career.name}</div>
         {career.traitContributions && career.traitContributions.length > 0 && (
-          <div className="font-mono text-[7px] mt-0.5">
+          <div className="font-mono text-[8px] mt-0.5">
             {career.traitContributions.map((tc, i) => (
               <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
                 {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
@@ -685,21 +682,21 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     
     return (
       <div 
-        className={`flex-1 min-w-0 p-1 rounded text-[8px] border ${getBgClass()} ${getBorderClass()}`}
+        className={`flex-1 min-w-0 p-1.5 rounded text-[10px] border ${getBgClass()} ${getBorderClass()}`}
         title={`${event.name}: ${getOutcomeText()}`}
       >
         <div className="flex items-center gap-0.5 mb-0.5">
-          <EventIcon className="h-2.5 w-2.5 text-muted-foreground" />
-          {isCritSuccess && <Sparkles className="h-2 w-2 text-chart-4" />}
-          {isCritFail && <Skull className="h-2 w-2 text-destructive" />}
+          <EventIcon className="h-3 w-3 text-muted-foreground" />
+          {isCritSuccess && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
+          {isCritFail && <Skull className="h-2.5 w-2.5 text-destructive" />}
           <span className={`${rarityColors[event.rarity]} uppercase font-bold`}>
             {event.rarity.charAt(0)}
           </span>
         </div>
-        <div className="font-medium truncate text-foreground">{event.name}</div>
+        <div className="font-medium text-foreground leading-tight">{event.name}</div>
         <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
         {outcome.traitContributions && outcome.traitContributions.length > 0 && !outcome.gateFailed && (
-          <div className="font-mono text-[7px] mt-0.5">
+          <div className="font-mono text-[8px] mt-0.5">
             {outcome.traitContributions.map((tc, i) => (
               <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
                 {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}

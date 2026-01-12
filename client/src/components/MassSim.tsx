@@ -35,7 +35,8 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -286,58 +287,90 @@ export function MassSim() {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-chart-2" />
-                  Top 10 Performers
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AgentTable agents={topAgents} isTop worldMode={worldMode} seed={seed} />
-              </CardContent>
-            </Card>
+            <CollapsiblePanel 
+              title="Top 10 Performers" 
+              icon={<TrendingUp className="h-5 w-5 text-chart-2" />}
+              defaultExpanded={true}
+              testId="top-performers"
+            >
+              <AgentTable agents={topAgents} isTop worldMode={worldMode} seed={seed} />
+            </CollapsiblePanel>
             
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingDown className="h-5 w-5 text-destructive" />
-                  Bottom 10 Performers
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AgentTable agents={bottomAgents} isTop={false} worldMode={worldMode} seed={seed} />
-              </CardContent>
-            </Card>
+            <CollapsiblePanel 
+              title="Bottom 10 Performers" 
+              icon={<TrendingDown className="h-5 w-5 text-destructive" />}
+              testId="bottom-performers"
+              defaultExpanded={true}
+            >
+              <AgentTable agents={bottomAgents} isTop={false} worldMode={worldMode} seed={seed} />
+            </CollapsiblePanel>
           </div>
           
           <CompareCohorts results={results} worldMode={worldMode} seed={seed} />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <BarChart3 className="h-4 w-4" />
-                  Lifetime Earnings Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <IncomeHistogram results={results} compact />
-              </CardContent>
-            </Card>
+            <CollapsiblePanel 
+              title="Lifetime Earnings Distribution" 
+              icon={<BarChart3 className="h-4 w-4" />}
+              defaultExpanded={true}
+              testId="earnings-histogram"
+            >
+              <IncomeHistogram results={results} compact />
+            </CollapsiblePanel>
             
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Trait & Luck Correlations</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <ScatterGrid results={results} compact />
-              </CardContent>
-            </Card>
+            <CollapsiblePanel 
+              title="Trait & Luck Correlations" 
+              icon={<BarChart3 className="h-4 w-4" />}
+              defaultExpanded={true}
+              testId="correlations-scatter"
+            >
+              <ScatterGrid results={results} compact />
+            </CollapsiblePanel>
           </div>
         </>
       )}
     </div>
+  );
+}
+
+function CollapsiblePanel({ 
+  title, 
+  icon, 
+  children, 
+  defaultExpanded = true,
+  testId
+}: { 
+  title: string; 
+  icon: React.ReactNode; 
+  children: React.ReactNode;
+  defaultExpanded?: boolean;
+  testId?: string;
+}) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const slugified = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const panelTestId = testId || slugified || 'panel';
+  
+  return (
+    <Card data-testid={`panel-${panelTestId}`}>
+      <CardHeader className="pb-2">
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 hover-elevate rounded p-1 -ml-1 w-full text-left"
+          data-testid={`toggle-${panelTestId}`}
+        >
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <CardTitle className="flex items-center gap-2">
+            {icon}
+            {title}
+          </CardTitle>
+        </button>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent>
+          {children}
+        </CardContent>
+      )}
+    </Card>
   );
 }
 
@@ -711,127 +744,168 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
   return null;
 }
 
-type TraitRange = 'any' | 'terrible' | 'bad' | 'average' | 'good' | 'elite';
-type LuckRange = 'any' | 'terrible' | 'bad' | 'average' | 'good' | 'elite';
-type TotalTraitRange = 'any' | '<25' | '25-40' | '40-55' | '55-70' | '>70';
-
-const traitRanges: { value: TraitRange; label: string }[] = [
-  { value: 'any', label: 'Any' },
-  { value: 'terrible', label: 'Terrible (<5)' },
-  { value: 'bad', label: 'Bad (5-8)' },
-  { value: 'average', label: 'Average (9-11)' },
-  { value: 'good', label: 'Good (12-14)' },
-  { value: 'elite', label: 'Elite (15+)' },
-];
-
-const luckRanges: { value: LuckRange; label: string }[] = [
-  { value: 'any', label: 'Any' },
-  { value: 'terrible', label: 'Terrible (<-3)' },
-  { value: 'bad', label: 'Bad (-3 to -1)' },
-  { value: 'average', label: 'Average (-1 to +1)' },
-  { value: 'good', label: 'Good (+1 to +3)' },
-  { value: 'elite', label: 'Elite (>+3)' },
-];
-
-const totalTraitRanges: { value: TotalTraitRange; label: string }[] = [
-  { value: 'any', label: 'Any' },
-  { value: '<25', label: 'Very Low (<25)' },
-  { value: '25-40', label: 'Low (25-40)' },
-  { value: '40-55', label: 'Average (40-55)' },
-  { value: '55-70', label: 'High (55-70)' },
-  { value: '>70', label: 'Elite (>70)' },
-];
-
 const careerList = [
   'Food Service', 'Retail', 'Construction', 'Truck Driver', 'Healthcare',
   'Creative Fields', 'Marketing', 'Tech', 'Finance', 'Lawyer', 'Doctor'
 ];
 
-function matchesTraitRange(value: number, range: TraitRange): boolean {
-  if (range === 'any') return true;
-  if (range === 'terrible') return value < 5;
-  if (range === 'bad') return value >= 5 && value <= 8;
-  if (range === 'average') return value >= 9 && value <= 11;
-  if (range === 'good') return value >= 12 && value <= 14;
-  if (range === 'elite') return value >= 15;
-  return true;
+interface CohortFilters {
+  intRange: [number, number];
+  intAny: boolean;
+  workRange: [number, number];
+  workAny: boolean;
+  nepoRange: [number, number];
+  nepoAny: boolean;
+  charRange: [number, number];
+  charAny: boolean;
+  riskRange: [number, number];
+  riskAny: boolean;
+  totalRange: [number, number];
+  totalAny: boolean;
+  eduLuckRange: [number, number];
+  eduLuckAny: boolean;
+  careerLuckRange: [number, number];
+  careerLuckAny: boolean;
+  eventLuckRange: [number, number];
+  eventLuckAny: boolean;
+  profession: string;
 }
 
-function matchesLuckRange(value: number, range: LuckRange): boolean {
-  if (range === 'any') return true;
-  if (range === 'terrible') return value < -3;
-  if (range === 'bad') return value >= -3 && value < -1;
-  if (range === 'average') return value >= -1 && value <= 1;
-  if (range === 'good') return value > 1 && value <= 3;
-  if (range === 'elite') return value > 3;
-  return true;
+interface CohortStats {
+  count: number;
+  avgEarnings: number;
+  avgGrade: string;
+  avgIntValue: number;
+  avgWorkValue: number;
+  avgNepoValue: number;
+  avgCharValue: number;
+  avgRiskValue: number;
 }
 
-function matchesTotalTraitRange(total: number, range: TotalTraitRange): boolean {
-  if (range === 'any') return true;
-  if (range === '<25') return total < 25;
-  if (range === '25-40') return total >= 25 && total < 40;
-  if (range === '40-55') return total >= 40 && total < 55;
-  if (range === '55-70') return total >= 55 && total <= 70;
-  if (range === '>70') return total > 70;
-  return true;
+const defaultFilters: CohortFilters = {
+  intRange: [9, 11], intAny: false,
+  workRange: [9, 11], workAny: false,
+  nepoRange: [9, 11], nepoAny: false,
+  charRange: [9, 11], charAny: false,
+  riskRange: [9, 11], riskAny: false,
+  totalRange: [10, 100], totalAny: true,
+  eduLuckRange: [-1, 1], eduLuckAny: true,
+  careerLuckRange: [-1, 1], careerLuckAny: true,
+  eventLuckRange: [-1, 1], eventLuckAny: true,
+  profession: 'any',
+};
+
+function RangeSliderFilter({ 
+  label,
+  filterId,
+  range, 
+  setRange, 
+  isAny, 
+  setIsAny, 
+  min, 
+  max, 
+  step = 1,
+  formatValue = (v: number) => String(v)
+}: {
+  label: string;
+  filterId: string;
+  range: [number, number];
+  setRange: (r: [number, number]) => void;
+  isAny: boolean;
+  setIsAny: (v: boolean) => void;
+  min: number;
+  max: number;
+  step?: number;
+  formatValue?: (v: number) => string;
+}) {
+  const checkboxId = `any-${filterId}`;
+  
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-medium">{label}</Label>
+        <div className="flex items-center gap-1">
+          <Checkbox
+            id={checkboxId}
+            checked={isAny}
+            onCheckedChange={(checked) => setIsAny(checked === true)}
+            className="h-3 w-3"
+            data-testid={`checkbox-any-${filterId}`}
+          />
+          <Label htmlFor={checkboxId} className="text-[10px] text-muted-foreground cursor-pointer">Any</Label>
+        </div>
+      </div>
+      {!isAny && (
+        <>
+          <Slider
+            value={range}
+            onValueChange={(v) => setRange(v as [number, number])}
+            min={min}
+            max={max}
+            step={step}
+            className="w-full"
+            data-testid={`slider-${filterId}`}
+          />
+          <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+            <span>{formatValue(range[0])}</span>
+            <span>{formatValue(range[1])}</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
-function CompareCohorts({ results, worldMode, seed }: { 
+function CohortPanel({ 
+  id,
+  results, 
+  worldMode, 
+  seed,
+  onRemove,
+  canRemove
+}: { 
+  id: number;
   results: SimulationResult[]; 
   worldMode: WorldMode;
   seed: string;
+  onRemove: () => void;
+  canRemove: boolean;
 }) {
-  const [intFilter, setIntFilter] = useState<TraitRange>('any');
-  const [workFilter, setWorkFilter] = useState<TraitRange>('any');
-  const [nepoFilter, setNepoFilter] = useState<TraitRange>('any');
-  const [charFilter, setCharFilter] = useState<TraitRange>('any');
-  const [riskFilter, setRiskFilter] = useState<TraitRange>('any');
-  
-  const [eduLuckFilter, setEduLuckFilter] = useState<LuckRange>('any');
-  const [careerLuckFilter, setCareerLuckFilter] = useState<LuckRange>('any');
-  const [eventLuckFilter, setEventLuckFilter] = useState<LuckRange>('any');
-  
-  const [totalTraitFilter, setTotalTraitFilter] = useState<TotalTraitRange>('any');
-  const [professionFilter, setProfessionFilter] = useState<string>('any');
-  
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [filters, setFilters] = useState<CohortFilters>({ ...defaultFilters });
   const [matchingAgents, setMatchingAgents] = useState<SimulationResult[]>([]);
-  const [cohortStats, setCohortStats] = useState<{
-    count: number;
-    avgEarnings: number;
-    avgGrade: string;
-    avgIntValue: number;
-    avgWorkValue: number;
-    avgNepoValue: number;
-    avgCharValue: number;
-    avgRiskValue: number;
-  } | null>(null);
+  const [cohortStats, setCohortStats] = useState<CohortStats | null>(null);
+  
+  const updateFilter = <K extends keyof CohortFilters>(key: K, value: CohortFilters[K]) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
   
   const handleSearch = () => {
     const filtered = results.filter(agent => {
-      if (!matchesTraitRange(agent.traits.INT, intFilter)) return false;
-      if (!matchesTraitRange(agent.traits.WORK, workFilter)) return false;
-      if (!matchesTraitRange(agent.traits.NEPO, nepoFilter)) return false;
-      if (!matchesTraitRange(agent.traits.CHAR, charFilter)) return false;
-      if (!matchesTraitRange(agent.traits.RISK, riskFilter)) return false;
-      
-      if (!matchesLuckRange(agent.luck.educationRollLuck, eduLuckFilter)) return false;
-      if (!matchesLuckRange(agent.luck.careerRollLuck, careerLuckFilter)) return false;
-      if (!matchesLuckRange(agent.luck.eventRollLuck, eventLuckFilter)) return false;
+      if (!filters.intAny && (agent.traits.INT < filters.intRange[0] || agent.traits.INT > filters.intRange[1])) return false;
+      if (!filters.workAny && (agent.traits.WORK < filters.workRange[0] || agent.traits.WORK > filters.workRange[1])) return false;
+      if (!filters.nepoAny && (agent.traits.NEPO < filters.nepoRange[0] || agent.traits.NEPO > filters.nepoRange[1])) return false;
+      if (!filters.charAny && (agent.traits.CHAR < filters.charRange[0] || agent.traits.CHAR > filters.charRange[1])) return false;
+      if (!filters.riskAny && (agent.traits.RISK < filters.riskRange[0] || agent.traits.RISK > filters.riskRange[1])) return false;
       
       const totalTraits = agent.traits.INT + agent.traits.WORK + agent.traits.NEPO + agent.traits.CHAR + agent.traits.RISK;
-      if (!matchesTotalTraitRange(totalTraits, totalTraitFilter)) return false;
+      if (!filters.totalAny && (totalTraits < filters.totalRange[0] || totalTraits > filters.totalRange[1])) return false;
       
-      if (professionFilter !== 'any') {
+      if (!filters.eduLuckAny && (agent.luck.educationRollLuck < filters.eduLuckRange[0] || agent.luck.educationRollLuck > filters.eduLuckRange[1])) return false;
+      if (!filters.careerLuckAny && (agent.luck.careerRollLuck < filters.careerLuckRange[0] || agent.luck.careerRollLuck > filters.careerLuckRange[1])) return false;
+      if (!filters.eventLuckAny && (agent.luck.eventRollLuck < filters.eventLuckRange[0] || agent.luck.eventRollLuck > filters.eventLuckRange[1])) return false;
+      
+      if (filters.profession !== 'any') {
         const careerStage = agent.stages.find(s => s.career);
         const careerName = careerStage?.career?.career?.name;
-        if (careerName !== professionFilter) return false;
+        if (careerName !== filters.profession) return false;
       }
       
       return true;
     });
     
-    const displayAgents = filtered.slice(0, 5);
+    const sortedFiltered = [...filtered].sort((a, b) => b.lifetimeEarnings - a.lifetimeEarnings);
+    const displayAgents = sortedFiltered.slice(0, 5);
     setMatchingAgents(displayAgents);
     
     if (filtered.length > 0) {
@@ -859,210 +933,268 @@ function CompareCohorts({ results, worldMode, seed }: {
     }
   };
   
+  const handleClear = () => {
+    setFilters({ ...defaultFilters });
+    setMatchingAgents([]);
+    setCohortStats(null);
+  };
+  
   const agentsWithScenarios = useMemo(() => {
     return matchingAgents.map(agent => computeBestWorst(agent, worldMode, seed));
   }, [matchingAgents, worldMode, seed]);
 
   return (
-    <Card data-testid="compare-cohorts">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Filter className="h-5 w-5" />
-          Compare Cohorts
-        </CardTitle>
+    <Card data-testid={`cohort-panel-${id}`}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2 hover-elevate rounded p-1 -ml-1"
+            data-testid={`toggle-cohort-${id}`}
+          >
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Cohort {id}
+            </CardTitle>
+          </button>
+          <div className="flex items-center gap-1">
+            {cohortStats && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleClear}
+                className="h-7 text-xs gap-1"
+                data-testid={`clear-cohort-${id}`}
+              >
+                <X className="h-3 w-3" />
+                Clear
+              </Button>
+            )}
+            {canRemove && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={onRemove}
+                className="h-7 text-xs text-destructive"
+                data-testid={`remove-cohort-${id}`}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div>
-            <Label className="text-xs">INT</Label>
-            <Select value={intFilter} onValueChange={(v) => setIntFilter(v as TraitRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-int">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {traitRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      
+      {isExpanded && (
+        <CardContent className="space-y-4 pt-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <RangeSliderFilter
+              label="INT"
+              filterId={`int-${id}`}
+              range={filters.intRange}
+              setRange={(r) => updateFilter('intRange', r)}
+              isAny={filters.intAny}
+              setIsAny={(v) => updateFilter('intAny', v)}
+              min={2}
+              max={20}
+            />
+            <RangeSliderFilter
+              label="WORK"
+              filterId={`work-${id}`}
+              range={filters.workRange}
+              setRange={(r) => updateFilter('workRange', r)}
+              isAny={filters.workAny}
+              setIsAny={(v) => updateFilter('workAny', v)}
+              min={2}
+              max={20}
+            />
+            <RangeSliderFilter
+              label="NEPO"
+              filterId={`nepo-${id}`}
+              range={filters.nepoRange}
+              setRange={(r) => updateFilter('nepoRange', r)}
+              isAny={filters.nepoAny}
+              setIsAny={(v) => updateFilter('nepoAny', v)}
+              min={2}
+              max={20}
+            />
+            <RangeSliderFilter
+              label="CHAR"
+              filterId={`char-${id}`}
+              range={filters.charRange}
+              setRange={(r) => updateFilter('charRange', r)}
+              isAny={filters.charAny}
+              setIsAny={(v) => updateFilter('charAny', v)}
+              min={2}
+              max={20}
+            />
+            <RangeSliderFilter
+              label="RISK"
+              filterId={`risk-${id}`}
+              range={filters.riskRange}
+              setRange={(r) => updateFilter('riskRange', r)}
+              isAny={filters.riskAny}
+              setIsAny={(v) => updateFilter('riskAny', v)}
+              min={2}
+              max={20}
+            />
+            <RangeSliderFilter
+              label="Total Traits"
+              filterId={`total-${id}`}
+              range={filters.totalRange}
+              setRange={(r) => updateFilter('totalRange', r)}
+              isAny={filters.totalAny}
+              setIsAny={(v) => updateFilter('totalAny', v)}
+              min={10}
+              max={100}
+            />
           </div>
-          <div>
-            <Label className="text-xs">WORK</Label>
-            <Select value={workFilter} onValueChange={(v) => setWorkFilter(v as TraitRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-work">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {traitRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">NEPO</Label>
-            <Select value={nepoFilter} onValueChange={(v) => setNepoFilter(v as TraitRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-nepo">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {traitRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">CHAR</Label>
-            <Select value={charFilter} onValueChange={(v) => setCharFilter(v as TraitRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-char">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {traitRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">RISK</Label>
-            <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as TraitRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-risk">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {traitRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Total Traits</Label>
-            <Select value={totalTraitFilter} onValueChange={(v) => setTotalTraitFilter(v as TotalTraitRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-total-traits">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {totalTraitRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div>
-            <Label className="text-xs">Education Luck</Label>
-            <Select value={eduLuckFilter} onValueChange={(v) => setEduLuckFilter(v as LuckRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-edu-luck">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {luckRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Career Luck</Label>
-            <Select value={careerLuckFilter} onValueChange={(v) => setCareerLuckFilter(v as LuckRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-career-luck">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {luckRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Event Luck</Label>
-            <Select value={eventLuckFilter} onValueChange={(v) => setEventLuckFilter(v as LuckRange)}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-event-luck">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {luckRanges.map(r => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Profession</Label>
-            <Select value={professionFilter} onValueChange={setProfessionFilter}>
-              <SelectTrigger className="h-8 text-xs" data-testid="filter-profession">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
-                {careerList.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <Button onClick={handleSearch} className="gap-2" data-testid="button-search-cohort">
-          <Search className="h-4 w-4" />
-          Search Cohort
-        </Button>
-        
-        {cohortStats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t">
-            <div>
-              <div className="text-xs text-muted-foreground">Matching Agents</div>
-              <div className="text-lg font-bold font-mono">{cohortStats.count.toLocaleString()}</div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <RangeSliderFilter
+              label="Education Luck"
+              filterId={`edu-luck-${id}`}
+              range={filters.eduLuckRange}
+              setRange={(r) => updateFilter('eduLuckRange', r)}
+              isAny={filters.eduLuckAny}
+              setIsAny={(v) => updateFilter('eduLuckAny', v)}
+              min={-10}
+              max={10}
+              formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+            />
+            <RangeSliderFilter
+              label="Career Luck"
+              filterId={`career-luck-${id}`}
+              range={filters.careerLuckRange}
+              setRange={(r) => updateFilter('careerLuckRange', r)}
+              isAny={filters.careerLuckAny}
+              setIsAny={(v) => updateFilter('careerLuckAny', v)}
+              min={-10}
+              max={10}
+              formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+            />
+            <RangeSliderFilter
+              label="Event Luck"
+              filterId={`event-luck-${id}`}
+              range={filters.eventLuckRange}
+              setRange={(r) => updateFilter('eventLuckRange', r)}
+              isAny={filters.eventLuckAny}
+              setIsAny={(v) => updateFilter('eventLuckAny', v)}
+              min={-10}
+              max={10}
+              formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+            />
+            <div className="space-y-1">
+              <Label className="text-xs font-medium">Profession</Label>
+              <Select value={filters.profession} onValueChange={(v) => updateFilter('profession', v)}>
+                <SelectTrigger className="h-8 text-xs" data-testid={`filter-profession-${id}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any</SelectItem>
+                  {careerList.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Avg Lifetime Earnings</div>
-              <div className="text-lg font-bold font-mono text-chart-1">{formatCurrency(cohortStats.avgEarnings)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Avg Grade</div>
-              <div className="text-lg font-bold">{cohortStats.avgGrade}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Avg Traits</div>
-              <div className="text-xs font-mono">
-                <span className="text-chart-1">I:{cohortStats.avgIntValue.toFixed(1)}</span>{' '}
-                <span className="text-chart-2">W:{cohortStats.avgWorkValue.toFixed(1)}</span>{' '}
-                <span className="text-chart-3">N:{cohortStats.avgNepoValue.toFixed(1)}</span>{' '}
-                <span className="text-chart-4">C:{cohortStats.avgCharValue.toFixed(1)}</span>{' '}
-                <span className="text-destructive">R:{cohortStats.avgRiskValue.toFixed(1)}</span>
+          </div>
+          
+          <Button onClick={handleSearch} className="gap-2" data-testid={`search-cohort-${id}`}>
+            <Search className="h-4 w-4" />
+            Search Cohort
+          </Button>
+          
+          {cohortStats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t">
+              <div>
+                <div className="text-xs text-muted-foreground">Matching Agents</div>
+                <div className="text-lg font-bold font-mono">{cohortStats.count.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Avg Lifetime Earnings</div>
+                <div className="text-xl font-bold font-mono text-chart-1">{formatCurrency(cohortStats.avgEarnings)}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Avg Grade</div>
+                <div className="text-2xl font-bold">{cohortStats.avgGrade}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Avg Traits</div>
+                <div className="text-xs font-mono">
+                  <span className="text-chart-1">I:{cohortStats.avgIntValue.toFixed(1)}</span>{' '}
+                  <span className="text-chart-2">W:{cohortStats.avgWorkValue.toFixed(1)}</span>{' '}
+                  <span className="text-chart-3">N:{cohortStats.avgNepoValue.toFixed(1)}</span>{' '}
+                  <span className="text-chart-4">C:{cohortStats.avgCharValue.toFixed(1)}</span>{' '}
+                  <span className="text-destructive">R:{cohortStats.avgRiskValue.toFixed(1)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        
-        {matchingAgents.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <div className="text-sm font-medium text-muted-foreground">
-              Showing {matchingAgents.length} of {cohortStats?.count.toLocaleString()} matching agents
+          )}
+          
+          {matchingAgents.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="text-sm font-medium text-muted-foreground">
+                Top {matchingAgents.length} of {cohortStats?.count.toLocaleString()} matching agents (by earnings)
+              </div>
+              {agentsWithScenarios.map((agentData, i) => (
+                <AgentCard 
+                  key={i} 
+                  agentData={agentData} 
+                  rank={i + 1}
+                  isTop={true}
+                />
+              ))}
             </div>
-            {agentsWithScenarios.map((agentData, i) => (
-              <AgentCard 
-                key={i} 
-                agentData={agentData} 
-                rank={i + 1}
-                isTop={true}
-              />
-            ))}
-          </div>
-        )}
-        
-        {cohortStats && matchingAgents.length === 0 && (
-          <div className="text-sm text-muted-foreground text-center py-4">
-            No agents match your filters. Try adjusting the criteria.
-          </div>
-        )}
-      </CardContent>
+          )}
+          
+          {cohortStats && matchingAgents.length === 0 && (
+            <div className="text-sm text-muted-foreground text-center py-4">
+              No agents match your filters. Try adjusting the criteria.
+            </div>
+          )}
+        </CardContent>
+      )}
     </Card>
+  );
+}
+
+function CompareCohorts({ results, worldMode, seed }: { 
+  results: SimulationResult[]; 
+  worldMode: WorldMode;
+  seed: string;
+}) {
+  const [cohortIds, setCohortIds] = useState<number[]>([1, 2]);
+  const [nextId, setNextId] = useState(3);
+  
+  const addCohort = () => {
+    setCohortIds(prev => [...prev, nextId]);
+    setNextId(prev => prev + 1);
+  };
+  
+  const removeCohort = (id: number) => {
+    setCohortIds(prev => prev.filter(cid => cid !== id));
+  };
+
+  return (
+    <div className="space-y-4" data-testid="compare-cohorts">
+      {cohortIds.map(id => (
+        <CohortPanel
+          key={id}
+          id={id}
+          results={results}
+          worldMode={worldMode}
+          seed={seed}
+          onRemove={() => removeCohort(id)}
+          canRemove={cohortIds.length > 1}
+        />
+      ))}
+      
+      <Button onClick={addCohort} variant="outline" className="gap-2 w-full" data-testid="add-cohort">
+        <Plus className="h-4 w-4" />
+        Add Another Cohort
+      </Button>
+    </div>
   );
 }

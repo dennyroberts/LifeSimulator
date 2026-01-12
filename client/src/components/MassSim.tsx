@@ -35,7 +35,8 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2 } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 type AgentCount = 1000 | 10000 | 50000;
@@ -509,7 +510,7 @@ function AgentCard({ agentData, rank, isTop }: {
           </div>
         )}
         {biography && !bioError && (
-          <div className="text-xs text-muted-foreground leading-relaxed p-2 bg-muted rounded" data-testid={`bio-${rank}`}>
+          <div className="text-xs text-muted-foreground leading-relaxed p-2 bg-muted rounded whitespace-pre-wrap" data-testid={`bio-${rank}`}>
             {biography}
           </div>
         )}
@@ -518,82 +519,158 @@ function AgentCard({ agentData, rank, isTop }: {
   );
 }
 
+const stageToAge = (stageNum: number) => {
+  if (stageNum === 1) return 18;
+  if (stageNum === 2) return 24;
+  return 24 + (stageNum - 2) * 6;
+};
+
+const rarityColors: Record<string, string> = {
+  common: 'text-muted-foreground',
+  uncommon: 'text-chart-2',
+  rare: 'text-chart-3',
+  jackpot: 'text-chart-4',
+  sinkhole: 'text-destructive',
+};
+
 function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
-  const eventStages = stages.filter(s => s.eventOutcome);
-  const education = stages.find(s => s.isEducation);
-  const career = stages.find(s => s.isCareer);
-  
   return (
-    <div className="flex gap-0.5 text-[9px] whitespace-nowrap" data-testid="mini-timeline">
-      {education && (
-        <div 
-          className={`px-1 py-0.5 rounded flex items-center gap-0.5 ${
-            education.education?.roll === 20 ? 'bg-chart-4/20 text-chart-4' : 
-            education.education?.roll === 1 ? 'bg-destructive/20 text-destructive' : 
-            'bg-chart-1/20 text-chart-1'
-          }`}
-          title={`Education: ${education.education?.label}${education.education?.roll === 20 ? ' (NAT 20!)' : education.education?.roll === 1 ? ' (NAT 1!)' : ''}`}
-        >
-          {education.education?.roll === 20 && <Sparkles className="h-2.5 w-2.5" />}
-          {education.education?.roll === 1 && <Skull className="h-2.5 w-2.5" />}
-          <span className="truncate max-w-[50px]">{education.education?.label?.split(' ')[0]}</span>
+    <div className="relative" data-testid="mini-timeline">
+      <div className="relative h-4 mb-1">
+        <div className="absolute top-2 left-0 right-0 h-0.5 bg-border" />
+        <div className="flex justify-between">
+          {stages.map((stage) => {
+            const age = stageToAge(stage.stage);
+            return (
+              <div key={stage.stage} className="flex flex-col items-center">
+                <div className="text-[8px] text-muted-foreground font-mono">{age}</div>
+                <div className="w-1.5 h-1.5 rounded-full bg-chart-1 border border-background" />
+              </div>
+            );
+          })}
         </div>
-      )}
-      {career && (
-        <div 
-          className={`px-1 py-0.5 rounded flex items-center gap-0.5 ${
-            career.career?.isNat20 ? 'bg-chart-4/20 text-chart-4' : 
-            career.career?.roll === 1 ? 'bg-destructive/20 text-destructive' : 
-            'bg-chart-3/20 text-chart-3'
-          }`}
-          title={`Career: ${career.career?.career.name}${career.career?.isNat20 ? ' (NAT 20!)' : career.career?.roll === 1 ? ' (NAT 1!)' : ''}`}
-        >
-          {career.career?.isNat20 && <Sparkles className="h-2.5 w-2.5" />}
-          {career.career?.roll === 1 && <Skull className="h-2.5 w-2.5" />}
-          <span className="truncate max-w-[60px]">{career.career?.career.name}</span>
-        </div>
-      )}
-      {eventStages.map((stage) => {
-        const outcome = stage.eventOutcome!;
-        const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
-        const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
-        
-        const bgColor = outcome.gateFailed 
-          ? 'bg-muted/50' 
-          : isCritSuccess
-            ? 'bg-chart-4/20'
-          : isCritFail
-            ? 'bg-destructive/30'
-          : outcome.success 
-            ? 'bg-chart-2/20' 
-            : 'bg-destructive/20';
-        const textColor = outcome.gateFailed 
-          ? 'text-muted-foreground' 
-          : isCritSuccess
-            ? 'text-chart-4'
-          : isCritFail
-            ? 'text-destructive'
-          : outcome.success 
-            ? 'text-chart-2' 
-            : 'text-destructive';
-        
-        const shortName = outcome.event.name.split(' ')[0];
-        
-        return (
-          <div 
-            key={stage.stage} 
-            className={`px-1 py-0.5 rounded flex items-center gap-0.5 ${bgColor} ${textColor}`}
-            title={`${outcome.event.name}: ${outcome.success ? 'Success' : outcome.gateFailed ? 'Skipped' : 'Failed'}${isCritSuccess ? ' (NAT 20!)' : isCritFail ? ' (NAT 1!)' : ''}`}
-          >
-            {isCritSuccess && <Sparkles className="h-2.5 w-2.5" />}
-            {isCritFail && <Skull className="h-2.5 w-2.5" />}
-            <span className="truncate max-w-[40px]">
-              {!isCritSuccess && !isCritFail && (outcome.success ? '+' : outcome.gateFailed ? '~' : '-')}
-              {shortName}
-            </span>
-          </div>
-        );
-      })}
+      </div>
+      
+      <div className="flex gap-0.5">
+        {stages.map((stage) => (
+          <MiniEventCard key={stage.stage} stage={stage} />
+        ))}
+      </div>
     </div>
   );
+}
+
+const getEventIcon = (iconName?: string) => {
+  if (!iconName) return Briefcase;
+  const Icon = (LucideIcons as Record<string, any>)[iconName];
+  return Icon || Briefcase;
+};
+
+function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
+  if (stage.isEducation && stage.education) {
+    const edu = stage.education;
+    const isCrit20 = edu.roll === 20;
+    const isCrit1 = edu.roll === 1;
+    
+    return (
+      <div 
+        className={`flex-1 min-w-0 p-1 rounded text-[8px] border ${
+          isCrit20 ? 'bg-chart-4/10 border-chart-4/30' : 
+          isCrit1 ? 'bg-destructive/10 border-destructive/30' : 
+          'bg-chart-1/10 border-chart-1/20'
+        }`}
+        title={`Education: ${edu.label}`}
+      >
+        <div className="flex items-center gap-0.5 mb-0.5">
+          <GraduationCap className="h-2.5 w-2.5 text-chart-1" />
+          {isCrit20 && <Sparkles className="h-2 w-2 text-chart-4" />}
+          {isCrit1 && <Skull className="h-2 w-2 text-destructive" />}
+        </div>
+        <div className="font-medium truncate text-foreground">Education</div>
+        <div className="text-muted-foreground truncate">{edu.label}</div>
+      </div>
+    );
+  }
+  
+  if (stage.isCareer && stage.career) {
+    const career = stage.career;
+    const isCrit20 = career.isNat20;
+    const isCrit1 = career.roll === 1;
+    
+    return (
+      <div 
+        className={`flex-1 min-w-0 p-1 rounded text-[8px] border ${
+          isCrit20 ? 'bg-chart-4/10 border-chart-4/30' : 
+          isCrit1 ? 'bg-destructive/10 border-destructive/30' : 
+          'bg-chart-3/10 border-chart-3/20'
+        }`}
+        title={`Career: ${career.career.name}`}
+      >
+        <div className="flex items-center gap-0.5 mb-0.5">
+          <Briefcase className="h-2.5 w-2.5 text-chart-3" />
+          {isCrit20 && <Sparkles className="h-2 w-2 text-chart-4" />}
+          {isCrit1 && <Skull className="h-2 w-2 text-destructive" />}
+        </div>
+        <div className="font-medium truncate text-foreground">Career</div>
+        <div className="text-muted-foreground truncate">{career.career.name}</div>
+      </div>
+    );
+  }
+  
+  if (stage.eventOutcome) {
+    const outcome = stage.eventOutcome;
+    const event = outcome.event;
+    const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
+    const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
+    
+    const EventIcon = getEventIcon(event.icon);
+    
+    const getBorderClass = () => {
+      if (outcome.gateFailed) return 'border-muted';
+      if (isCritSuccess) return 'border-chart-4/30';
+      if (isCritFail) return 'border-destructive/30';
+      if (outcome.success) return 'border-chart-2/30';
+      return 'border-destructive/30';
+    };
+    
+    const getBgClass = () => {
+      if (outcome.gateFailed) return 'bg-muted/30';
+      if (isCritSuccess) return 'bg-chart-4/10';
+      if (isCritFail) return 'bg-destructive/10';
+      if (outcome.success) return 'bg-chart-2/10';
+      return 'bg-destructive/10';
+    };
+    
+    const getOutcomeText = () => {
+      if (outcome.gateFailed) return 'Skipped';
+      if (outcome.success) return 'Pass';
+      return 'Fail';
+    };
+    
+    const getOutcomeColor = () => {
+      if (outcome.gateFailed) return 'text-muted-foreground';
+      if (outcome.success) return 'text-chart-2';
+      return 'text-destructive';
+    };
+    
+    return (
+      <div 
+        className={`flex-1 min-w-0 p-1 rounded text-[8px] border ${getBgClass()} ${getBorderClass()}`}
+        title={`${event.name}: ${getOutcomeText()}`}
+      >
+        <div className="flex items-center gap-0.5 mb-0.5">
+          <EventIcon className="h-2.5 w-2.5 text-muted-foreground" />
+          {isCritSuccess && <Sparkles className="h-2 w-2 text-chart-4" />}
+          {isCritFail && <Skull className="h-2 w-2 text-destructive" />}
+          <span className={`${rarityColors[event.rarity]} uppercase font-bold`}>
+            {event.rarity.charAt(0)}
+          </span>
+        </div>
+        <div className="font-medium truncate text-foreground">{event.name}</div>
+        <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
+      </div>
+    );
+  }
+  
+  return null;
 }

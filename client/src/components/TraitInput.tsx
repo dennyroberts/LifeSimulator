@@ -90,28 +90,35 @@ interface TraitDisplayProps {
   compact?: boolean;
 }
 
+const getTotalColor = (total: number) => {
+  if (total >= 75) return 'text-chart-4';
+  if (total >= 60) return 'text-chart-2';
+  if (total >= 45) return 'text-foreground';
+  if (total >= 35) return 'text-orange-500';
+  return 'text-destructive';
+};
+
 export function TraitDisplay({ traits, compact }: TraitDisplayProps) {
+  const total = TRAIT_ORDER.reduce((sum, trait) => sum + traits[trait], 0);
+  
   if (compact) {
     return (
-      <div className="flex gap-1 flex-wrap" data-testid="trait-display-compact">
-        {TRAIT_ORDER.map((trait) => {
+      <div className="flex items-center gap-1.5 font-mono text-xs whitespace-nowrap" data-testid="trait-display-compact">
+        {TRAIT_ORDER.map((trait, i) => {
           const value = traits[trait];
-          const mod = getMod(value);
-          const modStr = mod >= 0 ? `+${mod}` : `${mod}`;
           return (
-            <span
-              key={trait}
-              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-mono bg-muted"
-              data-testid={`trait-badge-${trait.toLowerCase()}`}
-            >
-              <span className="font-semibold">{trait}</span>
-              <span>{value}</span>
-              <span className={`text-[10px] ${mod >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
-                ({modStr})
-              </span>
+            <span key={trait} className="text-muted-foreground" data-testid={`trait-badge-${trait.toLowerCase()}`}>
+              <span className="font-semibold text-foreground">{trait}</span>
+              <span className="text-muted-foreground">:</span>
+              <span className="text-foreground">{value}</span>
+              {i < TRAIT_ORDER.length - 1 && <span className="mx-0.5 text-muted-foreground/50">|</span>}
             </span>
           );
         })}
+        <span className="mx-1 text-muted-foreground">=</span>
+        <span className={`font-bold ${getTotalColor(total)}`} title={`Total: ${total} (avg: 55)`}>
+          {total}
+        </span>
       </div>
     );
   }

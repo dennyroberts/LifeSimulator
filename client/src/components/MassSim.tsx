@@ -35,7 +35,7 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -285,29 +285,6 @@ export function MassSim() {
             </Card>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <BarChart3 className="h-4 w-4" />
-                  Lifetime Earnings Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <IncomeHistogram results={results} compact />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Trait & Luck Correlations</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <ScatterGrid results={results} compact />
-              </CardContent>
-            </Card>
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -330,6 +307,31 @@ export function MassSim() {
               </CardHeader>
               <CardContent>
                 <AgentTable agents={bottomAgents} isTop={false} worldMode={worldMode} seed={seed} />
+              </CardContent>
+            </Card>
+          </div>
+          
+          <CompareCohorts results={results} worldMode={worldMode} seed={seed} />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <BarChart3 className="h-4 w-4" />
+                  Lifetime Earnings Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <IncomeHistogram results={results} compact />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Trait & Luck Correlations</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ScatterGrid results={results} compact />
               </CardContent>
             </Card>
           </div>
@@ -483,10 +485,7 @@ function AgentCard({ agentData, rank, isTop }: {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="flex-1 overflow-x-auto">
-            <MiniTimeline stages={actual.stages} />
-          </div>
+        <div className="flex items-center gap-2 justify-end">
           <Button
             size="sm"
             variant="outline"
@@ -502,6 +501,10 @@ function AgentCard({ agentData, rank, isTop }: {
             )}
             <span className="ml-1">{biography ? 'Regen' : 'Bio'}</span>
           </Button>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <MiniTimeline stages={actual.stages} />
         </div>
         
         {bioError && (
@@ -709,4 +712,360 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
   }
   
   return null;
+}
+
+type TraitRange = 'any' | 'terrible' | 'bad' | 'average' | 'good' | 'elite';
+type LuckRange = 'any' | 'terrible' | 'bad' | 'average' | 'good' | 'elite';
+type TotalTraitRange = 'any' | '<35' | '35-50' | '50-65' | '65-80' | '>80';
+
+const traitRanges: { value: TraitRange; label: string }[] = [
+  { value: 'any', label: 'Any' },
+  { value: 'terrible', label: 'Terrible (<5)' },
+  { value: 'bad', label: 'Bad (5-8)' },
+  { value: 'average', label: 'Average (9-11)' },
+  { value: 'good', label: 'Good (12-15)' },
+  { value: 'elite', label: 'Elite (16+)' },
+];
+
+const luckRanges: { value: LuckRange; label: string }[] = [
+  { value: 'any', label: 'Any' },
+  { value: 'terrible', label: 'Terrible (<-3)' },
+  { value: 'bad', label: 'Bad (-3 to -1)' },
+  { value: 'average', label: 'Average (-1 to +1)' },
+  { value: 'good', label: 'Good (+1 to +3)' },
+  { value: 'elite', label: 'Elite (>+3)' },
+];
+
+const totalTraitRanges: { value: TotalTraitRange; label: string }[] = [
+  { value: 'any', label: 'Any' },
+  { value: '<35', label: 'Low (<35)' },
+  { value: '35-50', label: 'Below Avg (35-50)' },
+  { value: '50-65', label: 'Above Avg (50-65)' },
+  { value: '65-80', label: 'High (65-80)' },
+  { value: '>80', label: 'Elite (>80)' },
+];
+
+const careerList = [
+  'Food Service', 'Retail', 'Construction', 'Truck Driver', 'Healthcare',
+  'Creative Fields', 'Marketing', 'Tech', 'Finance', 'Lawyer', 'Doctor'
+];
+
+function matchesTraitRange(value: number, range: TraitRange): boolean {
+  if (range === 'any') return true;
+  if (range === 'terrible') return value < 5;
+  if (range === 'bad') return value >= 5 && value <= 8;
+  if (range === 'average') return value >= 9 && value <= 11;
+  if (range === 'good') return value >= 12 && value <= 15;
+  if (range === 'elite') return value >= 16;
+  return true;
+}
+
+function matchesLuckRange(value: number, range: LuckRange): boolean {
+  if (range === 'any') return true;
+  if (range === 'terrible') return value < -3;
+  if (range === 'bad') return value >= -3 && value < -1;
+  if (range === 'average') return value >= -1 && value <= 1;
+  if (range === 'good') return value > 1 && value <= 3;
+  if (range === 'elite') return value > 3;
+  return true;
+}
+
+function matchesTotalTraitRange(total: number, range: TotalTraitRange): boolean {
+  if (range === 'any') return true;
+  if (range === '<35') return total < 35;
+  if (range === '35-50') return total >= 35 && total < 50;
+  if (range === '50-65') return total >= 50 && total < 65;
+  if (range === '65-80') return total >= 65 && total <= 80;
+  if (range === '>80') return total > 80;
+  return true;
+}
+
+function CompareCohorts({ results, worldMode, seed }: { 
+  results: SimulationResult[]; 
+  worldMode: WorldMode;
+  seed: string;
+}) {
+  const [intFilter, setIntFilter] = useState<TraitRange>('any');
+  const [workFilter, setWorkFilter] = useState<TraitRange>('any');
+  const [nepoFilter, setNepoFilter] = useState<TraitRange>('any');
+  const [charFilter, setCharFilter] = useState<TraitRange>('any');
+  const [riskFilter, setRiskFilter] = useState<TraitRange>('any');
+  
+  const [eduLuckFilter, setEduLuckFilter] = useState<LuckRange>('any');
+  const [careerLuckFilter, setCareerLuckFilter] = useState<LuckRange>('any');
+  const [eventLuckFilter, setEventLuckFilter] = useState<LuckRange>('any');
+  
+  const [totalTraitFilter, setTotalTraitFilter] = useState<TotalTraitRange>('any');
+  const [professionFilter, setProfessionFilter] = useState<string>('any');
+  
+  const [matchingAgents, setMatchingAgents] = useState<SimulationResult[]>([]);
+  const [cohortStats, setCohortStats] = useState<{
+    count: number;
+    avgEarnings: number;
+    avgGrade: string;
+    avgIntValue: number;
+    avgWorkValue: number;
+    avgNepoValue: number;
+    avgCharValue: number;
+    avgRiskValue: number;
+  } | null>(null);
+  
+  const handleSearch = () => {
+    const filtered = results.filter(agent => {
+      if (!matchesTraitRange(agent.traits.INT, intFilter)) return false;
+      if (!matchesTraitRange(agent.traits.WORK, workFilter)) return false;
+      if (!matchesTraitRange(agent.traits.NEPO, nepoFilter)) return false;
+      if (!matchesTraitRange(agent.traits.CHAR, charFilter)) return false;
+      if (!matchesTraitRange(agent.traits.RISK, riskFilter)) return false;
+      
+      if (!matchesLuckRange(agent.luck.educationRollLuck, eduLuckFilter)) return false;
+      if (!matchesLuckRange(agent.luck.careerRollLuck, careerLuckFilter)) return false;
+      if (!matchesLuckRange(agent.luck.eventRollLuck, eventLuckFilter)) return false;
+      
+      const totalTraits = agent.traits.INT + agent.traits.WORK + agent.traits.NEPO + agent.traits.CHAR + agent.traits.RISK;
+      if (!matchesTotalTraitRange(totalTraits, totalTraitFilter)) return false;
+      
+      if (professionFilter !== 'any') {
+        const careerStage = agent.stages.find(s => s.career);
+        const careerName = careerStage?.career?.career?.name;
+        if (careerName !== professionFilter) return false;
+      }
+      
+      return true;
+    });
+    
+    const displayAgents = filtered.slice(0, 5);
+    setMatchingAgents(displayAgents);
+    
+    if (filtered.length > 0) {
+      const avgEarnings = filtered.reduce((sum, a) => sum + a.lifetimeEarnings, 0) / filtered.length;
+      const avgInt = filtered.reduce((sum, a) => sum + a.traits.INT, 0) / filtered.length;
+      const avgWork = filtered.reduce((sum, a) => sum + a.traits.WORK, 0) / filtered.length;
+      const avgNepo = filtered.reduce((sum, a) => sum + a.traits.NEPO, 0) / filtered.length;
+      const avgChar = filtered.reduce((sum, a) => sum + a.traits.CHAR, 0) / filtered.length;
+      const avgRisk = filtered.reduce((sum, a) => sum + a.traits.RISK, 0) / filtered.length;
+      
+      const gradeResult = getLifetimeGrade(avgEarnings);
+      
+      setCohortStats({
+        count: filtered.length,
+        avgEarnings,
+        avgGrade: gradeResult.grade,
+        avgIntValue: avgInt,
+        avgWorkValue: avgWork,
+        avgNepoValue: avgNepo,
+        avgCharValue: avgChar,
+        avgRiskValue: avgRisk,
+      });
+    } else {
+      setCohortStats(null);
+    }
+  };
+  
+  const agentsWithScenarios = useMemo(() => {
+    return matchingAgents.map(agent => computeBestWorst(agent, worldMode, seed));
+  }, [matchingAgents, worldMode, seed]);
+
+  return (
+    <Card data-testid="compare-cohorts">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Filter className="h-5 w-5" />
+          Compare Cohorts
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div>
+            <Label className="text-xs">INT</Label>
+            <Select value={intFilter} onValueChange={(v) => setIntFilter(v as TraitRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-int">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {traitRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">WORK</Label>
+            <Select value={workFilter} onValueChange={(v) => setWorkFilter(v as TraitRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-work">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {traitRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">NEPO</Label>
+            <Select value={nepoFilter} onValueChange={(v) => setNepoFilter(v as TraitRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-nepo">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {traitRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">CHAR</Label>
+            <Select value={charFilter} onValueChange={(v) => setCharFilter(v as TraitRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-char">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {traitRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">RISK</Label>
+            <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as TraitRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-risk">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {traitRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Total Traits</Label>
+            <Select value={totalTraitFilter} onValueChange={(v) => setTotalTraitFilter(v as TotalTraitRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-total-traits">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {totalTraitRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div>
+            <Label className="text-xs">Education Luck</Label>
+            <Select value={eduLuckFilter} onValueChange={(v) => setEduLuckFilter(v as LuckRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-edu-luck">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {luckRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Career Luck</Label>
+            <Select value={careerLuckFilter} onValueChange={(v) => setCareerLuckFilter(v as LuckRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-career-luck">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {luckRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Event Luck</Label>
+            <Select value={eventLuckFilter} onValueChange={(v) => setEventLuckFilter(v as LuckRange)}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-event-luck">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {luckRanges.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Profession</Label>
+            <Select value={professionFilter} onValueChange={setProfessionFilter}>
+              <SelectTrigger className="h-8 text-xs" data-testid="filter-profession">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                {careerList.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <Button onClick={handleSearch} className="gap-2" data-testid="button-search-cohort">
+          <Search className="h-4 w-4" />
+          Search Cohort
+        </Button>
+        
+        {cohortStats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t">
+            <div>
+              <div className="text-xs text-muted-foreground">Matching Agents</div>
+              <div className="text-lg font-bold font-mono">{cohortStats.count.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Avg Lifetime Earnings</div>
+              <div className="text-lg font-bold font-mono text-chart-1">{formatCurrency(cohortStats.avgEarnings)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Avg Grade</div>
+              <div className="text-lg font-bold">{cohortStats.avgGrade}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Avg Traits</div>
+              <div className="text-xs font-mono">
+                <span className="text-chart-1">I:{cohortStats.avgIntValue.toFixed(1)}</span>{' '}
+                <span className="text-chart-2">W:{cohortStats.avgWorkValue.toFixed(1)}</span>{' '}
+                <span className="text-chart-3">N:{cohortStats.avgNepoValue.toFixed(1)}</span>{' '}
+                <span className="text-chart-4">C:{cohortStats.avgCharValue.toFixed(1)}</span>{' '}
+                <span className="text-destructive">R:{cohortStats.avgRiskValue.toFixed(1)}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {matchingAgents.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <div className="text-sm font-medium text-muted-foreground">
+              Showing {matchingAgents.length} of {cohortStats?.count.toLocaleString()} matching agents
+            </div>
+            {agentsWithScenarios.map((agentData, i) => (
+              <AgentCard 
+                key={i} 
+                agentData={agentData} 
+                rank={i + 1}
+                isTop={true}
+              />
+            ))}
+          </div>
+        )}
+        
+        {cohortStats && matchingAgents.length === 0 && (
+          <div className="text-sm text-muted-foreground text-center py-4">
+            No agents match your filters. Try adjusting the criteria.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }

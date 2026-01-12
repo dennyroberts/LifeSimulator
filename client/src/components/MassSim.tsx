@@ -35,7 +35,7 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
@@ -801,6 +801,44 @@ const defaultFilters: CohortFilters = {
   profession: 'any',
 };
 
+interface SavedSearch {
+  id: string;
+  name: string;
+  filters: CohortFilters;
+}
+
+const SAVED_SEARCHES_KEY = 'life-sim-saved-searches';
+
+function loadSavedSearches(): SavedSearch[] {
+  try {
+    const saved = localStorage.getItem(SAVED_SEARCHES_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSavedSearches(searches: SavedSearch[]) {
+  localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(searches));
+}
+
+function formatFilterSummary(filters: CohortFilters): string {
+  const parts: string[] = [];
+  
+  if (!filters.intAny) parts.push(`INT:${filters.intRange[0]}-${filters.intRange[1]}`);
+  if (!filters.workAny) parts.push(`WORK:${filters.workRange[0]}-${filters.workRange[1]}`);
+  if (!filters.nepoAny) parts.push(`NEPO:${filters.nepoRange[0]}-${filters.nepoRange[1]}`);
+  if (!filters.charAny) parts.push(`CHAR:${filters.charRange[0]}-${filters.charRange[1]}`);
+  if (!filters.riskAny) parts.push(`RISK:${filters.riskRange[0]}-${filters.riskRange[1]}`);
+  if (!filters.totalAny) parts.push(`Total:${filters.totalRange[0]}-${filters.totalRange[1]}`);
+  if (!filters.eduLuckAny) parts.push(`EduLuck:${filters.eduLuckRange[0]}~${filters.eduLuckRange[1]}`);
+  if (!filters.careerLuckAny) parts.push(`CareerLuck:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
+  if (!filters.eventLuckAny) parts.push(`EventLuck:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
+  if (filters.profession !== 'any') parts.push(`Career:${filters.profession}`);
+  
+  return parts.length > 0 ? parts.join(' | ') : 'All agents (no filters)';
+}
+
 function RangeSliderFilter({ 
   label,
   filterId,
@@ -878,12 +916,17 @@ function CohortPanel({
   canRemove: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [cohortName, setCohortName] = useState(`Cohort ${id}`);
   const [filters, setFilters] = useState<CohortFilters>({ ...defaultFilters });
   const [matchingAgents, setMatchingAgents] = useState<SimulationResult[]>([]);
   const [cohortStats, setCohortStats] = useState<CohortStats | null>(null);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => loadSavedSearches());
+  const [loadedSearchId, setLoadedSearchId] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const updateFilter = <K extends keyof CohortFilters>(key: K, value: CohortFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setHasUnsavedChanges(true);
   };
   
   const handleSearch = () => {
@@ -943,6 +986,49 @@ function CohortPanel({
     setFilters({ ...defaultFilters });
     setMatchingAgents([]);
     setCohortStats(null);
+    setLoadedSearchId(null);
+    setHasUnsavedChanges(false);
+    setCohortName(`Cohort ${id}`);
+  };
+  
+  const handleSaveSearch = () => {
+    const newSearch: SavedSearch = {
+      id: loadedSearchId || crypto.randomUUID(),
+      name: cohortName,
+      filters: { ...filters }
+    };
+    
+    let updated: SavedSearch[];
+    if (loadedSearchId) {
+      updated = savedSearches.map(s => s.id === loadedSearchId ? newSearch : s);
+    } else {
+      updated = [...savedSearches, newSearch];
+    }
+    
+    setSavedSearches(updated);
+    saveSavedSearches(updated);
+    setLoadedSearchId(newSearch.id);
+    setHasUnsavedChanges(false);
+  };
+  
+  const handleLoadSearch = (searchId: string) => {
+    const search = savedSearches.find(s => s.id === searchId);
+    if (search) {
+      setFilters({ ...search.filters });
+      setCohortName(search.name);
+      setLoadedSearchId(search.id);
+      setHasUnsavedChanges(false);
+    }
+  };
+  
+  const handleDeleteSavedSearch = (searchId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = savedSearches.filter(s => s.id !== searchId);
+    setSavedSearches(updated);
+    saveSavedSearches(updated);
+    if (loadedSearchId === searchId) {
+      setLoadedSearchId(null);
+    }
   };
   
   const agentsWithScenarios = useMemo(() => {
@@ -952,19 +1038,61 @@ function CohortPanel({
   return (
     <Card data-testid={`cohort-panel-${id}`}>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 hover-elevate rounded p-1 -ml-1"
+            className="flex items-center gap-2 hover-elevate rounded p-1 -ml-1 shrink-0"
             data-testid={`toggle-cohort-${id}`}
           >
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Cohort {id}
-            </CardTitle>
+            <Filter className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-1">
+          <input
+            type="text"
+            value={cohortName}
+            onChange={(e) => {
+              setCohortName(e.target.value);
+              setHasUnsavedChanges(true);
+            }}
+            className="flex-1 text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1 min-w-0"
+            data-testid={`cohort-name-${id}`}
+          />
+          <div className="flex items-center gap-1 shrink-0">
+            {savedSearches.length > 0 && (
+              <Select value={loadedSearchId || ''} onValueChange={handleLoadSearch}>
+                <SelectTrigger className="h-7 text-xs w-auto min-w-[100px]" data-testid={`load-search-${id}`}>
+                  <SelectValue placeholder="Load saved..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {savedSearches.map(search => (
+                    <SelectItem key={search.id} value={search.id}>
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <span>{search.name}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0 hover:text-destructive"
+                          onClick={(e) => handleDeleteSavedSearch(search.id, e)}
+                          data-testid={`delete-saved-${search.id}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSaveSearch}
+              className="h-7 text-xs gap-1"
+              data-testid={`save-cohort-${id}`}
+            >
+              <Save className="h-3 w-3" />
+              {loadedSearchId ? (hasUnsavedChanges ? 'Update' : 'Saved') : 'Save'}
+            </Button>
             {cohortStats && (
               <Button
                 size="sm"
@@ -990,6 +1118,19 @@ function CohortPanel({
             )}
           </div>
         </div>
+        
+        {!isExpanded && cohortStats && (
+          <div className="mt-2 pt-2 border-t space-y-1">
+            <div className="flex items-center gap-4 text-xs">
+              <span className="font-mono">{cohortStats.count.toLocaleString()} agents</span>
+              <span className="font-mono text-chart-1">{formatCurrency(cohortStats.avgEarnings)} avg</span>
+              <span className="font-bold">{cohortStats.avgGrade}</span>
+            </div>
+            <div className="text-[10px] text-muted-foreground font-mono truncate">
+              {formatFilterSummary(filters)}
+            </div>
+          </div>
+        )}
       </CardHeader>
       
       {isExpanded && (

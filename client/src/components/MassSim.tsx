@@ -28,6 +28,7 @@ import {
   type WorldMode,
   type SimulationResult,
   type Event,
+  type CareerAspiration,
   runMassSimulation,
   formatCurrency,
   formatEV,
@@ -350,7 +351,7 @@ function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: s
     }
   });
   
-  const agentData = { name: agent.name, traits: agent.traits, index: agent.stages[0]?.stage || 0 };
+  const agentData = { name: agent.name, traits: agent.traits, index: agent.stages[0]?.stage || 0, aspiration: agent.aspiration };
   const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 20);
   const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 1);
   
@@ -409,11 +410,16 @@ function AgentCard({ agentData, rank, isTop }: {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 mt-1 text-xs">
+            <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
               <span className={`font-mono font-semibold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
                 {formatCurrency(actual.lifetimeEarnings)}
               </span>
               <TraitDisplay traits={actual.traits} compact />
+              {actual.aspiration && (
+                <span className="text-muted-foreground">
+                  Aspires: <span className="text-foreground">{actual.aspiration}</span>
+                </span>
+              )}
             </div>
           </div>
           <div className="text-right shrink-0">

@@ -133,6 +133,7 @@ export interface LuckAnalysis {
 export interface SimulationResult {
   name: string;
   traits: Traits;
+  aspiration: CareerAspiration;
   stages: StageResult[];
   finalIncome: number;
   peakIncome: number;
@@ -1009,6 +1010,7 @@ export function simulateLife(
   return {
     name: agent.name,
     traits: agent.traits,
+    aspiration: agent.aspiration ?? null,
     stages,
     finalIncome: income,
     peakIncome,
@@ -1049,6 +1051,12 @@ export function generateRandomName(rng: () => number): string {
   return `${firstName} ${lastName}`;
 }
 
+const ASPIRATIONS: CareerAspiration[] = ['Healthcare', 'Creative Fields', 'Marketing', 'Tech', 'Finance', 'Lawyer', 'Doctor', null];
+
+export function generateRandomAspiration(rng: () => number): CareerAspiration {
+  return ASPIRATIONS[Math.floor(rng() * ASPIRATIONS.length)];
+}
+
 export function runMassSimulation(
   numAgents: number,
   worldMode: WorldMode,
@@ -1072,8 +1080,9 @@ export function runMassSimulation(
     const agentSeedRng = createRng(`${seed}|agent${i}|init`);
     const traits = generateRandomTraits(agentSeedRng);
     const name = generateRandomName(agentSeedRng);
+    const aspiration = generateRandomAspiration(agentSeedRng);
     
-    const agent: Agent = { name, traits, index: i };
+    const agent: Agent = { name, traits, index: i, aspiration };
     const result = simulateLife(agent, worldMode, seed, sameDeck, sharedEvents);
     results.push(result);
   }

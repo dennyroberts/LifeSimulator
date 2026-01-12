@@ -14,6 +14,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Table,
   TableBody,
   TableCell,
@@ -839,6 +844,13 @@ function formatFilterSummary(filters: CohortFilters): string {
   return parts.length > 0 ? parts.join(' | ') : 'All agents (no filters)';
 }
 
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 function RangeSliderFilter({ 
   label,
   filterId,
@@ -993,7 +1005,7 @@ function CohortPanel({
   
   const handleSaveSearch = () => {
     const newSearch: SavedSearch = {
-      id: loadedSearchId || crypto.randomUUID(),
+      id: loadedSearchId || generateId(),
       name: cohortName,
       filters: { ...filters }
     };
@@ -1018,11 +1030,12 @@ function CohortPanel({
       setCohortName(search.name);
       setLoadedSearchId(search.id);
       setHasUnsavedChanges(false);
+      setCohortStats(null);
+      setMatchingAgents([]);
     }
   };
   
-  const handleDeleteSavedSearch = (searchId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteSavedSearch = (searchId: string) => {
     const updated = savedSearches.filter(s => s.id !== searchId);
     setSavedSearches(updated);
     saveSavedSearches(updated);
@@ -1059,29 +1072,42 @@ function CohortPanel({
           />
           <div className="flex items-center gap-1 shrink-0">
             {savedSearches.length > 0 && (
-              <Select value={loadedSearchId || ''} onValueChange={handleLoadSearch}>
-                <SelectTrigger className="h-7 text-xs w-auto min-w-[100px]" data-testid={`load-search-${id}`}>
-                  <SelectValue placeholder="Load saved..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {savedSearches.map(search => (
-                    <SelectItem key={search.id} value={search.id}>
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <span>{search.name}</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1" data-testid={`load-search-${id}`}>
+                    <BookOpen className="h-3 w-3" />
+                    Load saved
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-1" align="end">
+                  <div className="space-y-0.5">
+                    {savedSearches.map(search => (
+                      <div 
+                        key={search.id} 
+                        className="flex items-center justify-between gap-1 px-2 py-1.5 rounded hover-elevate cursor-pointer text-sm"
+                      >
+                        <button
+                          onClick={() => handleLoadSearch(search.id)}
+                          className="flex-1 text-left truncate"
+                          data-testid={`load-saved-${search.id}`}
+                        >
+                          {search.name}
+                        </button>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
-                          className="h-4 w-4 p-0 hover:text-destructive"
-                          onClick={(e) => handleDeleteSavedSearch(search.id, e)}
+                          className="h-5 w-5 shrink-0 hover:text-destructive"
+                          onClick={() => handleDeleteSavedSearch(search.id)}
                           data-testid={`delete-saved-${search.id}`}
                         >
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
             <Button
               size="sm"

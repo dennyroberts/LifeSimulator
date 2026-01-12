@@ -429,7 +429,7 @@ interface HistogramProps {
 }
 
 export function IncomeHistogram({ results, bins = 25, compact = false }: HistogramProps) {
-  const incomes = results.map(r => r.peakIncome);
+  const incomes = results.map(r => r.lifetimeEarnings);
   const minIncome = Math.min(...incomes);
   const maxIncome = Math.max(...incomes);
   const range = maxIncome - minIncome || 1;
@@ -542,7 +542,7 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
         textAnchor="middle"
         className="fill-muted-foreground text-xs"
       >
-        Final Income
+        Lifetime Earnings
       </text>
     </svg>
   );
@@ -569,7 +569,7 @@ export function ScatterPlot({ results, xKey, xLabel, color, compact = false }: S
   
   const data = results.map(r => ({
     x: getXValue(r),
-    y: r.peakIncome
+    y: r.lifetimeEarnings
   }));
   
   const xValues = data.map(d => d.x);

@@ -107,16 +107,16 @@ export function MassSim() {
   const { topAgents, bottomAgents, stats } = useMemo(() => {
     if (!results) return { topAgents: [], bottomAgents: [], stats: null };
     
-    const sorted = [...results].sort((a, b) => b.peakIncome - a.peakIncome);
+    const sorted = [...results].sort((a, b) => b.lifetimeEarnings - a.lifetimeEarnings);
     const topAgents = sorted.slice(0, 10);
     const bottomAgents = sorted.slice(-10).reverse();
     
-    const incomes = results.map(r => r.peakIncome);
-    const mean = incomes.reduce((a, b) => a + b, 0) / incomes.length;
-    const sortedIncomes = [...incomes].sort((a, b) => a - b);
-    const median = sortedIncomes[Math.floor(sortedIncomes.length / 2)];
-    const min = sortedIncomes[0];
-    const max = sortedIncomes[sortedIncomes.length - 1];
+    const earnings = results.map(r => r.lifetimeEarnings);
+    const mean = earnings.reduce((a, b) => a + b, 0) / earnings.length;
+    const sortedEarnings = [...earnings].sort((a, b) => a - b);
+    const median = sortedEarnings[Math.floor(sortedEarnings.length / 2)];
+    const min = sortedEarnings[0];
+    const max = sortedEarnings[sortedEarnings.length - 1];
     
     return {
       topAgents,

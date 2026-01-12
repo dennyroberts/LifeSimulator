@@ -134,6 +134,7 @@ export interface SimulationResult {
   name: string;
   traits: Traits;
   aspiration: CareerAspiration;
+  agentIndex: number;
   stages: StageResult[];
   finalIncome: number;
   peakIncome: number;
@@ -1011,6 +1012,7 @@ export function simulateLife(
     name: agent.name,
     traits: agent.traits,
     aspiration: agent.aspiration ?? null,
+    agentIndex: agent.index,
     stages,
     finalIncome: income,
     peakIncome,

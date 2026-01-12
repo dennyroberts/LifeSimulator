@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
   Select,
@@ -167,35 +168,42 @@ export function MassSim() {
             
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <Switch
-                  id="seed-lock-mass"
-                  checked={seedLocked}
-                  onCheckedChange={(checked) => setSeedLocked(checked === true)}
-                  data-testid="switch-seed-lock-mass"
-                />
-                <Label htmlFor="seed-lock-mass" className="cursor-pointer">
-                  Lock Seed
-                </Label>
-              </div>
-              {seedLocked && (
-                <div className="flex gap-2">
-                  <Input
-                    id="seed-mass"
-                    value={seed}
-                    onChange={(e) => setSeed(e.target.value)}
-                    placeholder="Seed"
-                    data-testid="input-seed-mass"
+                <Label htmlFor="seed-mass">Seed</Label>
+                <div className="flex items-center gap-1.5">
+                  <Checkbox
+                    id="seed-lock-mass"
+                    checked={seedLocked}
+                    onCheckedChange={(checked) => setSeedLocked(checked === true)}
+                    data-testid="checkbox-seed-lock-mass"
                   />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleRandomSeed}
-                    data-testid="button-random-seed-mass"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
+                  <Label htmlFor="seed-lock-mass" className="text-xs text-muted-foreground cursor-pointer">
+                    Lock
+                  </Label>
                 </div>
-              )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  id="seed-mass"
+                  value={seed}
+                  onChange={(e) => setSeed(e.target.value)}
+                  placeholder="Seed"
+                  className="font-mono"
+                  disabled={!seedLocked}
+                  data-testid="input-seed-mass"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleRandomSeed}
+                  disabled={!seedLocked}
+                  data-testid="button-random-seed-mass"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {seedLocked ? 'Seed is fixed for reproducible results' : 'Seed randomizes each run'}
+              </p>
             </div>
             
             <div className="flex items-center space-x-3 pt-7">

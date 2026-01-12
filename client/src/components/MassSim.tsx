@@ -35,7 +35,7 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
@@ -411,7 +411,7 @@ function AgentTable({ agents, isTop, worldMode, seed }: {
         <AgentCard 
           key={i} 
           agentData={agentData} 
-          rank={isTop ? i + 1 : agents.length - i}
+          rank={i + 1}
           isTop={isTop}
         />
       ))}
@@ -482,6 +482,8 @@ function AgentCard({ agentData, rank, isTop }: {
             </div>
             <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
               <TraitDisplay traits={actual.traits} compact />
+            </div>
+            <div className="flex items-center gap-4 mt-1 text-xs">
               {careerName && (
                 <span className="text-muted-foreground">
                   Career: <span className="text-foreground font-medium">{careerName}</span>
@@ -510,6 +512,10 @@ function AgentCard({ agentData, rank, isTop }: {
             </div>
           </div>
           <div className="text-right shrink-0 space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+              <Clover className="h-3 w-3 text-chart-2" />
+              <span>Luck</span>
+            </div>
             <div className="grid grid-cols-3 gap-2 text-xs">
               <div>
                 <div className="text-muted-foreground">Edu</div>
@@ -569,14 +575,14 @@ const rarityColors: Record<string, string> = {
 function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   return (
     <div className="relative" data-testid="mini-timeline">
-      <div className="relative h-5 mb-1">
-        <div className="absolute top-2.5 left-0 right-0 h-0.5 bg-border" />
+      <div className="relative h-6 mb-1">
+        <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-border" />
         <div className="flex justify-between">
           {stages.map((stage) => {
             const age = stageToAge(stage.stage);
             return (
-              <div key={stage.stage} className="flex flex-col items-center">
-                <div className="text-[10px] text-muted-foreground font-mono">{age}</div>
+              <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-0.5">
+                <div className="text-[10px] text-muted-foreground font-mono leading-tight">{age}</div>
                 <div className="w-2 h-2 rounded-full bg-chart-1 border border-background" />
               </div>
             );
@@ -1179,17 +1185,19 @@ function CompareCohorts({ results, worldMode, seed }: {
 
   return (
     <div className="space-y-4" data-testid="compare-cohorts">
-      {cohortIds.map(id => (
-        <CohortPanel
-          key={id}
-          id={id}
-          results={results}
-          worldMode={worldMode}
-          seed={seed}
-          onRemove={() => removeCohort(id)}
-          canRemove={cohortIds.length > 1}
-        />
-      ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {cohortIds.map(id => (
+          <CohortPanel
+            key={id}
+            id={id}
+            results={results}
+            worldMode={worldMode}
+            seed={seed}
+            onRemove={() => removeCohort(id)}
+            canRemove={cohortIds.length > 1}
+          />
+        ))}
+      </div>
       
       <Button onClick={addCohort} variant="outline" className="gap-2 w-full" data-testid="add-cohort">
         <Plus className="h-4 w-4" />

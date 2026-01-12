@@ -98,6 +98,14 @@ const getTotalColor = (total: number) => {
   return 'text-destructive';
 };
 
+const getTraitValueColor = (value: number) => {
+  if (value >= 16) return 'text-chart-4';
+  if (value >= 13) return 'text-chart-2';
+  if (value >= 8) return 'text-foreground';
+  if (value >= 5) return 'text-orange-500';
+  return 'text-destructive';
+};
+
 export function TraitDisplay({ traits, compact }: TraitDisplayProps) {
   const total = TRAIT_ORDER.reduce((sum, trait) => sum + traits[trait], 0);
   
@@ -110,7 +118,7 @@ export function TraitDisplay({ traits, compact }: TraitDisplayProps) {
             <span key={trait} className="text-muted-foreground" data-testid={`trait-badge-${trait.toLowerCase()}`}>
               <span className="font-semibold text-foreground">{trait}</span>
               <span className="text-muted-foreground">:</span>
-              <span className="text-foreground">{value}</span>
+              <span className={getTraitValueColor(value)}>{value}</span>
               {i < TRAIT_ORDER.length - 1 && <span className="mx-0.5 text-muted-foreground/50">|</span>}
             </span>
           );

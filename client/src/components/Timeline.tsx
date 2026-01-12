@@ -31,13 +31,13 @@ export function Timeline({ stages }: TimelineProps) {
     <div className="space-y-2" data-testid="timeline">
       {/* Desktop: Horizontal age rail */}
       <div className="hidden md:block relative h-8 mx-2">
-        <div className="absolute top-3 left-0 right-0 h-0.5 bg-border" />
+        <div className="absolute top-4 left-0 right-0 h-0.5 bg-border" />
         <div className="flex justify-between">
           {stages.map((stage) => {
             const age = stageToAge(stage.stage);
             return (
-              <div key={stage.stage} className="flex flex-col items-center">
-                <div className="text-[10px] text-muted-foreground font-mono mb-0.5 flex items-center gap-0.5">
+              <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-0.5">
+                <div className="text-[10px] text-muted-foreground font-mono mb-0.5 flex items-center gap-0.5 leading-tight">
                   {stage.stage === 1 && <Baby className="h-3 w-3" />}
                   {age}
                   {stage.stage === 9 && <Cross className="h-3 w-3" />}

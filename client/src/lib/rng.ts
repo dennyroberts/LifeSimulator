@@ -26,9 +26,8 @@ export function rollD20(rng: () => number): number {
   return Math.floor(rng() * 20) + 1;
 }
 
-export function roll3d6Plus2(rng: () => number): number {
-  const d1 = Math.floor(rng() * 6) + 1;
-  const d2 = Math.floor(rng() * 6) + 1;
-  const d3 = Math.floor(rng() * 6) + 1;
-  return Math.min(20, Math.max(0, d1 + d2 + d3 + 2));
+export function roll2d10(rng: () => number): number {
+  const d1 = Math.floor(rng() * 10) + 1;
+  const d2 = Math.floor(rng() * 10) + 1;
+  return d1 + d2;
 }

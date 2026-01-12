@@ -1,4 +1,4 @@
-import { createRng, rollD20, roll3d6Plus2 } from './rng';
+import { createRng, rollD20, roll2d10 } from './rng';
 import configData from '../data/config.json';
 import eventsData from '../data/events.json';
 import worldModesData from '../data/worldModes.json';
@@ -1039,11 +1039,11 @@ export function simulateLife(
 
 export function generateRandomTraits(rng: () => number): Traits {
   return {
-    INT: roll3d6Plus2(rng),
-    WORK: roll3d6Plus2(rng),
-    NEPO: roll3d6Plus2(rng),
-    CHAR: roll3d6Plus2(rng),
-    RISK: roll3d6Plus2(rng)
+    INT: roll2d10(rng),
+    WORK: roll2d10(rng),
+    NEPO: roll2d10(rng),
+    CHAR: roll2d10(rng),
+    RISK: roll2d10(rng)
   };
 }
 

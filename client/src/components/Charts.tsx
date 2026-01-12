@@ -477,18 +477,27 @@ export function IncomeHistogram({ results, bins = 25, compact = false }: Histogr
         const y = padding.top + chartHeight - barHeight;
         const isHovered = hoveredBin === i;
         return (
-          <rect
-            key={i}
-            x={x}
-            y={y}
-            width={barWidth}
-            height={barHeight}
-            fill={isHovered ? "hsl(var(--chart-4))" : "hsl(var(--chart-1))"}
-            opacity={isHovered ? "1" : "0.8"}
-            rx="2"
-            className="cursor-pointer transition-all duration-150"
-            onMouseEnter={() => setHoveredBin(i)}
-          />
+          <g key={i}>
+            <rect
+              x={x}
+              y={padding.top}
+              width={barWidth}
+              height={chartHeight}
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseEnter={() => setHoveredBin(i)}
+            />
+            <rect
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              fill={isHovered ? "hsl(var(--chart-4))" : "hsl(var(--chart-1))"}
+              opacity={isHovered ? "1" : "0.8"}
+              rx="2"
+              className="pointer-events-none transition-all duration-150"
+            />
+          </g>
         );
       })}
       

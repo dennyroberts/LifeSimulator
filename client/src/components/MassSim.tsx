@@ -566,6 +566,10 @@ const getEventIcon = (iconName?: string) => {
   return Icon || Briefcase;
 };
 
+function formatMod(mod: number): string {
+  return mod >= 0 ? `+${mod}` : `${mod}`;
+}
+
 function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
   if (stage.isEducation && stage.education) {
     const edu = stage.education;
@@ -588,6 +592,15 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
         </div>
         <div className="font-medium truncate text-foreground">Education</div>
         <div className="text-muted-foreground truncate">{edu.label}</div>
+        {edu.traitContributions && edu.traitContributions.length > 0 && (
+          <div className="font-mono text-[7px] mt-0.5">
+            {edu.traitContributions.filter(tc => tc.contribution !== 0).map((tc, i) => (
+              <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -613,6 +626,20 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
         </div>
         <div className="font-medium truncate text-foreground">Career</div>
         <div className="text-muted-foreground truncate">{career.career.name}</div>
+        {career.traitContributions && career.traitContributions.length > 0 && (
+          <div className="font-mono text-[7px] mt-0.5">
+            {career.traitContributions.map((tc, i) => (
+              <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
+              </span>
+            ))}
+            {career.educationBonus !== 0 && (
+              <span className={career.educationBonus >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {' '}Edu{formatMod(career.educationBonus)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -668,6 +695,15 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
         </div>
         <div className="font-medium truncate text-foreground">{event.name}</div>
         <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
+        {outcome.traitContributions && outcome.traitContributions.length > 0 && !outcome.gateFailed && (
+          <div className="font-mono text-[7px] mt-0.5">
+            {outcome.traitContributions.map((tc, i) => (
+              <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

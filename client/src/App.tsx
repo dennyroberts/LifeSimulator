@@ -99,13 +99,13 @@ function App() {
                 </TabsList>
               </div>
 
-              <TabsContent value="single" className="mt-0">
+              <div className={activeTab === 'single' ? '' : 'hidden'}>
                 <SingleLife />
-              </TabsContent>
+              </div>
 
-              <TabsContent value="mass" className="mt-0">
+              <div className={activeTab === 'mass' ? '' : 'hidden'}>
                 <MassSim />
-              </TabsContent>
+              </div>
             </Tabs>
           </main>
 

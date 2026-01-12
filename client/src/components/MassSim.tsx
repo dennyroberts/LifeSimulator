@@ -41,6 +41,7 @@ export function MassSim() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [sameDeck, setSameDeck] = useState(false);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
+  const [seedLocked, setSeedLocked] = useState(false);
   const [agentCount, setAgentCount] = useState<AgentCount>(10000);
   const [results, setResults] = useState<SimulationResult[] | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -62,6 +63,11 @@ export function MassSim() {
     setIsRunning(true);
     setProgress(0);
     
+    const currentSeed = seedLocked ? seed : String(Math.floor(Math.random() * 1000000));
+    if (!seedLocked) {
+      setSeed(currentSeed);
+    }
+    
     await new Promise(resolve => setTimeout(resolve, 50));
     
     const batchSize = 1000;
@@ -78,7 +84,7 @@ export function MassSim() {
       const batchResults = runMassSimulation(
         batchCount,
         worldMode,
-        `${seed}|batch${i}`,
+        `${currentSeed}|batch${i}`,
         sameDeck
       );
       
@@ -160,24 +166,36 @@ export function MassSim() {
             </div>
             
             <div>
-              <Label htmlFor="seed-mass">Seed</Label>
-              <div className="flex gap-2 mt-1.5">
-                <Input
-                  id="seed-mass"
-                  value={seed}
-                  onChange={(e) => setSeed(e.target.value)}
-                  placeholder="Seed"
-                  data-testid="input-seed-mass"
+              <div className="flex items-center gap-2 mb-1.5">
+                <Switch
+                  id="seed-lock-mass"
+                  checked={seedLocked}
+                  onCheckedChange={(checked) => setSeedLocked(checked === true)}
+                  data-testid="switch-seed-lock-mass"
                 />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleRandomSeed}
-                  data-testid="button-random-seed-mass"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
+                <Label htmlFor="seed-lock-mass" className="cursor-pointer">
+                  Lock Seed
+                </Label>
               </div>
+              {seedLocked && (
+                <div className="flex gap-2">
+                  <Input
+                    id="seed-mass"
+                    value={seed}
+                    onChange={(e) => setSeed(e.target.value)}
+                    placeholder="Seed"
+                    data-testid="input-seed-mass"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleRandomSeed}
+                    data-testid="button-random-seed-mass"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
             
             <div className="flex items-center space-x-3 pt-7">

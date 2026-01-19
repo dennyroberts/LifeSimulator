@@ -616,68 +616,171 @@ function formatMod(mod: number): string {
 }
 
 function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
-  const isEducation = stage.isEducation && stage.education;
-  const isCareer = stage.isCareer && stage.career;
-  const outcome = stage.eventOutcome;
-
-  let miniContent = null;
-  let bgColor = "bg-muted/10";
-  let borderColor = "border-muted/20";
-
-  if (isEducation) {
-    const edu = stage.education!;
-    bgColor = "bg-chart-1/10";
-    borderColor = "border-chart-1/30";
-    miniContent = (
-      <div className="flex flex-col items-center justify-center h-full px-1">
-        <GraduationCap className="h-4 w-4 text-chart-1" />
-        <div className="text-[9px] font-medium text-chart-1 mt-1 leading-none text-center truncate w-full">{edu.label}</div>
-      </div>
-    );
-  } else if (isCareer) {
-    const career = stage.career!;
-    bgColor = "bg-chart-3/10";
-    borderColor = "border-chart-3/30";
-    miniContent = (
-      <div className="flex flex-col items-center justify-center h-full px-1">
-        <Briefcase className="h-4 w-4 text-chart-3" />
-        <div className="text-[9px] font-medium text-chart-3 mt-1 leading-none text-center truncate w-full">{career.career.name}</div>
-      </div>
-    );
-  } else if (outcome) {
-    const event = outcome.event;
-    const EventIcon = getEventIcon(event.icon);
-    borderColor = outcome.gateFailed ? 'border-muted-foreground/30' : outcome.success ? 'border-chart-2/30' : 'border-destructive/30';
-    bgColor = outcome.gateFailed ? 'bg-muted' : outcome.success ? 'bg-chart-2/10' : 'bg-destructive/10';
-    const iconColor = outcome.gateFailed ? 'text-muted-foreground' : outcome.success ? 'text-chart-2' : 'text-destructive';
+  if (stage.isEducation && stage.education) {
+    const edu = stage.education;
+    const isCrit20 = edu.roll === 20;
+    const isCrit1 = edu.roll === 1;
     
-    miniContent = (
-      <div className="flex flex-col items-center justify-center h-full px-1">
-        <EventIcon className={`h-4 w-4 ${iconColor}`} />
-        <div className={`text-[9px] font-bold ${iconColor} mt-1 leading-none`}>
-          {outcome.gateFailed ? 'SKIP' : outcome.success ? 'PASS' : 'FAIL'}
-        </div>
+    return (
+      <div className="flex-1 min-w-0">
+        <Popover>
+          <PopoverTrigger asChild>
+            <div 
+              className={`p-1.5 rounded text-[10px] border cursor-pointer hover:brightness-110 transition-all ${
+                isCrit20 ? 'bg-chart-4/10 border-chart-4/30' : 
+                isCrit1 ? 'bg-destructive/10 border-destructive/30' : 
+                'bg-chart-1/10 border-chart-1/20'
+              }`}
+              data-testid={`mini-event-${stage.stage}`}
+            >
+              <div className="flex items-center gap-0.5 mb-0.5">
+                <GraduationCap className="h-3 w-3 text-chart-1" />
+                {isCrit20 && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
+                {isCrit1 && <Skull className="h-2.5 w-2.5 text-destructive" />}
+              </div>
+              <div className="font-medium text-foreground leading-tight">Education</div>
+              <div className="text-muted-foreground leading-tight">{edu.label}</div>
+              {edu.traitContributions && edu.traitContributions.length > 0 && (
+                <div className="font-mono text-[8px] mt-0.5">
+                  {edu.traitContributions.filter(tc => tc.contribution !== 0).map((tc, i) => (
+                    <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                      {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+            <DetailedCard stage={stage} />
+          </PopoverContent>
+        </Popover>
       </div>
     );
   }
-
-  return (
-    <div className="flex-1 min-w-0">
-      <Popover>
-        <PopoverTrigger asChild>
-          <div 
-            className={`w-full h-14 rounded-md border ${bgColor} ${borderColor} hover:brightness-110 cursor-pointer transition-all`}
-            data-testid={`mini-event-${stage.stage}`}
-          >
-            {miniContent}
-          </div>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
-          <DetailedCard stage={stage} />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
+  
+  if (stage.isCareer && stage.career) {
+    const career = stage.career;
+    const isCrit20 = career.isNat20;
+    const isCrit1 = career.roll === 1;
+    
+    return (
+      <div className="flex-1 min-w-0">
+        <Popover>
+          <PopoverTrigger asChild>
+            <div 
+              className={`p-1.5 rounded text-[10px] border cursor-pointer hover:brightness-110 transition-all ${
+                isCrit20 ? 'bg-chart-4/10 border-chart-4/30' : 
+                isCrit1 ? 'bg-destructive/10 border-destructive/30' : 
+                'bg-chart-3/10 border-chart-3/20'
+              }`}
+              data-testid={`mini-event-${stage.stage}`}
+            >
+              <div className="flex items-center gap-0.5 mb-0.5">
+                <Briefcase className="h-3 w-3 text-chart-3" />
+                {isCrit20 && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
+                {isCrit1 && <Skull className="h-2.5 w-2.5 text-destructive" />}
+              </div>
+              <div className="font-medium text-foreground leading-tight">Career</div>
+              <div className="text-muted-foreground leading-tight">{career.career.name}</div>
+              {career.traitContributions && career.traitContributions.length > 0 && (
+                <div className="font-mono text-[8px] mt-0.5">
+                  {career.traitContributions.map((tc, i) => (
+                    <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                      {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
+                    </span>
+                  ))}
+                  {career.educationBonus !== 0 && (
+                    <span className={career.educationBonus >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                      {' '}Edu{formatMod(career.educationBonus)}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+            <DetailedCard stage={stage} />
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+  
+  if (stage.eventOutcome) {
+    const outcome = stage.eventOutcome;
+    const event = outcome.event;
+    const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
+    const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
+    
+    const EventIcon = getEventIcon(event.icon);
+    
+    const getBorderClass = () => {
+      if (outcome.gateFailed) return 'border-muted';
+      if (isCritSuccess) return 'border-chart-4/30';
+      if (isCritFail) return 'border-destructive/30';
+      if (outcome.success) return 'border-chart-2/30';
+      return 'border-destructive/30';
+    };
+    
+    const getBgClass = () => {
+      if (outcome.gateFailed) return 'bg-muted/30';
+      if (isCritSuccess) return 'bg-chart-4/10';
+      if (isCritFail) return 'bg-destructive/10';
+      if (outcome.success) return 'bg-chart-2/10';
+      return 'bg-destructive/10';
+    };
+    
+    const getOutcomeText = () => {
+      if (outcome.gateFailed) return 'Skipped';
+      if (outcome.success) return 'Pass';
+      return 'Fail';
+    };
+    
+    const getOutcomeColor = () => {
+      if (outcome.gateFailed) return 'text-muted-foreground';
+      if (outcome.success) return 'text-chart-2';
+      return 'text-destructive';
+    };
+    
+    return (
+      <div className="flex-1 min-w-0">
+        <Popover>
+          <PopoverTrigger asChild>
+            <div 
+              className={`p-1.5 rounded text-[10px] border cursor-pointer hover:brightness-110 transition-all ${getBgClass()} ${getBorderClass()}`}
+              data-testid={`mini-event-${stage.stage}`}
+            >
+              <div className="flex items-center gap-0.5 mb-0.5">
+                <EventIcon className="h-3 w-3 text-muted-foreground" />
+                {isCritSuccess && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
+                {isCritFail && <Skull className="h-2.5 w-2.5 text-destructive" />}
+                <span className={`${rarityColors[event.rarity]} uppercase font-bold`}>
+                  {event.rarity.charAt(0)}
+                </span>
+              </div>
+              <div className="font-medium text-foreground leading-tight">{event.name}</div>
+              <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
+              {outcome.traitContributions && outcome.traitContributions.length > 0 && !outcome.gateFailed && (
+                <div className="font-mono text-[8px] mt-0.5">
+                  {outcome.traitContributions.map((tc, i) => (
+                    <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                      {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+            <DetailedCard stage={stage} />
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+  
+  return null;
 }
 
 

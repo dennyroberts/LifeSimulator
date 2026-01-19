@@ -621,48 +621,40 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
   const outcome = stage.eventOutcome;
 
   let miniContent = null;
-  let tooltipTitle = "";
-  let tooltipBody = "";
   let bgColor = "bg-muted/10";
   let borderColor = "border-muted/20";
 
   if (isEducation) {
     const edu = stage.education!;
-    tooltipTitle = `Education: ${edu.label}`;
-    tooltipBody = edu.outcomeMessage || "";
     bgColor = "bg-chart-1/10";
-    borderColor = "border-chart-1/20";
+    borderColor = "border-chart-1/30";
     miniContent = (
-      <div className="flex flex-col items-center justify-center h-full">
-        <GraduationCap className="h-3 w-3 text-chart-1" />
-        <div className="text-[8px] font-bold text-chart-1 mt-0.5 leading-none">{edu.label.split(' ')[0]}</div>
+      <div className="flex flex-col items-center justify-center h-full px-1">
+        <GraduationCap className="h-4 w-4 text-chart-1" />
+        <div className="text-[9px] font-medium text-chart-1 mt-1 leading-none text-center truncate w-full">{edu.label}</div>
       </div>
     );
   } else if (isCareer) {
     const career = stage.career!;
-    tooltipTitle = `Career: ${career.career.name}`;
-    tooltipBody = career.outcomeMessage || "";
     bgColor = "bg-chart-3/10";
-    borderColor = "border-chart-3/20";
+    borderColor = "border-chart-3/30";
     miniContent = (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Briefcase className="h-3 w-3 text-chart-3" />
-        <div className="text-[8px] font-bold text-chart-3 mt-0.5 leading-none">{career.career.name.split(' ')[0]}</div>
+      <div className="flex flex-col items-center justify-center h-full px-1">
+        <Briefcase className="h-4 w-4 text-chart-3" />
+        <div className="text-[9px] font-medium text-chart-3 mt-1 leading-none text-center truncate w-full">{career.career.name}</div>
       </div>
     );
   } else if (outcome) {
     const event = outcome.event;
-    tooltipTitle = event.name;
-    tooltipBody = outcome.outcomeMessage || "";
     const EventIcon = getEventIcon(event.icon);
-    borderColor = outcome.gateFailed ? 'border-muted-foreground/20' : outcome.success ? 'border-chart-2/20' : 'border-destructive/20';
+    borderColor = outcome.gateFailed ? 'border-muted-foreground/30' : outcome.success ? 'border-chart-2/30' : 'border-destructive/30';
     bgColor = outcome.gateFailed ? 'bg-muted' : outcome.success ? 'bg-chart-2/10' : 'bg-destructive/10';
     const iconColor = outcome.gateFailed ? 'text-muted-foreground' : outcome.success ? 'text-chart-2' : 'text-destructive';
     
     miniContent = (
-      <div className="flex flex-col items-center justify-center h-full">
-        <EventIcon className={`h-3 w-3 ${iconColor}`} />
-        <div className={`text-[8px] font-bold ${iconColor} mt-0.5 leading-none`}>
+      <div className="flex flex-col items-center justify-center h-full px-1">
+        <EventIcon className={`h-4 w-4 ${iconColor}`} />
+        <div className={`text-[9px] font-bold ${iconColor} mt-1 leading-none`}>
           {outcome.gateFailed ? 'SKIP' : outcome.success ? 'PASS' : 'FAIL'}
         </div>
       </div>
@@ -674,7 +666,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
       <Popover>
         <PopoverTrigger asChild>
           <div 
-            className={`w-full h-10 rounded border ${bgColor} ${borderColor} hover:bg-opacity-80 cursor-pointer transition-colors p-0.5 overflow-hidden`}
+            className={`w-full h-14 rounded-md border ${bgColor} ${borderColor} hover:brightness-110 cursor-pointer transition-all`}
             data-testid={`mini-event-${stage.stage}`}
           >
             {miniContent}

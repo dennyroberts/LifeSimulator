@@ -29,25 +29,7 @@ const stageToAge = (stageNum: number) => {
 export function Timeline({ stages }: TimelineProps) {
   return (
     <div className="space-y-2" data-testid="timeline">
-      {/* Desktop: Horizontal age rail */}
-      <div className="hidden md:block relative h-8 mx-2">
-        <div className="absolute top-4 left-0 right-0 h-0.5 bg-border" />
-        <div className="flex justify-between">
-          {stages.map((stage) => {
-            const age = stageToAge(stage.stage);
-            return (
-              <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-0.5">
-                <div className="text-[10px] text-muted-foreground font-mono mb-0.5 flex items-center gap-0.5 leading-tight">
-                  {stage.stage === 1 && <Baby className="h-3 w-3" />}
-                  {age}
-                  {stage.stage === 9 && <Cross className="h-3 w-3" />}
-                </div>
-                <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background" />
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <TimelineAgeRail stages={stages} />
       
       {/* Desktop: Horizontal card layout */}
       <div className="hidden md:flex flex-row gap-2">
@@ -86,6 +68,33 @@ export function Timeline({ stages }: TimelineProps) {
       </div>
     </div>
   );
+}
+
+function TimelineAgeRail({ stages }: { stages: StageResult[] }) {
+  return (
+    <div className="hidden md:block relative h-8 mx-2">
+      <div className="absolute top-4 left-0 right-0 h-0.5 bg-border" />
+      <div className="flex justify-between">
+        {stages.map((stage) => {
+          const age = stageToAge(stage.stage);
+          return (
+            <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-0.5">
+              <div className="text-[10px] text-muted-foreground font-mono mb-0.5 flex items-center gap-0.5 leading-tight">
+                {stage.stage === 1 && <Baby className="h-3 w-3" />}
+                {age}
+                {stage.stage === 9 && <Cross className="h-3 w-3" />}
+              </div>
+              <div className="w-2 h-2 rounded-full bg-chart-1 border-2 border-background" />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function DetailedCard({ stage }: { stage: StageResult }) {
+  return <TimelineCard stage={stage} />;
 }
 
 function TimelineCard({ stage }: { stage: StageResult }) {

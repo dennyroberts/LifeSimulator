@@ -18,7 +18,7 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
     const bestPath: number[] = [];
     const worstPath: number[] = [];
     
-    const bestCareerSalary = 72000 * 1.2;
+    const bestCareerSalary = 72000;
     const bestCareerGrowth = 0.055;
     const worstCareerSalary = 32000;
     const worstCareerGrowth = 0.01;
@@ -46,10 +46,9 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
         worstPath.push(worstIncome);
       } else if (stage.eventOutcome) {
         const event = stage.eventOutcome.event;
-        const critMultiplier = 2.0;
         
-        let bestJump = event.success.jumpPct * effectMultiplier * critMultiplier;
-        let bestGrowthDelta = event.success.growthDelta * effectMultiplier * critMultiplier;
+        let bestJump = event.success.jumpPct * effectMultiplier;
+        let bestGrowthDelta = event.success.growthDelta * effectMultiplier;
         if (bestJump < 0) bestJump = Math.abs(bestJump);
         if (bestGrowthDelta < 0) bestGrowthDelta = Math.abs(bestGrowthDelta);
         
@@ -59,8 +58,8 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
         bestIncome = bestOutcome;
         bestPath.push(bestOutcome);
         
-        let worstJump = event.fail.jumpPct * effectMultiplier * critMultiplier;
-        let worstGrowthDelta = event.fail.growthDelta * effectMultiplier * critMultiplier;
+        let worstJump = event.fail.jumpPct * effectMultiplier;
+        let worstGrowthDelta = event.fail.growthDelta * effectMultiplier;
         if (worstJump > 0) worstJump = -Math.abs(worstJump);
         if (worstGrowthDelta > 0) worstGrowthDelta = -Math.abs(worstGrowthDelta);
         

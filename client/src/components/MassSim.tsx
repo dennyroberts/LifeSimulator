@@ -394,8 +394,8 @@ function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: s
   });
   
   const agentData = { name: agent.name, traits: agent.traits, index: agent.agentIndex, aspiration: agent.aspiration };
-  const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 20);
-  const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 1);
+  const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 19);
+  const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 2);
   
   return { actual: agent, best, worst };
 }

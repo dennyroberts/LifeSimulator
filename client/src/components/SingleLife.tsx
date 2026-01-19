@@ -642,10 +642,10 @@ export function SingleLife() {
                   Actual Life
                 </TabsTrigger>
                 <TabsTrigger value="best" data-testid="tab-best" className="text-chart-2">
-                  Best Possible (All 20s)
+                  Best Possible (All 19s)
                 </TabsTrigger>
                 <TabsTrigger value="worst" data-testid="tab-worst" className="text-destructive">
-                  Worst Possible (All 1s)
+                  Worst Possible (All 2s)
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="actual">

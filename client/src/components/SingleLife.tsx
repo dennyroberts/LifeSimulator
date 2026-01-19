@@ -235,10 +235,10 @@ export function SingleLife() {
       }
     });
     
-    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 20);
+    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 19);
     setBestResult(bestSimResult);
     
-    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 1);
+    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 2);
     setWorstResult(worstSimResult);
     
     setTimelineView('actual');

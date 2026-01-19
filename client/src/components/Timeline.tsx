@@ -563,9 +563,17 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
           </div>
         )}
         
-        {outcome.gateFailed && event.riskGated && (
-          <div className="p-2 rounded bg-muted mb-2">
-            <div className="text-[10px] text-muted-foreground">Risk Gate (DC {outcome.gateDC})</div>
+        {event.riskGated && outcome.gateRoll !== undefined && (
+          <div className={`p-2 rounded mb-2 ${outcome.gateFailed ? 'bg-muted' : 'bg-chart-2/10 border border-chart-2/20'}`}>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground">Risk Gate (DC {outcome.gateDC})</span>
+              {!outcome.gateFailed && (
+                <span className="text-[9px] font-bold text-chart-2">RISKED IT</span>
+              )}
+              {outcome.gateFailed && (
+                <span className="text-[9px] font-bold text-muted-foreground">PASSED</span>
+              )}
+            </div>
             <div className="font-mono text-sm">
               <span className="font-bold">{outcome.gateRoll}</span>
               <span className="text-muted-foreground">+</span>
@@ -573,9 +581,12 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
                 {outcome.gateMod! >= 0 ? '+' : ''}{outcome.gateMod}
               </span>
               <span className="text-muted-foreground">=</span>
-              <span className="font-bold text-destructive">
+              <span className={`font-bold ${outcome.gateFailed ? 'text-muted-foreground' : 'text-chart-2'}`}>
                 {(outcome.gateRoll || 0) + (outcome.gateMod || 0)}
               </span>
+            </div>
+            <div className="text-[9px] mt-1 text-muted-foreground">
+              {outcome.gateFailed ? "Didn't meet DC → skipped event" : "Met DC → took the risk"}
             </div>
           </div>
         )}

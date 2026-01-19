@@ -45,7 +45,7 @@ import { Slider } from '@/components/ui/slider';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
-type AgentCount = 1000 | 10000 | 50000;
+type AgentCount = 1000 | 10000 | 50000 | 100000 | 500000;
 
 export function MassSim() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
@@ -146,8 +146,8 @@ export function MassSim() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <Label>Number of Agents</Label>
-              <div className="flex gap-2 mt-1.5">
-                {([1000, 10000, 50000] as AgentCount[]).map((count) => (
+              <div className="flex flex-wrap gap-2 mt-1.5">
+                {([1000, 10000, 50000, 100000, 500000] as AgentCount[]).map((count) => (
                   <Button
                     key={count}
                     variant={agentCount === count ? 'default' : 'outline'}
@@ -155,7 +155,7 @@ export function MassSim() {
                     onClick={() => setAgentCount(count)}
                     data-testid={`button-count-${count}`}
                   >
-                    {count === 1000 ? '1K' : count === 10000 ? '10K' : '50K'}
+                    {count === 1000 ? '1K' : count === 10000 ? '10K' : count === 50000 ? '50K' : count === 100000 ? '100K' : '500K'}
                   </Button>
                 ))}
               </div>

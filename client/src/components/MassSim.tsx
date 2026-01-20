@@ -41,7 +41,7 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2 } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
@@ -771,9 +771,9 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
                     return (
                       <span 
                         key={tc.trait} 
-                        className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}
+                        className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''} inline-flex items-center`}
                       >
-                        {i > 0 && ' '}{isDeciding && '★'}{tc.trait}{formatMod(tc.contribution)}
+                        {i > 0 && ' '}{isDeciding && <Star className="h-2 w-2 fill-current" />}{tc.trait}{formatMod(tc.contribution)}
                       </span>
                     );
                   })}

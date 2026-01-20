@@ -8,7 +8,7 @@ import {
   formatEV 
 } from '@/lib/sim';
 import * as LucideIcons from 'lucide-react';
-import { GraduationCap, Briefcase, Check, X, AlertTriangle, Sparkles, Skull, Baby, Cross } from 'lucide-react';
+import { GraduationCap, Briefcase, Check, X, AlertTriangle, Sparkles, Skull, Baby, Cross, Star } from 'lucide-react';
 
 const getEventIcon = (iconName?: string) => {
   if (!iconName) return Briefcase;
@@ -295,8 +295,8 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
                 return (
                   <span key={tc.trait}>
                     {i > 0 && ' '}
-                    <span className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}>
-                      {isDeciding && '★'}{tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                    <span className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''} inline-flex items-center`}>
+                      {isDeciding && <Star className="h-2.5 w-2.5 fill-current mr-0.5" />}{tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}
                     </span>
                   </span>
                 );
@@ -578,9 +578,9 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
                   return (
                     <div 
                       key={tc.trait} 
-                      className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}
+                      className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''} flex items-center gap-0.5`}
                     >
-                      {isDeciding && '★ '}{tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                      {isDeciding && <Star className="h-2.5 w-2.5 fill-current" />}{tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
                     </div>
                   );
                 })}

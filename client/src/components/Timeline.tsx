@@ -532,6 +532,34 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
           </div>
         )}
         
+        {event.riskGated && outcome.gateRoll !== undefined && (
+          <div className={`p-2 rounded mb-2 ${outcome.gateFailed ? 'bg-muted' : 'bg-chart-2/10 border border-chart-2/20'}`}>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground">Risk Gate (DC {outcome.gateDC})</span>
+              {!outcome.gateFailed && (
+                <span className="text-[9px] font-bold text-chart-2">RISKED IT</span>
+              )}
+              {outcome.gateFailed && (
+                <span className="text-[9px] font-bold text-muted-foreground">PASSED</span>
+              )}
+            </div>
+            <div className="font-mono text-sm">
+              <span className="font-bold">{outcome.gateRoll}</span>
+              <span className="text-muted-foreground">+</span>
+              <span className={outcome.gateMod! >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {outcome.gateMod! >= 0 ? '+' : ''}{outcome.gateMod}
+              </span>
+              <span className="text-muted-foreground">=</span>
+              <span className={`font-bold ${outcome.gateFailed ? 'text-muted-foreground' : 'text-chart-2'}`}>
+                {(outcome.gateRoll || 0) + (outcome.gateMod || 0)}
+              </span>
+            </div>
+            <div className="text-[9px] mt-1 text-muted-foreground">
+              {outcome.gateFailed ? "Didn't meet DC → skipped event" : "Met DC → took the risk"}
+            </div>
+          </div>
+        )}
+        
         {!outcome.gateFailed && event.rollRequired && (
           <div className={`p-2 rounded mb-2 ${outcome.isCritical ? (outcome.criticalType === 'success' ? 'bg-chart-4/20 border border-chart-4/40' : 'bg-destructive/20 border border-destructive/40') : 'bg-muted'}`}>
             <div className="flex items-center gap-1">
@@ -569,34 +597,6 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
               <span className={`font-bold ${outcome.success ? 'text-chart-2' : 'text-destructive'}`}>
                 {(outcome.mainRoll || 0) + (outcome.mainMod || 0)}
               </span>
-            </div>
-          </div>
-        )}
-        
-        {event.riskGated && outcome.gateRoll !== undefined && (
-          <div className={`p-2 rounded mb-2 ${outcome.gateFailed ? 'bg-muted' : 'bg-chart-2/10 border border-chart-2/20'}`}>
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-muted-foreground">Risk Gate (DC {outcome.gateDC})</span>
-              {!outcome.gateFailed && (
-                <span className="text-[9px] font-bold text-chart-2">RISKED IT</span>
-              )}
-              {outcome.gateFailed && (
-                <span className="text-[9px] font-bold text-muted-foreground">PASSED</span>
-              )}
-            </div>
-            <div className="font-mono text-sm">
-              <span className="font-bold">{outcome.gateRoll}</span>
-              <span className="text-muted-foreground">+</span>
-              <span className={outcome.gateMod! >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                {outcome.gateMod! >= 0 ? '+' : ''}{outcome.gateMod}
-              </span>
-              <span className="text-muted-foreground">=</span>
-              <span className={`font-bold ${outcome.gateFailed ? 'text-muted-foreground' : 'text-chart-2'}`}>
-                {(outcome.gateRoll || 0) + (outcome.gateMod || 0)}
-              </span>
-            </div>
-            <div className="text-[9px] mt-1 text-muted-foreground">
-              {outcome.gateFailed ? "Didn't meet DC → skipped event" : "Met DC → took the risk"}
             </div>
           </div>
         )}

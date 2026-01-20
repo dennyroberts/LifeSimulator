@@ -818,22 +818,23 @@ export function resolveEvent(
     } else if (isCritical && criticalType === 'failure' && event.outcomes.critFail) {
       outcomeMessage = event.outcomes.critFail;
     } else {
-      // Calculate if traits mattered for this roll
-      // 1. Find min and max trait contributions
-      const contributions = traitContributions?.map(tc => tc.contribution) || [];
-      const minContrib = contributions.length > 0 ? Math.min(...contributions) : 0;
-      const maxContrib = contributions.length > 0 ? Math.max(...contributions) : 0;
-      
-      // 2. Calculate the range where traits could have mattered
-      // lowerBound = DC - max (if roll is below this, would have failed regardless)
-      // upperBound = DC - min (if roll is above this, would have succeeded regardless)
-      const dc = mainDC ?? 10;
-      const roll = mainRoll ?? 10;
-      const lowerBound = dc - maxContrib;
-      const upperBound = dc - minContrib;
-      
-      // 3. Check if the natural roll falls within the "traits mattered" range
-      const traitsMattered = roll >= lowerBound && roll <= upperBound;
+      // Calculate if traits mattered for this roll (only if roll was actually required)
+      let traitsMattered = false;
+      if (event.rollRequired && mainRoll !== undefined && mainDC !== undefined) {
+        // 1. Find min and max trait contributions
+        const contributions = traitContributions?.map(tc => tc.contribution) || [];
+        const minContrib = contributions.length > 0 ? Math.min(...contributions) : 0;
+        const maxContrib = contributions.length > 0 ? Math.max(...contributions) : 0;
+        
+        // 2. Calculate the range where traits could have mattered
+        // lowerBound = DC - max (if roll is below this, would have failed regardless)
+        // upperBound = DC - min (if roll is above this, would have succeeded regardless)
+        const lowerBound = mainDC - maxContrib;
+        const upperBound = mainDC - minContrib;
+        
+        // 3. Check if the natural roll falls within the "traits mattered" range
+        traitsMattered = mainRoll >= lowerBound && mainRoll <= upperBound;
+      }
       
       if (success) {
         if (traitsMattered && event.outcomes.traitSuccess && traitContributions && traitContributions.length > 0) {

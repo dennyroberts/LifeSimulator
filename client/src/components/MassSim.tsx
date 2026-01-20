@@ -761,7 +761,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
               </div>
               <div className="font-medium text-foreground leading-tight">{event.name}</div>
               {event.riskGated && !outcome.gateFailed && (
-                <div className="text-[9px] font-bold text-chart-2">Risked it!</div>
+                <div className="text-[9px] font-bold text-chart-4">Risked it!</div>
               )}
               <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
               {outcome.traitContributions && outcome.traitContributions.length > 0 && !outcome.gateFailed && (
@@ -771,9 +771,9 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
                     return (
                       <span 
                         key={tc.trait} 
-                        className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold underline' : ''}`}
+                        className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}
                       >
-                        {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}{isDeciding && '★'}
+                        {i > 0 && ' '}{isDeciding && '★'}{tc.trait}{formatMod(tc.contribution)}
                       </span>
                     );
                   })}

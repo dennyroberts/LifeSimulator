@@ -296,7 +296,7 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
                   <span key={tc.trait}>
                     {i > 0 && ' '}
                     <span className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}>
-                      {tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}{isDeciding && '★'}
+                      {isDeciding && '★'}{tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}
                     </span>
                   </span>
                 );
@@ -578,10 +578,9 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
                   return (
                     <div 
                       key={tc.trait} 
-                      className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold underline' : ''}`}
+                      className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}
                     >
-                      {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
-                      {isDeciding && ' ★'}
+                      {isDeciding && '★ '}{tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
                     </div>
                   );
                 })}

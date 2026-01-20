@@ -290,14 +290,17 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
           )}
           {outcome.traitContributions && outcome.traitContributions.length > 0 && (
             <div className="font-mono text-[10px] text-muted-foreground">
-              ({outcome.traitContributions.map((tc, i) => (
-                <span key={tc.trait}>
-                  {i > 0 && ' '}
-                  <span className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                    {tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+              ({outcome.traitContributions.map((tc, i) => {
+                const isDeciding = outcome.decidingTrait === tc.trait;
+                return (
+                  <span key={tc.trait}>
+                    {i > 0 && ' '}
+                    <span className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold' : ''}`}>
+                      {tc.trait}{tc.contribution >= 0 ? '+' : ''}{tc.contribution}{isDeciding && '★'}
+                    </span>
                   </span>
-                </span>
-              ))})
+                );
+              })})
             </div>
           )}
           <div className="ml-auto font-mono font-bold text-chart-1 shrink-0">
@@ -542,11 +545,18 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
             </div>
             {outcome.traitContributions && outcome.traitContributions.length > 0 && (
               <div className="text-[10px] font-mono mt-1 mb-1 space-y-0.5">
-                {outcome.traitContributions.map((tc) => (
-                  <div key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                    {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
-                  </div>
-                ))}
+                {outcome.traitContributions.map((tc) => {
+                  const isDeciding = outcome.decidingTrait === tc.trait;
+                  return (
+                    <div 
+                      key={tc.trait} 
+                      className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold underline' : ''}`}
+                    >
+                      {tc.trait} {tc.contribution >= 0 ? '+' : ''}{tc.contribution}
+                      {isDeciding && ' ★'}
+                    </div>
+                  );
+                })}
               </div>
             )}
             <div className="font-mono text-sm">

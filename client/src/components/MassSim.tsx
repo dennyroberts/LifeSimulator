@@ -763,11 +763,17 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
               <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
               {outcome.traitContributions && outcome.traitContributions.length > 0 && !outcome.gateFailed && (
                 <div className="font-mono text-[8px] mt-0.5">
-                  {outcome.traitContributions.map((tc, i) => (
-                    <span key={tc.trait} className={tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'}>
-                      {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}
-                    </span>
-                  ))}
+                  {outcome.traitContributions.map((tc, i) => {
+                    const isDeciding = outcome.decidingTrait === tc.trait;
+                    return (
+                      <span 
+                        key={tc.trait} 
+                        className={`${tc.contribution >= 0 ? 'text-chart-2' : 'text-destructive'} ${isDeciding ? 'font-bold underline' : ''}`}
+                      >
+                        {i > 0 && ' '}{tc.trait}{formatMod(tc.contribution)}{isDeciding && '★'}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>

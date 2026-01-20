@@ -100,6 +100,7 @@ export interface EventOutcome {
   criticalType?: 'success' | 'failure';
   traitContributions?: TraitContribution[];
   outcomeMessage?: string;
+  decidingTrait?: TraitName; // The trait that made the difference (if any)
 }
 
 export interface StageResult {
@@ -805,8 +806,10 @@ export function resolveEvent(
   let newIncome = currentIncome * (1 + newGrowth) * (1 + jumpPct);
   newIncome = Math.max(config.incomeFloor, newIncome);
   
-  // Select outcome message
+  // Select outcome message with trait-deciding logic
   let outcomeMessage: string | undefined;
+  let decidingTrait: TraitName | undefined;
+  
   if (gateFailed) {
     outcomeMessage = "You decided not to take the risk";
   } else if (event.outcomes) {
@@ -814,32 +817,56 @@ export function resolveEvent(
       outcomeMessage = event.outcomes.critSuccess;
     } else if (isCritical && criticalType === 'failure' && event.outcomes.critFail) {
       outcomeMessage = event.outcomes.critFail;
-    } else if (success) {
-      // Check for trait-specific success message
-      if (event.outcomes.traitSuccess && Array.isArray(traitContributions) && traitContributions.length > 0) {
-        const topTrait = traitContributions.find(tc => tc.contribution > 0);
-        if (topTrait && event.outcomes.traitSuccess[topTrait.trait]) {
-          outcomeMessage = event.outcomes.traitSuccess[topTrait.trait];
+    } else {
+      // Calculate if traits mattered for this roll
+      // 1. Find min and max trait contributions
+      const contributions = traitContributions?.map(tc => tc.contribution) || [];
+      const minContrib = contributions.length > 0 ? Math.min(...contributions) : 0;
+      const maxContrib = contributions.length > 0 ? Math.max(...contributions) : 0;
+      
+      // 2. Calculate the range where traits could have mattered
+      // lowerBound = DC - max (if roll is below this, would have failed regardless)
+      // upperBound = DC - min (if roll is above this, would have succeeded regardless)
+      const dc = mainDC ?? 10;
+      const roll = mainRoll ?? 10;
+      const lowerBound = dc - maxContrib;
+      const upperBound = dc - minContrib;
+      
+      // 3. Check if the natural roll falls within the "traits mattered" range
+      const traitsMattered = roll >= lowerBound && roll <= upperBound;
+      
+      if (success) {
+        if (traitsMattered && event.outcomes.traitSuccess && traitContributions && traitContributions.length > 0) {
+          // Find the trait with the biggest positive contribution
+          const sortedPositive = traitContributions
+            .filter(tc => tc.contribution > 0)
+            .sort((a, b) => b.contribution - a.contribution);
+          const topTrait = sortedPositive[0];
+          if (topTrait && event.outcomes.traitSuccess[topTrait.trait]) {
+            outcomeMessage = event.outcomes.traitSuccess[topTrait.trait];
+            decidingTrait = topTrait.trait;
+          } else {
+            outcomeMessage = event.outcomes.success;
+          }
         } else {
           outcomeMessage = event.outcomes.success;
         }
       } else {
-        outcomeMessage = event.outcomes.success;
-      }
-    } else {
-      // Check for trait-specific fail message (when a trait contributed negatively to failure)
-      if (event.outcomes.traitFail && Array.isArray(traitContributions) && traitContributions.length > 0) {
-        // Find the trait with the most negative contribution (worst harm)
-        const negativeTrait = traitContributions
-          .filter(tc => tc.contribution < 0)
-          .sort((a, b) => a.contribution - b.contribution)[0]; // Most negative first
-        if (negativeTrait && event.outcomes.traitFail[negativeTrait.trait]) {
-          outcomeMessage = event.outcomes.traitFail[negativeTrait.trait];
+        if (traitsMattered && event.outcomes.traitFail && traitContributions && traitContributions.length > 0) {
+          // Find the trait with the most negative contribution (hurt them most)
+          const sortedNegative = traitContributions
+            .filter(tc => tc.contribution < 0)
+            .sort((a, b) => a.contribution - b.contribution);
+          const worstTrait = sortedNegative[0];
+          if (worstTrait && event.outcomes.traitFail[worstTrait.trait]) {
+            outcomeMessage = event.outcomes.traitFail[worstTrait.trait];
+            decidingTrait = worstTrait.trait;
+          } else {
+            outcomeMessage = event.outcomes.fail;
+          }
         } else {
           outcomeMessage = event.outcomes.fail;
         }
-      } else {
-        outcomeMessage = event.outcomes.fail;
       }
     }
   }
@@ -863,7 +890,8 @@ export function resolveEvent(
     isCritical,
     criticalType,
     traitContributions,
-    outcomeMessage
+    outcomeMessage,
+    decidingTrait
   };
   
   return { outcome, newIncome, newGrowth };

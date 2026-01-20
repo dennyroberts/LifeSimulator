@@ -760,6 +760,9 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
                 </span>
               </div>
               <div className="font-medium text-foreground leading-tight">{event.name}</div>
+              {event.riskGated && !outcome.gateFailed && (
+                <div className="text-[9px] font-bold text-chart-2">Risked it!</div>
+              )}
               <div className={`${getOutcomeColor()} font-semibold`}>{getOutcomeText()}</div>
               {outcome.traitContributions && outcome.traitContributions.length > 0 && !outcome.gateFailed && (
                 <div className="font-mono text-[8px] mt-0.5">

@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { TraitDisplay } from './TraitInput';
 import { CompactEventList } from './Timeline';
-import { IncomeHistogram, ScatterGrid } from './Charts';
+import { IncomeHistogram, ScatterGrid, ControlledTraitGrid, ControlledLuckGrid } from './Charts';
 import {
   type WorldMode,
   type SimulationResult,
@@ -314,25 +314,32 @@ export function MassSim() {
           
           <CompareCohorts results={results} worldMode={worldMode} seed={seed} />
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <CollapsiblePanel 
-              title="Lifetime Earnings Distribution" 
-              icon={<BarChart3 className="h-4 w-4" />}
-              defaultExpanded={true}
-              testId="earnings-histogram"
-            >
-              <IncomeHistogram results={results} compact />
-            </CollapsiblePanel>
-            
-            <CollapsiblePanel 
-              title="Trait & Luck Correlations" 
-              icon={<BarChart3 className="h-4 w-4" />}
-              defaultExpanded={true}
-              testId="correlations-scatter"
-            >
-              <ScatterGrid results={results} compact />
-            </CollapsiblePanel>
-          </div>
+          <CollapsiblePanel 
+            title="Lifetime Earnings Distribution" 
+            icon={<BarChart3 className="h-4 w-4" />}
+            defaultExpanded={true}
+            testId="earnings-histogram"
+          >
+            <IncomeHistogram results={results} compact />
+          </CollapsiblePanel>
+          
+          <CollapsiblePanel 
+            title="Trait Correlation with Success (Controlled)" 
+            icon={<BarChart3 className="h-4 w-4" />}
+            defaultExpanded={true}
+            testId="controlled-trait-scatter"
+          >
+            <ControlledTraitGrid results={results} />
+          </CollapsiblePanel>
+          
+          <CollapsiblePanel 
+            title="Luck Correlation with Success (Controlled)" 
+            icon={<Clover className="h-4 w-4" />}
+            defaultExpanded={true}
+            testId="controlled-luck-scatter"
+          >
+            <ControlledLuckGrid results={results} />
+          </CollapsiblePanel>
         </>
       )}
     </div>

@@ -739,3 +739,289 @@ export function ScatterGrid({ results, compact = false }: ScatterGridProps) {
     </div>
   );
 }
+
+type OthersFilter = 'low' | 'average' | 'high';
+
+const FILTER_RANGES: Record<OthersFilter, [number, number]> = {
+  low: [4, 7],
+  average: [8, 12],
+  high: [13, 16],
+};
+
+const FILTER_LABELS: Record<OthersFilter, string> = {
+  low: 'Others Low (4-7)',
+  average: 'Others Average (8-12)',
+  high: 'Others High (13-16)',
+};
+
+function filterByOtherTraits(
+  results: SimulationResult[],
+  excludeTrait: string,
+  filter: OthersFilter
+): SimulationResult[] {
+  const [min, max] = FILTER_RANGES[filter];
+  const otherTraits = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'].filter(t => t !== excludeTrait);
+  
+  return results.filter(r => {
+    return otherTraits.every(t => {
+      const val = r.traits[t as keyof typeof r.traits];
+      return val >= min && val <= max;
+    });
+  });
+}
+
+function filterByAllTraits(
+  results: SimulationResult[],
+  filter: OthersFilter
+): SimulationResult[] {
+  const [min, max] = FILTER_RANGES[filter];
+  const allTraits = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'];
+  
+  return results.filter(r => {
+    return allTraits.every(t => {
+      const val = r.traits[t as keyof typeof r.traits];
+      return val >= min && val <= max;
+    });
+  });
+}
+
+interface ControlledScatterPlotProps {
+  results: SimulationResult[];
+  xKey: string;
+  xLabel: string;
+  color: string;
+  yMax: number;
+  xMin?: number;
+  xMax?: number;
+}
+
+function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: forcedXMin, xMax: forcedXMax }: ControlledScatterPlotProps) {
+  const getXValue = (r: SimulationResult): number => {
+    if (xKey in r.traits) {
+      return r.traits[xKey as keyof typeof r.traits];
+    }
+    if (xKey in r.luck) {
+      return r.luck[xKey as keyof typeof r.luck];
+    }
+    return 0;
+  };
+  
+  const data = results.map(r => ({
+    x: getXValue(r),
+    y: r.lifetimeEarnings
+  }));
+  
+  const xValues = data.map(d => d.x);
+  const minX = forcedXMin !== undefined ? forcedXMin : Math.min(...xValues);
+  const maxX = forcedXMax !== undefined ? forcedXMax : Math.max(...xValues);
+  const xRange = maxX - minX || 1;
+  const yRange = yMax;
+  
+  const width = 300;
+  const height = 250;
+  const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  
+  const sampleSize = Math.min(results.length, 500);
+  const step = Math.ceil(results.length / sampleSize);
+  const sampledData = data.filter((_, i) => i % step === 0);
+
+  return (
+    <svg 
+      viewBox={`0 0 ${width} ${height}`} 
+      className="w-full h-auto"
+      data-testid={`controlled-scatter-${xKey}`}
+    >
+      {sampledData.map((point, i) => {
+        const x = padding.left + ((point.x - minX) / xRange) * chartWidth;
+        const y = padding.top + chartHeight - (point.y / yRange) * chartHeight;
+        return (
+          <circle
+            key={i}
+            cx={x}
+            cy={Math.max(padding.top, Math.min(padding.top + chartHeight, y))}
+            r="3"
+            fill={color}
+            opacity="0.4"
+          />
+        );
+      })}
+      
+      <line
+        x1={padding.left}
+        y1={padding.top + chartHeight}
+        x2={width - padding.right}
+        y2={padding.top + chartHeight}
+        stroke="hsl(var(--border))"
+      />
+      <line
+        x1={padding.left}
+        y1={padding.top}
+        x2={padding.left}
+        y2={padding.top + chartHeight}
+        stroke="hsl(var(--border))"
+      />
+      
+      {[0, 0.5, 1].map(pct => (
+        <text
+          key={pct}
+          x={padding.left - 5}
+          y={padding.top + chartHeight - pct * chartHeight + 4}
+          textAnchor="end"
+          className="fill-muted-foreground text-[8px] font-mono"
+        >
+          {formatCurrency(pct * yMax)}
+        </text>
+      ))}
+      
+      <text
+        x={width / 2}
+        y={height - 5}
+        textAnchor="middle"
+        className="fill-muted-foreground text-[10px]"
+      >
+        {xLabel}
+      </text>
+      
+      <text
+        x={10}
+        y={height / 2}
+        textAnchor="middle"
+        transform={`rotate(-90, 10, ${height / 2})`}
+        className="fill-muted-foreground text-[10px]"
+      >
+        Lifetime Earnings
+      </text>
+    </svg>
+  );
+}
+
+interface ControlledTraitGridProps {
+  results: SimulationResult[];
+}
+
+export function ControlledTraitGrid({ results }: ControlledTraitGridProps) {
+  const [filter, setFilter] = useState<OthersFilter>('average');
+  
+  const traitPlots = [
+    { key: 'INT', label: 'Intelligence', color: 'hsl(var(--chart-1))' },
+    { key: 'WORK', label: 'Work Ethic', color: 'hsl(var(--chart-2))' },
+    { key: 'NEPO', label: 'Nepotism', color: 'hsl(var(--chart-3))' },
+    { key: 'CHAR', label: 'Charisma', color: 'hsl(var(--chart-4))' },
+    { key: 'RISK', label: 'Risk Tolerance', color: 'hsl(var(--chart-5))' },
+  ];
+  
+  const globalMaxY = Math.max(...results.map(r => r.lifetimeEarnings));
+  const yMax = Math.ceil(globalMaxY / 1000000) * 1000000;
+
+  return (
+    <div className="space-y-3" data-testid="controlled-trait-grid">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Filter:</span>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as OthersFilter)}
+          className="text-sm bg-background border border-border rounded px-2 py-1"
+          data-testid="trait-filter-dropdown"
+        >
+          <option value="low">{FILTER_LABELS.low}</option>
+          <option value="average">{FILTER_LABELS.average}</option>
+          <option value="high">{FILTER_LABELS.high}</option>
+        </select>
+      </div>
+      
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+        {traitPlots.map(({ key, label, color }) => {
+          const filtered = filterByOtherTraits(results, key, filter);
+          return (
+            <div key={key} className="p-2 rounded-md bg-card border border-card-border">
+              <div className="text-xs font-medium text-center mb-1">{label}</div>
+              <div className="text-[10px] text-center text-muted-foreground mb-1">
+                n={filtered.length}
+              </div>
+              <ControlledScatterPlot 
+                results={filtered} 
+                xKey={key} 
+                xLabel={label} 
+                color={color} 
+                yMax={yMax}
+                xMin={0}
+                xMax={20}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface ControlledLuckGridProps {
+  results: SimulationResult[];
+}
+
+export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
+  const [filter, setFilter] = useState<OthersFilter>('average');
+  
+  const luckPlots = [
+    { key: 'educationRollLuck', label: 'Education Luck', color: 'hsl(var(--chart-1))' },
+    { key: 'careerRollLuck', label: 'Career Luck', color: 'hsl(var(--chart-2))' },
+    { key: 'eventRollLuck', label: 'Event Luck', color: 'hsl(var(--chart-3))' },
+    { key: 'rollLuck', label: 'Combined Roll Luck', color: 'hsl(var(--chart-4))' },
+    { key: 'opportunityLuck', label: 'Opportunity Luck', color: 'hsl(var(--chart-5))' },
+    { key: 'netLuck', label: 'Total Combined Luck', color: 'hsl(var(--chart-1))' },
+  ];
+  
+  const globalMaxY = Math.max(...results.map(r => r.lifetimeEarnings));
+  const yMax = Math.ceil(globalMaxY / 1000000) * 1000000;
+  
+  const filtered = filterByAllTraits(results, filter);
+  
+  const getLuckRange = (key: string): [number, number] => {
+    const vals = results.map(r => r.luck[key as keyof typeof r.luck] as number);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const absMax = Math.max(Math.abs(min), Math.abs(max));
+    return [-absMax, absMax];
+  };
+
+  return (
+    <div className="space-y-3" data-testid="controlled-luck-grid">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Trait Filter:</span>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as OthersFilter)}
+          className="text-sm bg-background border border-border rounded px-2 py-1"
+          data-testid="luck-filter-dropdown"
+        >
+          <option value="low">{FILTER_LABELS.low}</option>
+          <option value="average">{FILTER_LABELS.average}</option>
+          <option value="high">{FILTER_LABELS.high}</option>
+        </select>
+        <span className="text-[10px] text-muted-foreground">n={filtered.length}</span>
+      </div>
+      
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+        {luckPlots.map(({ key, label, color }) => {
+          const [xMin, xMax] = getLuckRange(key);
+          return (
+            <div key={key} className="p-2 rounded-md bg-card border border-card-border">
+              <div className="text-xs font-medium text-center mb-1">{label}</div>
+              <ControlledScatterPlot 
+                results={filtered} 
+                xKey={key} 
+                xLabel={label} 
+                color={color} 
+                yMax={yMax}
+                xMin={xMin}
+                xMax={xMax}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

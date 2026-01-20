@@ -41,16 +41,27 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
 
   if (compact) {
     return (
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-testid="luck-analysis-compact">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" data-testid="luck-analysis-compact">
         <div className="flex items-center gap-1">
           <Sparkles className="h-3 w-3 text-chart-4" />
           <span className="text-muted-foreground">Luck:</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Dices className="h-3 w-3 text-chart-3" />
-          <span className="text-muted-foreground">Opp</span>
-          <span className={`font-mono font-medium ${getLuckColor(luck.opportunityLuckZ)}`}>
-            {formatZ(luck.opportunityLuckZ)}
+        <div className="flex items-center gap-0.5 text-[10px]">
+          <span className="text-muted-foreground">Edu</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.educationRollLuck)}`}>
+            {luck.educationRollLuck >= 0 ? '+' : ''}{luck.educationRollLuck.toFixed(1)}
+          </span>
+        </div>
+        <div className="flex items-center gap-0.5 text-[10px]">
+          <span className="text-muted-foreground">Career</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.careerRollLuck)}`}>
+            {luck.careerRollLuck >= 0 ? '+' : ''}{luck.careerRollLuck.toFixed(1)}
+          </span>
+        </div>
+        <div className="flex items-center gap-0.5 text-[10px]">
+          <span className="text-muted-foreground">Events</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.eventRollLuck)}`}>
+            {luck.eventRollLuck >= 0 ? '+' : ''}{luck.eventRollLuck.toFixed(1)}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -58,6 +69,13 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
           <span className="text-muted-foreground">Roll</span>
           <span className={`font-mono font-medium ${getLuckColor(luck.rollLuckZ)}`}>
             {formatZ(luck.rollLuckZ)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Dices className="h-3 w-3 text-chart-3" />
+          <span className="text-muted-foreground">Opp</span>
+          <span className={`font-mono font-medium ${getLuckColor(luck.opportunityLuckZ)}`}>
+            {formatZ(luck.opportunityLuckZ)}
           </span>
         </div>
         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-chart-4/10">
@@ -79,6 +97,41 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
           <span className="text-sm font-medium">Luck Analysis</span>
         </div>
         
+        <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Roll Luck</div>
+        <div className="grid grid-cols-3 gap-1">
+          <div className="flex flex-col items-center p-1.5 rounded bg-muted">
+            <span className="text-[10px] text-muted-foreground">Edu</span>
+            <span className={`font-mono text-xs font-bold ${getLuckColor(luck.educationRollLuck)}`}>
+              {luck.educationRollLuck >= 0 ? '+' : ''}{luck.educationRollLuck.toFixed(1)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-1.5 rounded bg-muted">
+            <span className="text-[10px] text-muted-foreground">Career</span>
+            <span className={`font-mono text-xs font-bold ${getLuckColor(luck.careerRollLuck)}`}>
+              {luck.careerRollLuck >= 0 ? '+' : ''}{luck.careerRollLuck.toFixed(1)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-1.5 rounded bg-muted">
+            <span className="text-[10px] text-muted-foreground">Events</span>
+            <span className={`font-mono text-xs font-bold ${getLuckColor(luck.eventRollLuck)}`}>
+              {luck.eventRollLuck >= 0 ? '+' : ''}{luck.eventRollLuck.toFixed(1)}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between p-2 rounded-md bg-muted">
+          <div className="flex items-center gap-1.5">
+            <Dices className="h-3 w-3 text-chart-1" />
+            <span className="text-xs text-muted-foreground">Combined Roll</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {getLuckIcon(luck.rollLuckZ)}
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.rollLuckZ)}`}>
+              {formatZ(luck.rollLuckZ)}
+            </span>
+          </div>
+        </div>
+        
         <div className="flex items-center justify-between p-2 rounded-md bg-muted">
           <div className="flex items-center gap-1.5">
             <Dices className="h-3 w-3 text-chart-3" />
@@ -92,23 +145,10 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
           </div>
         </div>
         
-        <div className="flex items-center justify-between p-2 rounded-md bg-muted">
-          <div className="flex items-center gap-1.5">
-            <Dices className="h-3 w-3 text-chart-1" />
-            <span className="text-xs text-muted-foreground">Roll Luck</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {getLuckIcon(luck.rollLuckZ)}
-            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.rollLuckZ)}`}>
-              {formatZ(luck.rollLuckZ)}
-            </span>
-          </div>
-        </div>
-        
         <div className="flex items-center justify-between p-2 rounded-md bg-chart-4/10 border border-chart-4/20">
           <div className="flex items-center gap-1.5">
             <Sigma className="h-3 w-3 text-chart-4" />
-            <span className="text-xs font-medium">Total Luck</span>
+            <span className="text-xs font-medium">Total Combined</span>
           </div>
           <div className="flex items-center gap-1">
             {getLuckIcon(luck.totalLuckZ)}
@@ -130,6 +170,42 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Roll Luck Breakdown</div>
+        
+        <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col items-center p-2 rounded-md bg-muted">
+            <span className="text-xs text-muted-foreground">Education</span>
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.educationRollLuck)}`} data-testid="luck-education">
+              {luck.educationRollLuck >= 0 ? '+' : ''}{luck.educationRollLuck.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-md bg-muted">
+            <span className="text-xs text-muted-foreground">Career</span>
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.careerRollLuck)}`} data-testid="luck-career">
+              {luck.careerRollLuck >= 0 ? '+' : ''}{luck.careerRollLuck.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-md bg-muted">
+            <span className="text-xs text-muted-foreground">Events</span>
+            <span className={`font-mono text-sm font-bold ${getLuckColor(luck.eventRollLuck)}`} data-testid="luck-events">
+              {luck.eventRollLuck >= 0 ? '+' : ''}{luck.eventRollLuck.toFixed(2)}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between p-3 rounded-md bg-muted">
+          <div className="flex items-center gap-2">
+            <Dices className="h-4 w-4 text-chart-1" />
+            <span className="text-sm text-muted-foreground">Combined Roll Luck</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {getLuckIcon(luck.rollLuckZ)}
+            <span className={`font-mono text-lg font-bold ${getLuckColor(luck.rollLuckZ)}`} data-testid="luck-roll">
+              {formatZ(luck.rollLuckZ)}
+            </span>
+          </div>
+        </div>
+        
         <div className="flex items-center justify-between p-3 rounded-md bg-muted">
           <div className="flex items-center gap-2">
             <Dices className="h-4 w-4 text-chart-3" />
@@ -143,23 +219,10 @@ export function LuckAnalysis({ luck, embedded = false, compact = false }: LuckAn
           </div>
         </div>
         
-        <div className="flex items-center justify-between p-3 rounded-md bg-muted">
-          <div className="flex items-center gap-2">
-            <Dices className="h-4 w-4 text-chart-1" />
-            <span className="text-sm text-muted-foreground">Roll Luck</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {getLuckIcon(luck.rollLuckZ)}
-            <span className={`font-mono text-lg font-bold ${getLuckColor(luck.rollLuckZ)}`} data-testid="luck-roll">
-              {formatZ(luck.rollLuckZ)}
-            </span>
-          </div>
-        </div>
-        
         <div className="flex items-center justify-between p-3 rounded-md bg-chart-4/10 border border-chart-4/20">
           <div className="flex items-center gap-2">
             <Sigma className="h-4 w-4 text-chart-4" />
-            <span className="text-sm font-medium">Total Luck</span>
+            <span className="text-sm font-medium">Total Combined Luck</span>
           </div>
           <div className="flex items-center gap-1">
             {getLuckIcon(luck.totalLuckZ)}

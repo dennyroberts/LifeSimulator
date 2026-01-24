@@ -111,7 +111,7 @@ export function TraitDisplay({ traits, compact }: TraitDisplayProps) {
   
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5 font-mono text-xs whitespace-nowrap" data-testid="trait-display-compact">
+      <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-[10px] sm:text-xs flex-wrap" data-testid="trait-display-compact">
         {TRAIT_ORDER.map((trait, i) => {
           const value = traits[trait];
           return (

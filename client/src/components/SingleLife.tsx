@@ -503,9 +503,9 @@ export function SingleLife() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 pb-3 border-b">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border">
+              <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 mb-4 pb-3 border-b">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border shrink-0">
                     <AvatarImage
                       src={`/api/avatar/${avatarKey}`}
                       alt="Agent avatar"
@@ -514,38 +514,38 @@ export function SingleLife() {
                       {result.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-xs text-muted-foreground">Agent</div>
-                    <div className="text-lg font-bold" data-testid="result-agent-name">
+                    <div className="text-base sm:text-lg font-bold truncate max-w-[120px] sm:max-w-none" data-testid="result-agent-name">
                       {result.name}
                     </div>
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Peak Salary</div>
-                  <div className="text-lg font-mono font-bold text-chart-4" data-testid="result-peak-income">
+                  <div className="text-xs text-muted-foreground">Peak</div>
+                  <div className="text-sm sm:text-lg font-mono font-bold text-chart-4" data-testid="result-peak-income">
                     {formatCurrency(result.peakIncome)}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div>
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                       <Coins className="h-3 w-3" />
                       Lifetime
                     </div>
-                    <div className="text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
+                    <div className="text-sm sm:text-lg font-mono font-bold text-chart-2" data-testid="result-lifetime-earnings">
                       {formatCurrency(result.lifetimeEarnings)}
                     </div>
                   </div>
                   <div className="flex items-end gap-1">
                     <div 
-                      className={`text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
+                      className={`text-4xl sm:text-6xl font-bold ${getLifetimeGrade(result.lifetimeEarnings).color}`}
                       data-testid="result-lifetime-grade"
                     >
                       {getLifetimeGrade(result.lifetimeEarnings).grade}
                     </div>
                     {bestResult && worstResult && (
-                      <div className="flex flex-col text-xs font-bold mb-1 gap-0.5">
+                      <div className="flex flex-col text-[10px] sm:text-xs font-bold mb-1 gap-0.5">
                         <span 
                           className={getLifetimeGrade(bestResult.lifetimeEarnings).color}
                           data-testid="result-best-grade"
@@ -564,7 +564,7 @@ export function SingleLife() {
                     )}
                   </div>
                 </div>
-                <div className="lg:ml-auto">
+                <div className="w-full sm:w-auto sm:ml-auto">
                   <div className="text-xs text-muted-foreground mb-1">Traits</div>
                   <TraitDisplay traits={result.traits} compact />
                 </div>

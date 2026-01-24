@@ -494,31 +494,31 @@ function AgentCard({ agentData, rank, isTop = false }: {
             {rank}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-semibold truncate">{actual.name}</span>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <span className="font-semibold truncate max-w-[120px] sm:max-w-none">{actual.name}</span>
               <div className="flex items-center gap-1">
-                <span className={`text-3xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
-                <div className="flex flex-col text-xs font-bold leading-tight">
+                <span className={`text-2xl sm:text-3xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
+                <div className="flex flex-col text-[10px] sm:text-xs font-bold leading-tight">
                   <span className={bestGrade.color} title="Best possible">{bestGrade.grade}</span>
                   <span className={worstGrade.color} title="Worst possible">{worstGrade.grade}</span>
                 </div>
               </div>
-              <span className={`text-xl font-mono font-bold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
+              <span className={`text-base sm:text-xl font-mono font-bold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
                 {formatCurrency(actual.lifetimeEarnings)}
               </span>
             </div>
             <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
               <TraitDisplay traits={actual.traits} compact />
             </div>
-            <div className="flex items-center gap-4 mt-1 text-xs">
+            <div className="flex items-center gap-x-4 gap-y-1 mt-1 text-xs flex-wrap">
               {careerName && (
                 <span className="text-muted-foreground">
-                  Career: <span className="text-foreground font-medium">{careerName}</span>
+                  Career: <span className="text-foreground font-medium truncate">{careerName}</span>
                 </span>
               )}
               {actual.aspiration && (
                 <span className="text-muted-foreground">
-                  Aspired: <span className="text-foreground">{actual.aspiration}</span>
+                  Aspired: <span className="text-foreground truncate">{actual.aspiration}</span>
                 </span>
               )}
               <Button

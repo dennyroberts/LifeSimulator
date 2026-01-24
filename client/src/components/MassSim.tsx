@@ -297,9 +297,9 @@ export function MassSim() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Range</div>
-                <div className="text-lg font-mono">
+                <div className="text-base sm:text-lg font-mono flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-1">
                   <span className="text-destructive">{formatCurrency(stats.min)}</span>
-                  <span className="text-muted-foreground mx-1">→</span>
+                  <span className="text-muted-foreground hidden sm:inline">→</span>
                   <span className="text-chart-2">{formatCurrency(stats.max)}</span>
                 </div>
               </CardContent>
@@ -488,37 +488,41 @@ function AgentCard({ agentData, rank, isTop = false }: {
 
   return (
     <Card className="p-3" data-testid={`agent-card-${isTop ? 'top' : 'bottom'}-${rank}`}>
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start gap-3">
+      <div className="flex flex-col gap-2 sm:gap-3">
+        {/* Mobile: Stacked header with name, grade, earnings */}
+        <div className="flex items-start gap-2 sm:gap-3">
           <div className="text-lg font-mono text-muted-foreground w-6 shrink-0">
             {rank}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <span className="font-semibold truncate max-w-[120px] sm:max-w-none">{actual.name}</span>
+            {/* Row 1: Name + Grade + Earnings */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold">{actual.name}</span>
               <div className="flex items-center gap-1">
-                <span className={`text-2xl sm:text-3xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
-                <div className="flex flex-col text-[10px] sm:text-xs font-bold leading-tight">
+                <span className={`text-xl sm:text-2xl font-bold ${actualGrade.color}`}>{actualGrade.grade}</span>
+                <div className="flex flex-col text-[9px] sm:text-[10px] font-bold leading-tight">
                   <span className={bestGrade.color} title="Best possible">{bestGrade.grade}</span>
                   <span className={worstGrade.color} title="Worst possible">{worstGrade.grade}</span>
                 </div>
               </div>
-              <span className={`text-base sm:text-xl font-mono font-bold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
+              <span className={`text-sm sm:text-lg font-mono font-bold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
                 {formatCurrency(actual.lifetimeEarnings)}
               </span>
             </div>
-            <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
+            {/* Row 2: Traits */}
+            <div className="mt-1">
               <TraitDisplay traits={actual.traits} compact />
             </div>
-            <div className="flex items-center gap-x-4 gap-y-1 mt-1 text-xs flex-wrap">
+            {/* Row 3: Career + Bio button */}
+            <div className="flex items-center gap-x-3 gap-y-1 mt-1 text-xs flex-wrap">
               {careerName && (
                 <span className="text-muted-foreground">
-                  Career: <span className="text-foreground font-medium truncate">{careerName}</span>
+                  Career: <span className="text-foreground font-medium">{careerName}</span>
                 </span>
               )}
               {actual.aspiration && (
                 <span className="text-muted-foreground">
-                  Aspired: <span className="text-foreground truncate">{actual.aspiration}</span>
+                  Aspired: <span className="text-foreground">{actual.aspiration}</span>
                 </span>
               )}
               <Button
@@ -538,7 +542,8 @@ function AgentCard({ agentData, rank, isTop = false }: {
               </Button>
             </div>
           </div>
-          <div className="text-right shrink-0 space-y-1">
+          {/* Luck section - hidden on mobile, show inline on desktop */}
+          <div className="hidden sm:block text-right shrink-0 space-y-1">
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <Clover className="h-3 w-3 text-chart-2" />
               <span>Luck</span>
@@ -563,6 +568,30 @@ function AgentCard({ agentData, rank, isTop = false }: {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        {/* Mobile luck row - compact horizontal */}
+        <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2">
+          <Clover className="h-3 w-3 text-chart-2 shrink-0" />
+          <div className="flex items-center gap-3 font-mono">
+            <span>
+              <span className="text-muted-foreground">Edu:</span>
+              <span className={actual.luck.educationRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {formatEV(actual.luck.educationRollLuck)}
+              </span>
+            </span>
+            <span>
+              <span className="text-muted-foreground">Car:</span>
+              <span className={actual.luck.careerRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {formatEV(actual.luck.careerRollLuck)}
+              </span>
+            </span>
+            <span>
+              <span className="text-muted-foreground">Evt:</span>
+              <span className={actual.luck.eventRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {formatEV(actual.luck.eventRollLuck)}
+              </span>
+            </span>
           </div>
         </div>
         
@@ -602,25 +631,36 @@ const rarityColors: Record<string, string> = {
 function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   return (
     <div className="relative" data-testid="mini-timeline">
-      <div className="relative h-6 mb-1">
-        <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-border" />
-        <div className="flex justify-between">
-          {stages.map((stage) => {
-            const age = stageToAge(stage.stage);
-            return (
-              <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-0.5">
-                <div className="text-[10px] text-muted-foreground font-mono leading-tight">{age}</div>
-                <div className="w-2 h-2 rounded-full bg-chart-1 border border-background" />
-              </div>
-            );
-          })}
+      {/* Desktop: horizontal layout */}
+      <div className="hidden sm:block">
+        <div className="relative h-6 mb-1">
+          <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-border" />
+          <div className="flex justify-between">
+            {stages.map((stage) => {
+              const age = stageToAge(stage.stage);
+              return (
+                <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-0.5">
+                  <div className="text-[10px] text-muted-foreground font-mono leading-tight">{age}</div>
+                  <div className="w-2 h-2 rounded-full bg-chart-1 border border-background" />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex gap-1">
+          {stages.map((stage) => (
+            <MiniEventCard key={stage.stage} stage={stage} />
+          ))}
         </div>
       </div>
       
-      <div className="flex gap-1">
-        {stages.map((stage) => (
-          <MiniEventCard key={stage.stage} stage={stage} />
-        ))}
+      {/* Mobile: compact stacked layout */}
+      <div className="sm:hidden">
+        <div className="flex flex-wrap gap-1">
+          {stages.map((stage) => (
+            <MiniEventCardCompact key={stage.stage} stage={stage} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -807,6 +847,84 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
           </PopoverContent>
         </Popover>
       </div>
+    );
+  }
+  
+  return null;
+}
+
+// Compact version for mobile - just shows icons and key info
+function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] }) {
+  const age = stageToAge(stage.stage);
+  
+  if (stage.isEducation && stage.education) {
+    const edu = stage.education;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div 
+            className="p-1 rounded text-[9px] border cursor-pointer bg-chart-1/10 border-chart-1/20 flex items-center gap-1"
+            data-testid={`mini-compact-${stage.stage}`}
+          >
+            <GraduationCap className="h-3 w-3 text-chart-1 shrink-0" />
+            <span className="font-mono text-muted-foreground">{age}</span>
+            <span className="truncate max-w-[50px]">{edu.label}</span>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+          <DetailedCard stage={stage} />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+  
+  if (stage.isCareer && stage.career) {
+    const career = stage.career;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div 
+            className="p-1 rounded text-[9px] border cursor-pointer bg-chart-3/10 border-chart-3/20 flex items-center gap-1"
+            data-testid={`mini-compact-${stage.stage}`}
+          >
+            <Briefcase className="h-3 w-3 text-chart-3 shrink-0" />
+            <span className="font-mono text-muted-foreground">{age}</span>
+            <span className="truncate max-w-[50px]">{career.career.name}</span>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+          <DetailedCard stage={stage} />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+  
+  if (stage.eventOutcome) {
+    const outcome = stage.eventOutcome;
+    const event = outcome.event;
+    const Icon = getEventIcon(event?.icon);
+    const success = outcome.success;
+    
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div 
+            className={`p-1 rounded text-[9px] border cursor-pointer flex items-center gap-1 ${
+              success ? 'bg-chart-2/10 border-chart-2/20' : 'bg-destructive/10 border-destructive/20'
+            }`}
+            data-testid={`mini-compact-${stage.stage}`}
+          >
+            <Icon className={`h-3 w-3 shrink-0 ${success ? 'text-chart-2' : 'text-destructive'}`} />
+            <span className="font-mono text-muted-foreground">{age}</span>
+            <span className={`${success ? 'text-chart-2' : 'text-destructive'}`}>
+              {success ? 'Pass' : 'Fail'}
+            </span>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+          <DetailedCard stage={stage} />
+        </PopoverContent>
+      </Popover>
     );
   }
   
@@ -1190,7 +1308,7 @@ function CohortPanel({
               setCohortName(e.target.value);
               setHasUnsavedChanges(true);
             }}
-            className="flex-1 text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1 min-w-0"
+            className="w-16 sm:w-auto sm:flex-1 text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1 min-w-0"
             data-testid={`cohort-name-${id}`}
           />
           <div className="flex items-center gap-1 shrink-0">

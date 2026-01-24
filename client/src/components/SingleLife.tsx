@@ -637,15 +637,17 @@ export function SingleLife() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Life Timeline</h2>
             <Tabs value={timelineView} onValueChange={(v) => setTimelineView(v as 'actual' | 'best' | 'worst')} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="actual" data-testid="tab-actual">
-                  Actual Life
+              <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
+                <TabsTrigger value="actual" data-testid="tab-actual" className="text-xs sm:text-sm px-1 sm:px-3 py-1.5">
+                  Actual
                 </TabsTrigger>
-                <TabsTrigger value="best" data-testid="tab-best" className="text-chart-2">
-                  Best Possible (All 19s)
+                <TabsTrigger value="best" data-testid="tab-best" className="text-chart-2 text-xs sm:text-sm px-1 sm:px-3 py-1.5">
+                  <span className="hidden sm:inline">Best Possible</span>
+                  <span className="sm:hidden">Best</span>
                 </TabsTrigger>
-                <TabsTrigger value="worst" data-testid="tab-worst" className="text-destructive">
-                  Worst Possible (All 2s)
+                <TabsTrigger value="worst" data-testid="tab-worst" className="text-destructive text-xs sm:text-sm px-1 sm:px-3 py-1.5">
+                  <span className="hidden sm:inline">Worst Possible</span>
+                  <span className="sm:hidden">Worst</span>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="actual">

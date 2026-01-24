@@ -35,15 +35,15 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
         return (
           <div
             key={trait}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50 border"
+            className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-2 py-1.5 rounded-md bg-muted/50 border"
             data-testid={`trait-card-${trait.toLowerCase()}`}
           >
-            <div className="w-28 shrink-0">
+            <div className="w-20 sm:w-28 shrink-0">
               <span className="font-bold text-xs">{name}</span>
-              <span className="text-[10px] text-muted-foreground ml-1">{description}</span>
+              <span className="text-[10px] text-muted-foreground ml-1 hidden sm:inline">{description}</span>
             </div>
             
-            <div className="flex items-center gap-1 ml-auto">
+            <div className="flex items-center gap-0.5 sm:gap-1 ml-auto">
               <Button
                 variant="outline"
                 size="icon"
@@ -55,7 +55,7 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
                 <Minus className="h-2.5 w-2.5" />
               </Button>
               
-              <div className="w-8 text-center">
+              <div className="w-6 sm:w-8 text-center">
                 <div className="font-mono font-bold text-sm" data-testid={`value-${trait.toLowerCase()}`}>
                   {value}
                 </div>
@@ -72,8 +72,8 @@ export function TraitInput({ traits, onChange, disabled }: TraitInputProps) {
                 <Plus className="h-2.5 w-2.5" />
               </Button>
               
-              <div className="w-10 text-center">
-                <span className={`font-mono text-sm font-semibold ${mod >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+              <div className="w-8 sm:w-10 text-center">
+                <span className={`font-mono text-xs sm:text-sm font-semibold ${mod >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
                   ({modStr})
                 </span>
               </div>

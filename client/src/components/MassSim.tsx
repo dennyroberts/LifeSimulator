@@ -654,13 +654,9 @@ function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
         </div>
       </div>
       
-      {/* Mobile: compact stacked layout */}
+      {/* Mobile: snaking timeline with connecting lines */}
       <div className="sm:hidden">
-        <div className="flex flex-wrap gap-1">
-          {stages.map((stage) => (
-            <MiniEventCardCompact key={stage.stage} stage={stage} />
-          ))}
-        </div>
+        <SnakingTimeline stages={stages} />
       </div>
     </div>
   );
@@ -931,6 +927,79 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
   return null;
 }
 
+
+// Snaking timeline for mobile - creates a visual snake pattern with connecting lines
+function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
+  const itemsPerRow = 3;
+  const rows: SimulationResult['stages'][] = [];
+  
+  for (let i = 0; i < stages.length; i += itemsPerRow) {
+    const row = stages.slice(i, i + itemsPerRow);
+    const rowIndex = Math.floor(i / itemsPerRow);
+    // Reverse every other row to create snake pattern
+    if (rowIndex % 2 === 1) {
+      row.reverse();
+    }
+    rows.push(row);
+  }
+  
+  return (
+    <div className="relative">
+      {rows.map((row, rowIndex) => {
+        const isReversed = rowIndex % 2 === 1;
+        const isLastRow = rowIndex === rows.length - 1;
+        
+        return (
+          <div key={rowIndex} className="relative">
+            {/* Row of items */}
+            <div className={`flex gap-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
+              {row.map((stage, itemIndex) => {
+                const isFirstInRow = itemIndex === 0;
+                const isLastInRow = itemIndex === row.length - 1;
+                
+                return (
+                  <div key={stage.stage} className="flex-1 relative">
+                    {/* Horizontal connector line (between items in same row) */}
+                    {!isFirstInRow && (
+                      <div 
+                        className={`absolute top-1/2 h-0.5 bg-border z-0 ${
+                          isReversed ? 'right-full w-1' : 'left-0 w-1 -translate-x-1'
+                        }`}
+                        style={{ transform: 'translateY(-50%)' }}
+                      />
+                    )}
+                    <MiniEventCardCompact stage={stage} />
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Vertical connector to next row */}
+            {!isLastRow && (
+              <div className="flex justify-end py-0.5">
+                <div 
+                  className={`w-0.5 h-2 bg-border ${
+                    isReversed ? 'ml-2' : 'mr-2'
+                  }`}
+                  style={{ marginLeft: isReversed ? '8px' : 'auto', marginRight: isReversed ? 'auto' : '8px' }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+      
+      {/* Snake path overlay using SVG */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+        <defs>
+          <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4">
+            <circle cx="5" cy="5" r="3" className="fill-chart-1" />
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  );
+}
 
 const careerList = [
   'Food Service', 'Retail', 'Construction', 'Truck Driver', 'Healthcare',
@@ -1292,15 +1361,8 @@ function CohortPanel({
   return (
     <Card data-testid={`cohort-panel-${id}`}>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between gap-2">
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 hover-elevate rounded p-1 -ml-1 shrink-0"
-            data-testid={`toggle-cohort-${id}`}
-          >
-            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <Filter className="h-4 w-4" />
-          </button>
+        <div className="flex flex-col gap-2">
+          {/* Row 1: Cohort name (full width) */}
           <input
             type="text"
             value={cohortName}
@@ -1308,10 +1370,21 @@ function CohortPanel({
               setCohortName(e.target.value);
               setHasUnsavedChanges(true);
             }}
-            className="w-16 sm:w-auto sm:flex-1 text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1 min-w-0"
+            className="text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1"
             data-testid={`cohort-name-${id}`}
           />
-          <div className="flex items-center gap-1 shrink-0">
+          {/* Row 2: Toggle + action buttons */}
+          <div className="flex items-center justify-between gap-2">
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 hover-elevate rounded p-1 -ml-1 shrink-0"
+              data-testid={`toggle-cohort-${id}`}
+            >
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              <Filter className="h-4 w-4" />
+              <span className="text-xs text-muted-foreground">{isExpanded ? 'Hide filters' : 'Show filters'}</span>
+            </button>
+            <div className="flex items-center gap-1 shrink-0">
             {savedSearches.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -1383,6 +1456,7 @@ function CohortPanel({
                 <X className="h-3 w-3" />
               </Button>
             )}
+            </div>
           </div>
         </div>
         

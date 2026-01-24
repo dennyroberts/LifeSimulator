@@ -51,6 +51,7 @@ type AgentCount = 1000 | 10000 | 50000 | 100000 | 500000;
 export function MassSim() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [sameDeck, setSameDeck] = useState(false);
+  const [aspirationsEnabled, setAspirationsEnabled] = useState(true);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
   const [agentCount, setAgentCount] = useState<AgentCount>(10000);
@@ -96,7 +97,8 @@ export function MassSim() {
         batchCount,
         worldMode,
         `${currentSeed}|batch${i}`,
-        sameDeck
+        sameDeck,
+        aspirationsEnabled
       );
       
       batchResults.forEach((r) => {
@@ -216,16 +218,29 @@ export function MassSim() {
               </p>
             </div>
             
-            <div className="flex items-center space-x-3 pt-7">
-              <Switch
-                id="same-deck-mass"
-                checked={sameDeck}
-                onCheckedChange={setSameDeck}
-                data-testid="switch-same-deck-mass"
-              />
-              <Label htmlFor="same-deck-mass" className="cursor-pointer">
-                Same deck
-              </Label>
+            <div className="flex flex-col gap-2 pt-7">
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="same-deck-mass"
+                  checked={sameDeck}
+                  onCheckedChange={setSameDeck}
+                  data-testid="switch-same-deck-mass"
+                />
+                <Label htmlFor="same-deck-mass" className="cursor-pointer">
+                  Same deck
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="aspirations-enabled"
+                  checked={aspirationsEnabled}
+                  onCheckedChange={setAspirationsEnabled}
+                  data-testid="switch-aspirations"
+                />
+                <Label htmlFor="aspirations-enabled" className="cursor-pointer">
+                  Career aspirations
+                </Label>
+              </div>
             </div>
           </div>
           

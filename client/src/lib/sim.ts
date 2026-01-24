@@ -1092,7 +1092,8 @@ export function runMassSimulation(
   numAgents: number,
   worldMode: WorldMode,
   seed: string,
-  sameDeck: boolean
+  sameDeck: boolean,
+  aspirationsEnabled: boolean = true
 ): SimulationResult[] {
   const masterRng = createRng(seed);
   
@@ -1111,7 +1112,7 @@ export function runMassSimulation(
     const agentSeedRng = createRng(`${seed}|agent${i}|init`);
     const traits = generateRandomTraits(agentSeedRng);
     const name = generateRandomName(agentSeedRng);
-    const aspiration = generateRandomAspiration(agentSeedRng);
+    const aspiration = aspirationsEnabled ? generateRandomAspiration(agentSeedRng) : null;
     
     const agent: Agent = { name, traits, index: i, aspiration };
     const result = simulateLife(agent, worldMode, seed, sameDeck, sharedEvents);

@@ -980,27 +980,21 @@ function RangeSliderFilter({
               style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
             />
           </div>
-          {/* Number inputs */}
+          {/* Text inputs */}
           <div className="flex items-center justify-between gap-2">
             <input
-              type="number"
+              type="text"
               value={range[0]}
               onChange={(e) => handleMinChange(e.target.value)}
-              min={min}
-              max={range[1]}
-              step={step}
-              className="w-16 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
+              className="w-12 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
               data-testid={`input-min-${filterId}`}
             />
             <span className="text-[10px] text-muted-foreground">to</span>
             <input
-              type="number"
+              type="text"
               value={range[1]}
               onChange={(e) => handleMaxChange(e.target.value)}
-              min={range[0]}
-              max={max}
-              step={step}
-              className="w-16 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
+              className="w-12 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
               data-testid={`input-max-${filterId}`}
             />
           </div>

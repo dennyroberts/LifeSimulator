@@ -446,10 +446,10 @@ function AgentTable({ agents, isTop, worldMode, seed }: {
   );
 }
 
-function AgentCard({ agentData, rank, isTop }: { 
+function AgentCard({ agentData, rank, isTop = false }: { 
   agentData: AgentWithScenarios; 
   rank: number;
-  isTop: boolean;
+  isTop?: boolean;
 }) {
   const { actual, best, worst } = agentData;
   const actualGrade = getLifetimeGrade(actual.lifetimeEarnings);
@@ -838,6 +838,8 @@ interface CohortFilters {
   careerLuckAny: boolean;
   eventLuckRange: [number, number];
   eventLuckAny: boolean;
+  oppLuckRange: [number, number];
+  oppLuckAny: boolean;
   profession: string;
 }
 
@@ -859,9 +861,10 @@ const defaultFilters: CohortFilters = {
   charRange: [9, 11], charAny: false,
   riskRange: [9, 11], riskAny: false,
   totalRange: [10, 100], totalAny: true,
-  eduLuckRange: [-1, 1], eduLuckAny: true,
-  careerLuckRange: [-1, 1], careerLuckAny: true,
-  eventLuckRange: [-1, 1], eventLuckAny: true,
+  eduLuckRange: [-0.5, 0.5], eduLuckAny: true,
+  careerLuckRange: [-0.5, 0.5], careerLuckAny: true,
+  eventLuckRange: [-0.5, 0.5], eventLuckAny: true,
+  oppLuckRange: [-500000, 500000], oppLuckAny: true,
   profession: 'any',
 };
 
@@ -898,6 +901,7 @@ function formatFilterSummary(filters: CohortFilters): string {
   if (!filters.eduLuckAny) parts.push(`EduLuck:${filters.eduLuckRange[0]}~${filters.eduLuckRange[1]}`);
   if (!filters.careerLuckAny) parts.push(`CareerLuck:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
   if (!filters.eventLuckAny) parts.push(`EventLuck:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
+  if (!filters.oppLuckAny) parts.push(`OppLuck:${(filters.oppLuckRange[0]/1000).toFixed(0)}K~${(filters.oppLuckRange[1]/1000).toFixed(0)}K`);
   if (filters.profession !== 'any') parts.push(`Career:${filters.profession}`);
   
   return parts.length > 0 ? parts.join(' | ') : 'All agents (no filters)';
@@ -1036,10 +1040,23 @@ function CohortPanel({
   const [cohortName, setCohortName] = useState(`Cohort ${id}`);
   const [filters, setFilters] = useState<CohortFilters>({ ...defaultFilters });
   const [matchingAgents, setMatchingAgents] = useState<SimulationResult[]>([]);
+  const [allFilteredAgents, setAllFilteredAgents] = useState<SimulationResult[]>([]);
   const [cohortStats, setCohortStats] = useState<CohortStats | null>(null);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => loadSavedSearches());
   const [loadedSearchId, setLoadedSearchId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // Helper to get random sample from array
+  const getRandomSample = <T,>(arr: T[], n: number): T[] => {
+    if (arr.length <= n) return [...arr];
+    const shuffled = [...arr].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, n);
+  };
+  
+  const handleRefreshSample = () => {
+    const randomFive = getRandomSample(allFilteredAgents, 5);
+    setMatchingAgents(randomFive);
+  };
   
   const updateFilter = <K extends keyof CohortFilters>(key: K, value: CohortFilters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -1060,6 +1077,7 @@ function CohortPanel({
       if (!filters.eduLuckAny && (agent.luck.educationRollLuck < filters.eduLuckRange[0] || agent.luck.educationRollLuck > filters.eduLuckRange[1])) return false;
       if (!filters.careerLuckAny && (agent.luck.careerRollLuck < filters.careerLuckRange[0] || agent.luck.careerRollLuck > filters.careerLuckRange[1])) return false;
       if (!filters.eventLuckAny && (agent.luck.eventRollLuck < filters.eventLuckRange[0] || agent.luck.eventRollLuck > filters.eventLuckRange[1])) return false;
+      if (!filters.oppLuckAny && (agent.luck.opportunityLuck < filters.oppLuckRange[0] || agent.luck.opportunityLuck > filters.oppLuckRange[1])) return false;
       
       if (filters.profession !== 'any') {
         const careerStage = agent.stages.find(s => s.career);
@@ -1070,9 +1088,10 @@ function CohortPanel({
       return true;
     });
     
-    const sortedFiltered = [...filtered].sort((a, b) => b.lifetimeEarnings - a.lifetimeEarnings);
-    const displayAgents = sortedFiltered.slice(0, 5);
-    setMatchingAgents(displayAgents);
+    // Store all filtered agents and pick 5 random ones
+    setAllFilteredAgents(filtered);
+    const randomFive = getRandomSample(filtered, 5);
+    setMatchingAgents(randomFive);
     
     if (filtered.length > 0) {
       const avgEarnings = filtered.reduce((sum, a) => sum + a.lifetimeEarnings, 0) / filtered.length;
@@ -1102,6 +1121,7 @@ function CohortPanel({
   const handleClear = () => {
     setFilters({ ...defaultFilters });
     setMatchingAgents([]);
+    setAllFilteredAgents([]);
     setCohortStats(null);
     setLoadedSearchId(null);
     setHasUnsavedChanges(false);
@@ -1341,9 +1361,9 @@ function CohortPanel({
                 setRange={(r) => updateFilter('eduLuckRange', r)}
                 isAny={filters.eduLuckAny}
                 setIsAny={(v) => updateFilter('eduLuckAny', v)}
-                min={-10}
-                max={10}
-                formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+                min={-1}
+                max={1}
+                step={0.1}
               />
               <RangeSliderFilter
                 label="Job Luck"
@@ -1352,9 +1372,9 @@ function CohortPanel({
                 setRange={(r) => updateFilter('careerLuckRange', r)}
                 isAny={filters.careerLuckAny}
                 setIsAny={(v) => updateFilter('careerLuckAny', v)}
-                min={-10}
-                max={10}
-                formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+                min={-1}
+                max={1}
+                step={0.1}
               />
               <RangeSliderFilter
                 label="Evt Luck"
@@ -1363,9 +1383,20 @@ function CohortPanel({
                 setRange={(r) => updateFilter('eventLuckRange', r)}
                 isAny={filters.eventLuckAny}
                 setIsAny={(v) => updateFilter('eventLuckAny', v)}
-                min={-10}
-                max={10}
-                formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+                min={-1}
+                max={1}
+                step={0.1}
+              />
+              <RangeSliderFilter
+                label="Opp Luck"
+                filterId={`opp-luck-${id}`}
+                range={filters.oppLuckRange}
+                setRange={(r) => updateFilter('oppLuckRange', r)}
+                isAny={filters.oppLuckAny}
+                setIsAny={(v) => updateFilter('oppLuckAny', v)}
+                min={-1000000}
+                max={1000000}
+                step={50000}
               />
               <div className="flex items-center gap-2">
                 <Label className="text-xs font-medium shrink-0 w-14">Career</Label>
@@ -1418,15 +1449,28 @@ function CohortPanel({
           
           {matchingAgents.length > 0 && (
             <div className="space-y-3 pt-2">
-              <div className="text-sm font-medium text-muted-foreground">
-                Top {matchingAgents.length} of {cohortStats?.count.toLocaleString()} matching agents (by earnings)
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium text-muted-foreground">
+                  {matchingAgents.length} random agents from {cohortStats?.count.toLocaleString()} matches
+                </div>
+                {allFilteredAgents.length > 5 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRefreshSample}
+                    className="h-7 text-xs gap-1"
+                    data-testid={`refresh-sample-${id}`}
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Show different 5
+                  </Button>
+                )}
               </div>
               {agentsWithScenarios.map((agentData, i) => (
                 <AgentCard 
                   key={i} 
                   agentData={agentData} 
                   rank={i + 1}
-                  isTop={true}
                 />
               ))}
             </div>

@@ -928,13 +928,16 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
 }
 
 
-// Snaking timeline for mobile - creates a visual snake pattern with connecting lines
+// Snaking timeline for mobile - shows a curved line with dots above event cards
 function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   const itemsPerRow = 3;
-  const rows: SimulationResult['stages'][] = [];
+  const rows: { stage: SimulationResult['stages'][0]; originalIndex: number }[][] = [];
   
   for (let i = 0; i < stages.length; i += itemsPerRow) {
-    const row = stages.slice(i, i + itemsPerRow);
+    const row = stages.slice(i, i + itemsPerRow).map((stage, idx) => ({
+      stage,
+      originalIndex: i + idx
+    }));
     const rowIndex = Math.floor(i / itemsPerRow);
     // Reverse every other row to create snake pattern
     if (rowIndex % 2 === 1) {
@@ -950,55 +953,132 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
         const isLastRow = rowIndex === rows.length - 1;
         
         return (
-          <div key={rowIndex} className="relative">
-            {/* Row of items */}
-            <div className={`flex gap-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
-              {row.map((stage, itemIndex) => {
-                const isFirstInRow = itemIndex === 0;
-                const isLastInRow = itemIndex === row.length - 1;
-                
-                return (
-                  <div key={stage.stage} className="flex-1 relative">
-                    {/* Horizontal connector line (between items in same row) */}
-                    {!isFirstInRow && (
-                      <div 
-                        className={`absolute top-1/2 h-0.5 bg-border z-0 ${
-                          isReversed ? 'right-full w-1' : 'left-0 w-1 -translate-x-1'
-                        }`}
-                        style={{ transform: 'translateY(-50%)' }}
-                      />
-                    )}
-                    <MiniEventCardCompact stage={stage} />
-                  </div>
-                );
-              })}
+          <div key={rowIndex} className="relative mb-1">
+            {/* Timeline rail with dots */}
+            <div className="relative h-5 mb-1">
+              {/* Horizontal line */}
+              <div className="absolute top-2 left-2 right-2 h-0.5 bg-border" />
+              
+              {/* Dots for each event */}
+              <div className={`flex justify-between px-2 ${isReversed ? 'flex-row-reverse' : ''}`}>
+                {row.map(({ stage, originalIndex }, itemIndex) => {
+                  const age = stageToAge(stage.stage);
+                  return (
+                    <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-1">
+                      <div className="text-[9px] text-muted-foreground font-mono">{age}</div>
+                      <div className="w-2 h-2 rounded-full bg-chart-1 border border-background" />
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Curved connector to next row */}
+              {!isLastRow && (
+                <div 
+                  className={`absolute -bottom-1 w-3 h-3 border-b-2 border-border ${
+                    isReversed 
+                      ? 'left-1 border-l-2 rounded-bl-lg' 
+                      : 'right-1 border-r-2 rounded-br-lg'
+                  }`}
+                />
+              )}
             </div>
             
-            {/* Vertical connector to next row */}
-            {!isLastRow && (
-              <div className="flex justify-end py-0.5">
-                <div 
-                  className={`w-0.5 h-2 bg-border ${
-                    isReversed ? 'ml-2' : 'mr-2'
-                  }`}
-                  style={{ marginLeft: isReversed ? '8px' : 'auto', marginRight: isReversed ? 'auto' : '8px' }}
-                />
-              </div>
-            )}
+            {/* Event cards */}
+            <div className={`flex gap-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
+              {row.map(({ stage }) => (
+                <MiniEventCardWithName key={stage.stage} stage={stage} />
+              ))}
+            </div>
           </div>
         );
       })}
-      
-      {/* Snake path overlay using SVG */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
-        <defs>
-          <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4">
-            <circle cx="5" cy="5" r="3" className="fill-chart-1" />
-          </marker>
-        </defs>
-      </svg>
     </div>
   );
+}
+
+// Compact event card that shows the event name
+function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0] }) {
+  const age = stageToAge(stage.stage);
+  
+  if (stage.isEducation && stage.education) {
+    const edu = stage.education;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div 
+            className="flex-1 p-1.5 rounded text-[9px] border cursor-pointer bg-chart-1/10 border-chart-1/20"
+            data-testid={`mini-named-${stage.stage}`}
+          >
+            <div className="flex items-center gap-1 mb-0.5">
+              <GraduationCap className="h-3 w-3 text-chart-1 shrink-0" />
+              <span className="font-medium truncate">Education</span>
+            </div>
+            <div className="text-muted-foreground truncate">{edu.label}</div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+          <DetailedCard stage={stage} />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+  
+  if (stage.isCareer && stage.career) {
+    const career = stage.career;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div 
+            className="flex-1 p-1.5 rounded text-[9px] border cursor-pointer bg-chart-3/10 border-chart-3/20"
+            data-testid={`mini-named-${stage.stage}`}
+          >
+            <div className="flex items-center gap-1 mb-0.5">
+              <Briefcase className="h-3 w-3 text-chart-3 shrink-0" />
+              <span className="font-medium truncate">Career</span>
+            </div>
+            <div className="text-muted-foreground truncate">{career.career.name}</div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+          <DetailedCard stage={stage} />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+  
+  if (stage.eventOutcome) {
+    const outcome = stage.eventOutcome;
+    const event = outcome.event;
+    const Icon = getEventIcon(event?.icon);
+    const success = outcome.success;
+    
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <div 
+            className={`flex-1 p-1.5 rounded text-[9px] border cursor-pointer ${
+              success ? 'bg-chart-2/10 border-chart-2/20' : 'bg-destructive/10 border-destructive/20'
+            }`}
+            data-testid={`mini-named-${stage.stage}`}
+          >
+            <div className="flex items-center gap-1 mb-0.5">
+              <Icon className={`h-3 w-3 shrink-0 ${success ? 'text-chart-2' : 'text-destructive'}`} />
+              <span className={`font-medium ${success ? 'text-chart-2' : 'text-destructive'}`}>
+                {success ? 'Pass' : 'Fail'}
+              </span>
+            </div>
+            <div className="text-muted-foreground truncate">{event?.name || 'Event'}</div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
+          <DetailedCard stage={stage} />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+  
+  return null;
 }
 
 const careerList = [

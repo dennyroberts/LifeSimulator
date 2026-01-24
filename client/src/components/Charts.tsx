@@ -855,24 +855,37 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
     <svg 
       viewBox={`0 0 ${width} ${height}`} 
       className="w-full h-auto"
-      style={{ overflow: 'visible' }}
       data-testid={`controlled-scatter-${xKey}`}
     >
-      {/* Data points - allow overflow above chart */}
-      {sampledData.map((point, i) => {
-        const x = padding.left + ((point.x - minX) / xRange) * chartWidth;
-        const y = padding.top + chartHeight - (point.y / yRange) * chartHeight;
-        return (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r="3"
-            fill={color}
-            opacity="0.4"
+      {/* Clip path to contain points within chart area */}
+      <defs>
+        <clipPath id={`clip-${xKey}`}>
+          <rect 
+            x={padding.left} 
+            y={padding.top} 
+            width={chartWidth} 
+            height={chartHeight} 
           />
-        );
-      })}
+        </clipPath>
+      </defs>
+      
+      {/* Data points - clipped to chart bounds */}
+      <g clipPath={`url(#clip-${xKey})`}>
+        {sampledData.map((point, i) => {
+          const x = padding.left + ((point.x - minX) / xRange) * chartWidth;
+          const y = padding.top + chartHeight - (point.y / yRange) * chartHeight;
+          return (
+            <circle
+              key={i}
+              cx={x}
+              cy={y}
+              r="3"
+              fill={color}
+              opacity="0.4"
+            />
+          );
+        })}
+      </g>
       
       {/* Line of best fit */}
       <line
@@ -995,13 +1008,13 @@ export function ControlledTraitGrid({ results }: ControlledTraitGridProps) {
         </select>
       </div>
       
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl">
         {traitPlots.map(({ key, label, color }) => {
           const filtered = filterByOtherTraits(results, key, filter);
           return (
-            <div key={key} className="p-2 rounded-md bg-card border border-card-border">
-              <div className="text-xs font-medium text-center mb-1">{label}</div>
-              <div className="text-[10px] text-center text-muted-foreground mb-1">
+            <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
+              <div className="text-sm font-medium text-center mb-1">{label}</div>
+              <div className="text-xs text-center text-muted-foreground mb-2">
                 n={filtered.length}
               </div>
               <ControlledScatterPlot 
@@ -1067,12 +1080,12 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
         <span className="text-[10px] text-muted-foreground">n={filtered.length}</span>
       </div>
       
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {luckPlots.map(({ key, label, color }) => {
           const [xMin, xMax] = getLuckRange(key);
           return (
-            <div key={key} className="p-2 rounded-md bg-card border border-card-border">
-              <div className="text-xs font-medium text-center mb-1">{label}</div>
+            <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
+              <div className="text-sm font-medium text-center mb-1">{label}</div>
               <ControlledScatterPlot 
                 results={filtered} 
                 xKey={key} 

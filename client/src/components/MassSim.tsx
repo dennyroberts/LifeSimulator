@@ -42,7 +42,6 @@ import {
   simulateLife,
 } from '@/lib/sim';
 import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star } from 'lucide-react';
-import { Slider } from '@/components/ui/slider';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -936,6 +935,27 @@ function RangeSliderFilter({
 }) {
   const checkboxId = `any-${filterId}`;
   
+  const handleMinChange = (value: string) => {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      const clamped = Math.max(min, Math.min(num, range[1]));
+      setRange([clamped, range[1]]);
+    }
+  };
+  
+  const handleMaxChange = (value: string) => {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      const clamped = Math.max(range[0], Math.min(num, max));
+      setRange([range[0], clamped]);
+    }
+  };
+  
+  // Calculate bar position as percentage
+  const rangeSpan = max - min;
+  const leftPct = ((range[0] - min) / rangeSpan) * 100;
+  const widthPct = ((range[1] - range[0]) / rangeSpan) * 100;
+  
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
@@ -953,18 +973,36 @@ function RangeSliderFilter({
       </div>
       {!isAny && (
         <>
-          <Slider
-            value={range}
-            onValueChange={(v) => setRange(v as [number, number])}
-            min={min}
-            max={max}
-            step={step}
-            className="w-full"
-            data-testid={`slider-${filterId}`}
-          />
-          <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-            <span>{formatValue(range[0])}</span>
-            <span>{formatValue(range[1])}</span>
+          {/* Visual bar showing the range */}
+          <div className="relative h-2 bg-muted rounded-full">
+            <div 
+              className="absolute h-full bg-primary rounded-full"
+              style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+            />
+          </div>
+          {/* Number inputs */}
+          <div className="flex items-center justify-between gap-2">
+            <input
+              type="number"
+              value={range[0]}
+              onChange={(e) => handleMinChange(e.target.value)}
+              min={min}
+              max={range[1]}
+              step={step}
+              className="w-16 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
+              data-testid={`input-min-${filterId}`}
+            />
+            <span className="text-[10px] text-muted-foreground">to</span>
+            <input
+              type="number"
+              value={range[1]}
+              onChange={(e) => handleMaxChange(e.target.value)}
+              min={range[0]}
+              max={max}
+              step={step}
+              className="w-16 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
+              data-testid={`input-max-${filterId}`}
+            />
           </div>
         </>
       )}

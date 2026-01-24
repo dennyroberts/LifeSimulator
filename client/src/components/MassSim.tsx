@@ -934,20 +934,34 @@ function RangeSliderFilter({
   formatValue?: (v: number) => string;
 }) {
   const checkboxId = `any-${filterId}`;
+  const [minInput, setMinInput] = useState(String(range[0]));
+  const [maxInput, setMaxInput] = useState(String(range[1]));
   
-  const handleMinChange = (value: string) => {
-    const num = parseFloat(value);
+  // Sync local state when range prop changes
+  useEffect(() => {
+    setMinInput(String(range[0]));
+    setMaxInput(String(range[1]));
+  }, [range[0], range[1]]);
+  
+  const handleMinBlur = () => {
+    const num = parseFloat(minInput);
     if (!isNaN(num)) {
       const clamped = Math.max(min, Math.min(num, range[1]));
       setRange([clamped, range[1]]);
+      setMinInput(String(clamped));
+    } else {
+      setMinInput(String(range[0]));
     }
   };
   
-  const handleMaxChange = (value: string) => {
-    const num = parseFloat(value);
+  const handleMaxBlur = () => {
+    const num = parseFloat(maxInput);
     if (!isNaN(num)) {
       const clamped = Math.max(range[0], Math.min(num, max));
       setRange([range[0], clamped]);
+      setMaxInput(String(clamped));
+    } else {
+      setMaxInput(String(range[1]));
     }
   };
   
@@ -956,24 +970,28 @@ function RangeSliderFilter({
   const leftPct = ((range[0] - min) / rangeSpan) * 100;
   const widthPct = ((range[1] - range[0]) / rangeSpan) * 100;
   
+  // Checkbox checked = filtering enabled (entering values), unchecked = any
+  const isFiltering = !isAny;
+  
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div className="flex items-center gap-1.5 shrink-0">
         <Checkbox
           id={checkboxId}
-          checked={isAny}
-          onCheckedChange={(checked) => setIsAny(checked === true)}
+          checked={isFiltering}
+          onCheckedChange={(checked) => setIsAny(checked !== true)}
           className="h-3 w-3"
           data-testid={`checkbox-any-${filterId}`}
         />
-        <Label htmlFor={checkboxId} className="text-xs font-medium cursor-pointer w-12">{label}</Label>
+        <Label htmlFor={checkboxId} className="text-xs font-medium cursor-pointer w-14">{label}</Label>
       </div>
-      {!isAny ? (
+      {isFiltering ? (
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <input
             type="text"
-            value={range[0]}
-            onChange={(e) => handleMinChange(e.target.value)}
+            value={minInput}
+            onChange={(e) => setMinInput(e.target.value)}
+            onBlur={handleMinBlur}
             className="w-8 text-[10px] font-mono px-1 py-0.5 bg-muted border-0 rounded text-center"
             data-testid={`input-min-${filterId}`}
           />
@@ -985,14 +1003,15 @@ function RangeSliderFilter({
           </div>
           <input
             type="text"
-            value={range[1]}
-            onChange={(e) => handleMaxChange(e.target.value)}
+            value={maxInput}
+            onChange={(e) => setMaxInput(e.target.value)}
+            onBlur={handleMaxBlur}
             className="w-8 text-[10px] font-mono px-1 py-0.5 bg-muted border-0 rounded text-center"
             data-testid={`input-max-${filterId}`}
           />
         </div>
       ) : (
-        <span className="text-[10px] text-muted-foreground">Any value</span>
+        <span className="text-[10px] text-muted-foreground">Any</span>
       )}
     </div>
   );
@@ -1247,118 +1266,121 @@ function CohortPanel({
       
       {isExpanded && (
         <CardContent className="space-y-3 pt-0">
-          {/* Trait Filters - 2 columns on mobile, 3 on larger screens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            <RangeSliderFilter
-              label="INT"
-              filterId={`int-${id}`}
-              range={filters.intRange}
-              setRange={(r) => updateFilter('intRange', r)}
-              isAny={filters.intAny}
-              setIsAny={(v) => updateFilter('intAny', v)}
-              min={2}
-              max={20}
-            />
-            <RangeSliderFilter
-              label="WORK"
-              filterId={`work-${id}`}
-              range={filters.workRange}
-              setRange={(r) => updateFilter('workRange', r)}
-              isAny={filters.workAny}
-              setIsAny={(v) => updateFilter('workAny', v)}
-              min={2}
-              max={20}
-            />
-            <RangeSliderFilter
-              label="NEPO"
-              filterId={`nepo-${id}`}
-              range={filters.nepoRange}
-              setRange={(r) => updateFilter('nepoRange', r)}
-              isAny={filters.nepoAny}
-              setIsAny={(v) => updateFilter('nepoAny', v)}
-              min={2}
-              max={20}
-            />
-            <RangeSliderFilter
-              label="CHAR"
-              filterId={`char-${id}`}
-              range={filters.charRange}
-              setRange={(r) => updateFilter('charRange', r)}
-              isAny={filters.charAny}
-              setIsAny={(v) => updateFilter('charAny', v)}
-              min={2}
-              max={20}
-            />
-            <RangeSliderFilter
-              label="RISK"
-              filterId={`risk-${id}`}
-              range={filters.riskRange}
-              setRange={(r) => updateFilter('riskRange', r)}
-              isAny={filters.riskAny}
-              setIsAny={(v) => updateFilter('riskAny', v)}
-              min={2}
-              max={20}
-            />
-            <RangeSliderFilter
-              label="Total"
-              filterId={`total-${id}`}
-              range={filters.totalRange}
-              setRange={(r) => updateFilter('totalRange', r)}
-              isAny={filters.totalAny}
-              setIsAny={(v) => updateFilter('totalAny', v)}
-              min={10}
-              max={100}
-            />
-          </div>
-          
-          {/* Luck & Profession Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            <RangeSliderFilter
-              label="Edu Luck"
-              filterId={`edu-luck-${id}`}
-              range={filters.eduLuckRange}
-              setRange={(r) => updateFilter('eduLuckRange', r)}
-              isAny={filters.eduLuckAny}
-              setIsAny={(v) => updateFilter('eduLuckAny', v)}
-              min={-10}
-              max={10}
-              formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
-            />
-            <RangeSliderFilter
-              label="Job Luck"
-              filterId={`career-luck-${id}`}
-              range={filters.careerLuckRange}
-              setRange={(r) => updateFilter('careerLuckRange', r)}
-              isAny={filters.careerLuckAny}
-              setIsAny={(v) => updateFilter('careerLuckAny', v)}
-              min={-10}
-              max={10}
-              formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
-            />
-            <RangeSliderFilter
-              label="Evt Luck"
-              filterId={`event-luck-${id}`}
-              range={filters.eventLuckRange}
-              setRange={(r) => updateFilter('eventLuckRange', r)}
-              isAny={filters.eventLuckAny}
-              setIsAny={(v) => updateFilter('eventLuckAny', v)}
-              min={-10}
-              max={10}
-              formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
-            />
-            <div className="flex items-center gap-2">
-              <Label className="text-xs font-medium shrink-0">Career</Label>
-              <Select value={filters.profession} onValueChange={(v) => updateFilter('profession', v)}>
-                <SelectTrigger className="h-7 text-xs flex-1" data-testid={`filter-profession-${id}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  {careerList.map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Two-column layout: Traits on left, Other filters on right */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Left: 5 Traits stacked */}
+            <div className="flex flex-col gap-1.5 lg:w-[280px] shrink-0">
+              <RangeSliderFilter
+                label="INT"
+                filterId={`int-${id}`}
+                range={filters.intRange}
+                setRange={(r) => updateFilter('intRange', r)}
+                isAny={filters.intAny}
+                setIsAny={(v) => updateFilter('intAny', v)}
+                min={2}
+                max={20}
+              />
+              <RangeSliderFilter
+                label="WORK"
+                filterId={`work-${id}`}
+                range={filters.workRange}
+                setRange={(r) => updateFilter('workRange', r)}
+                isAny={filters.workAny}
+                setIsAny={(v) => updateFilter('workAny', v)}
+                min={2}
+                max={20}
+              />
+              <RangeSliderFilter
+                label="NEPO"
+                filterId={`nepo-${id}`}
+                range={filters.nepoRange}
+                setRange={(r) => updateFilter('nepoRange', r)}
+                isAny={filters.nepoAny}
+                setIsAny={(v) => updateFilter('nepoAny', v)}
+                min={2}
+                max={20}
+              />
+              <RangeSliderFilter
+                label="CHAR"
+                filterId={`char-${id}`}
+                range={filters.charRange}
+                setRange={(r) => updateFilter('charRange', r)}
+                isAny={filters.charAny}
+                setIsAny={(v) => updateFilter('charAny', v)}
+                min={2}
+                max={20}
+              />
+              <RangeSliderFilter
+                label="RISK"
+                filterId={`risk-${id}`}
+                range={filters.riskRange}
+                setRange={(r) => updateFilter('riskRange', r)}
+                isAny={filters.riskAny}
+                setIsAny={(v) => updateFilter('riskAny', v)}
+                min={2}
+                max={20}
+              />
+            </div>
+            
+            {/* Right: Other filters */}
+            <div className="flex flex-col gap-1.5 flex-1">
+              <RangeSliderFilter
+                label="Total"
+                filterId={`total-${id}`}
+                range={filters.totalRange}
+                setRange={(r) => updateFilter('totalRange', r)}
+                isAny={filters.totalAny}
+                setIsAny={(v) => updateFilter('totalAny', v)}
+                min={10}
+                max={100}
+              />
+              <RangeSliderFilter
+                label="Edu Luck"
+                filterId={`edu-luck-${id}`}
+                range={filters.eduLuckRange}
+                setRange={(r) => updateFilter('eduLuckRange', r)}
+                isAny={filters.eduLuckAny}
+                setIsAny={(v) => updateFilter('eduLuckAny', v)}
+                min={-10}
+                max={10}
+                formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+              />
+              <RangeSliderFilter
+                label="Job Luck"
+                filterId={`career-luck-${id}`}
+                range={filters.careerLuckRange}
+                setRange={(r) => updateFilter('careerLuckRange', r)}
+                isAny={filters.careerLuckAny}
+                setIsAny={(v) => updateFilter('careerLuckAny', v)}
+                min={-10}
+                max={10}
+                formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+              />
+              <RangeSliderFilter
+                label="Evt Luck"
+                filterId={`event-luck-${id}`}
+                range={filters.eventLuckRange}
+                setRange={(r) => updateFilter('eventLuckRange', r)}
+                isAny={filters.eventLuckAny}
+                setIsAny={(v) => updateFilter('eventLuckAny', v)}
+                min={-10}
+                max={10}
+                formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
+              />
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-medium shrink-0 w-14">Career</Label>
+                <Select value={filters.profession} onValueChange={(v) => updateFilter('profession', v)}>
+                  <SelectTrigger className="h-6 text-xs flex-1" data-testid={`filter-profession-${id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {careerList.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           

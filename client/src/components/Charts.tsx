@@ -939,6 +939,23 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         </text>
       ))}
       
+      {/* X-axis tick labels */}
+      {[0, 0.5, 1].map(pct => {
+        const xVal = minX + pct * xRange;
+        const xPos = padding.left + pct * chartWidth;
+        return (
+          <text
+            key={pct}
+            x={xPos}
+            y={padding.top + chartHeight + 12}
+            textAnchor="middle"
+            className="fill-muted-foreground text-[8px] font-mono"
+          >
+            {Number.isInteger(xVal) ? xVal : xVal.toFixed(1)}
+          </text>
+        );
+      })}
+      
       {/* X-axis label */}
       <text
         x={width / 2}

@@ -389,8 +389,11 @@ export function computeEducationExpectedEV(traits: Traits, worldMode: WorldMode)
   const totalMod = computeTotalMod(traits, config.education.checkTraits as Partial<Record<TraitName, number>>, worldMode);
   let expectedEV = 0;
   
-  // For each possible d20 roll (1-20), compute probability and resulting threshold
-  for (let roll = 1; roll <= 20; roll++) {
+  // For each possible 2d10 roll (2-20), compute probability and resulting threshold
+  // 2d10 probability: roll k has (10 - |k - 11|) ways out of 100
+  for (let roll = 2; roll <= 20; roll++) {
+    const ways = 10 - Math.abs(roll - 11); // Number of ways to get this sum
+    const probability = ways / 100;
     const total = roll + totalMod;
     let growthDelta = 0;
     
@@ -402,7 +405,7 @@ export function computeEducationExpectedEV(traits: Traits, worldMode: WorldMode)
       }
     }
     
-    expectedEV += (1 / 20) * computeEducationEV(growthDelta);
+    expectedEV += probability * computeEducationEV(growthDelta);
   }
   
   return expectedEV;
@@ -448,10 +451,13 @@ export function computeCareerExpectedEV(
   
   let expectedEV = 0;
   
-  // For each possible d20 roll (1-20), compute probability and resulting career
-  for (let roll = 1; roll <= 20; roll++) {
+  // For each possible 2d10 roll (2-20), compute probability and resulting career
+  // 2d10 probability: roll k has (10 - |k - 11|) ways out of 100
+  for (let roll = 2; roll <= 20; roll++) {
+    const ways = 10 - Math.abs(roll - 11); // Number of ways to get this sum
+    const probability = ways / 100;
     const total = roll + totalMod;
-    const isNat20 = roll === 20;
+    const isMaxRoll = roll === 20;
     
     // Find which career this total maps to
     let career = careers[0]; // Default to lowest
@@ -464,7 +470,7 @@ export function computeCareerExpectedEV(
       }
     }
     
-    expectedEV += (1 / 20) * computeCareerEV(career.baseSalary, career.baseGrowth, isNat20);
+    expectedEV += probability * computeCareerEV(career.baseSalary, career.baseGrowth, isMaxRoll);
   }
   
   return expectedEV;
@@ -527,7 +533,7 @@ export function resolveEducation(
   rng: () => number,
   forcedRoll?: number
 ): EducationOutcome {
-  const roll = forcedRoll ?? rollD20(rng);
+  const roll = forcedRoll ?? roll2d10(rng);
   const checkTraits = config.education.checkTraits as Partial<Record<TraitName, number>>;
   const totalMod = computeTotalMod(traits, checkTraits, worldMode);
   const total = roll + totalMod;
@@ -640,8 +646,8 @@ export function resolveCareer(
   aspiration?: CareerAspiration,
   forcedRoll?: number
 ): CareerOutcome {
-  const roll = forcedRoll ?? rollD20(rng);
-  const isNat20 = roll === 20;
+  const roll = forcedRoll ?? roll2d10(rng);
+  const isMaxRoll = roll === 20; // Max roll on 2d10
   
   const traitMod = computeTotalMod(traits, careerCheckTraits, worldMode);
   const educationBonus = educationBonusMap[educationLabel] ?? 0;
@@ -665,19 +671,19 @@ export function resolveCareer(
     }
   }
   
-  const salaryMultiplier = isNat20 ? 1.2 : 1.0;
+  const salaryMultiplier = isMaxRoll ? 1.2 : 1.0;
   const finalSalary = selectedCareer.baseSalary * salaryMultiplier;
   const finalGrowth = selectedCareer.baseGrowth;
   
   const traitContributions = computeTraitContributions(traits, careerCheckTraits, worldMode);
   
   const careerMessages = careerOutcomes[selectedCareer.name] || { normal: 'Your career begins', nat20: 'Your career begins with a bang' };
-  let outcomeMessage = isNat20 ? careerMessages.nat20 : careerMessages.normal;
+  let outcomeMessage = isMaxRoll ? careerMessages.nat20 : careerMessages.normal;
   
   const isGoodCareer = total >= 20;
   const isBadCareer = total < 10;
   
-  if (isGoodCareer && !isNat20) {
+  if (isGoodCareer && !isMaxRoll) {
     outcomeMessage = selectTraitMessage(traitContributions, careerTraitSuccess, careerTraitFail, true, outcomeMessage);
   } else if (isBadCareer) {
     outcomeMessage = selectTraitMessage(traitContributions, careerTraitSuccess, careerTraitFail, false, outcomeMessage);
@@ -690,7 +696,7 @@ export function resolveCareer(
     educationBonus,
     educationLabel,
     career: selectedCareer,
-    isNat20,
+    isNat20: isMaxRoll,
     salaryMultiplier,
     finalSalary,
     finalGrowth,
@@ -983,18 +989,19 @@ export function simulateLife(
     .filter(s => !s.isEducation && s.eventOutcome)
     .reduce((sum, s) => sum + (s.eventOutcome?.evRealized || 0), 0);
   
-  // Roll luck is now calculated purely from raw d20 deviations from average (10.5)
+  // Roll luck is now calculated purely from raw roll deviations from average
   // This measures "did the dice favor you?" independent of trait modifiers
-  const D20_AVERAGE = 10.5;
+  const D2D10_AVERAGE = 11; // Average of 2d10 (range 2-20)
+  const D20_AVERAGE = 10.5; // Average of 1d20 (events still use d20)
   
-  // Education roll luck: raw roll deviation from average
+  // Education roll luck: raw roll deviation from 2d10 average
   // Scale by a factor to make it comparable to EV units (approx growth delta impact)
-  const educationRollDeviation = educationOutcome.roll - D20_AVERAGE;
+  const educationRollDeviation = educationOutcome.roll - D2D10_AVERAGE;
   const educationRollLuck = educationRollDeviation * 0.05; // Scale factor for display
   
-  // Career roll luck: raw roll deviation from average
-  // Nat 20 bonus is already reflected in the roll itself
-  const careerRollDeviation = careerOutcome.roll - D20_AVERAGE;
+  // Career roll luck: raw roll deviation from 2d10 average
+  // Max roll (20) bonus is already reflected in the roll itself
+  const careerRollDeviation = careerOutcome.roll - D2D10_AVERAGE;
   const careerRollLuck = careerRollDeviation * 0.05; // Scale factor for display
   
   // Event roll luck: sum of all raw roll deviations from events

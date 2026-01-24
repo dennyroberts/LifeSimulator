@@ -1162,7 +1162,7 @@ export function getLifetimeGrade(lifetimeEarnings: number): LifetimeGrade {
     return { grade: 'D', color: 'text-orange-500' };
   } else if (lifetimeEarnings >= 500_000) {
     return { grade: 'D-', color: 'text-orange-600' };
-  } else if (lifetimeEarnings >= 250_000) {
+  } else if (lifetimeEarnings >= 350_000) {
     return { grade: 'F', color: 'text-red-500' };
   } else {
     return { grade: 'F-', color: 'text-red-600' };

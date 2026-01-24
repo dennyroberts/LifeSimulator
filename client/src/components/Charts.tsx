@@ -826,13 +826,39 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
   const sampleSize = Math.min(results.length, 500);
   const step = Math.ceil(results.length / sampleSize);
   const sampledData = data.filter((_, i) => i % step === 0);
+  
+  // Calculate line of best fit using least squares regression
+  const n = data.length;
+  const sumX = data.reduce((acc, d) => acc + d.x, 0);
+  const sumY = data.reduce((acc, d) => acc + d.y, 0);
+  const sumXY = data.reduce((acc, d) => acc + d.x * d.y, 0);
+  const sumXX = data.reduce((acc, d) => acc + d.x * d.x, 0);
+  
+  const slope = n > 1 ? (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX) : 0;
+  const intercept = n > 0 ? (sumY - slope * sumX) / n : 0;
+  
+  // Calculate line endpoints
+  const lineY1 = slope * minX + intercept;
+  const lineY2 = slope * maxX + intercept;
+  
+  // Convert to SVG coordinates
+  const lineStartX = padding.left;
+  const lineEndX = padding.left + chartWidth;
+  const lineStartY = padding.top + chartHeight - (lineY1 / yRange) * chartHeight;
+  const lineEndY = padding.top + chartHeight - (lineY2 / yRange) * chartHeight;
+  
+  // Format slope for display ($ per trait point)
+  const slopeK = slope / 1000;
+  const slopeDisplay = slopeK >= 0 ? `+$${Math.round(slopeK)}K` : `-$${Math.round(Math.abs(slopeK))}K`;
 
   return (
     <svg 
       viewBox={`0 0 ${width} ${height}`} 
       className="w-full h-auto"
+      style={{ overflow: 'visible' }}
       data-testid={`controlled-scatter-${xKey}`}
     >
+      {/* Data points - allow overflow above chart */}
       {sampledData.map((point, i) => {
         const x = padding.left + ((point.x - minX) / xRange) * chartWidth;
         const y = padding.top + chartHeight - (point.y / yRange) * chartHeight;
@@ -840,7 +866,7 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
           <circle
             key={i}
             cx={x}
-            cy={Math.max(padding.top, Math.min(padding.top + chartHeight, y))}
+            cy={y}
             r="3"
             fill={color}
             opacity="0.4"
@@ -848,6 +874,19 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         );
       })}
       
+      {/* Line of best fit */}
+      <line
+        x1={lineStartX}
+        y1={Math.max(0, Math.min(height, lineStartY))}
+        x2={lineEndX}
+        y2={Math.max(0, Math.min(height, lineEndY))}
+        stroke={color}
+        strokeWidth="2"
+        strokeDasharray="4,2"
+        opacity="0.8"
+      />
+      
+      {/* Bottom axis */}
       <line
         x1={padding.left}
         y1={padding.top + chartHeight}
@@ -855,6 +894,7 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         y2={padding.top + chartHeight}
         stroke="hsl(var(--border))"
       />
+      {/* Left axis */}
       <line
         x1={padding.left}
         y1={padding.top}
@@ -862,7 +902,18 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         y2={padding.top + chartHeight}
         stroke="hsl(var(--border))"
       />
+      {/* Top boundary dotted line */}
+      <line
+        x1={padding.left}
+        y1={padding.top}
+        x2={width - padding.right}
+        y2={padding.top}
+        stroke="hsl(var(--border))"
+        strokeDasharray="4,4"
+        opacity="0.6"
+      />
       
+      {/* Y-axis labels */}
       {[0, 0.5, 1].map(pct => (
         <text
           key={pct}
@@ -875,6 +926,7 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         </text>
       ))}
       
+      {/* X-axis label */}
       <text
         x={width / 2}
         y={height - 5}
@@ -884,6 +936,7 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         {xLabel}
       </text>
       
+      {/* Y-axis label */}
       <text
         x={10}
         y={height / 2}
@@ -892,6 +945,17 @@ function ControlledScatterPlot({ results, xKey, xLabel, color, yMax, xMin: force
         className="fill-muted-foreground text-[10px]"
       >
         Lifetime Earnings
+      </text>
+      
+      {/* Slope indicator */}
+      <text
+        x={width - padding.right - 5}
+        y={padding.top + 12}
+        textAnchor="end"
+        className="text-[9px] font-mono font-bold"
+        fill={color}
+      >
+        {slopeDisplay}/pt
       </text>
     </svg>
   );
@@ -912,8 +976,8 @@ export function ControlledTraitGrid({ results }: ControlledTraitGridProps) {
     { key: 'RISK', label: 'Risk Tolerance', color: 'hsl(var(--chart-5))' },
   ];
   
-  const globalMaxY = Math.max(...results.map(r => r.lifetimeEarnings));
-  const yMax = Math.ceil(globalMaxY / 1000000) * 1000000;
+  // Fixed Y-axis at 6M for consistency, points above will overflow
+  const yMax = 6_000_000;
 
   return (
     <div className="space-y-3" data-testid="controlled-trait-grid">
@@ -973,8 +1037,8 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
     { key: 'netLuck', label: 'Total Combined Luck', color: 'hsl(var(--chart-1))' },
   ];
   
-  const globalMaxY = Math.max(...results.map(r => r.lifetimeEarnings));
-  const yMax = Math.ceil(globalMaxY / 1000000) * 1000000;
+  // Fixed Y-axis at 6M for consistency, points above will overflow
+  const yMax = 6_000_000;
   
   const filtered = filterByAllTraits(results, filter);
   

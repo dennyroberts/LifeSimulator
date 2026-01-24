@@ -832,14 +832,12 @@ interface CohortFilters {
   riskAny: boolean;
   totalRange: [number, number];
   totalAny: boolean;
-  eduLuckRange: [number, number];
+  eduLuckRange: [number, number];  // rollLuckZ filter
   eduLuckAny: boolean;
-  careerLuckRange: [number, number];
+  careerLuckRange: [number, number];  // opportunityLuckZ filter
   careerLuckAny: boolean;
-  eventLuckRange: [number, number];
+  eventLuckRange: [number, number];  // totalLuckZ filter
   eventLuckAny: boolean;
-  oppLuckRange: [number, number];
-  oppLuckAny: boolean;
   profession: string;
 }
 
@@ -861,10 +859,9 @@ const defaultFilters: CohortFilters = {
   charRange: [9, 11], charAny: false,
   riskRange: [9, 11], riskAny: false,
   totalRange: [10, 100], totalAny: true,
-  eduLuckRange: [-0.5, 0.5], eduLuckAny: true,
-  careerLuckRange: [-0.5, 0.5], careerLuckAny: true,
-  eventLuckRange: [-0.5, 0.5], eventLuckAny: true,
-  oppLuckRange: [-500000, 500000], oppLuckAny: true,
+  eduLuckRange: [-3, 3], eduLuckAny: true,  // rollLuckZ filter
+  careerLuckRange: [-3, 3], careerLuckAny: true,  // opportunityLuckZ filter
+  eventLuckRange: [-3, 3], eventLuckAny: true,  // totalLuckZ filter
   profession: 'any',
 };
 
@@ -898,10 +895,9 @@ function formatFilterSummary(filters: CohortFilters): string {
   if (!filters.charAny) parts.push(`CHAR:${filters.charRange[0]}-${filters.charRange[1]}`);
   if (!filters.riskAny) parts.push(`RISK:${filters.riskRange[0]}-${filters.riskRange[1]}`);
   if (!filters.totalAny) parts.push(`Total:${filters.totalRange[0]}-${filters.totalRange[1]}`);
-  if (!filters.eduLuckAny) parts.push(`EduLuck:${filters.eduLuckRange[0]}~${filters.eduLuckRange[1]}`);
-  if (!filters.careerLuckAny) parts.push(`CareerLuck:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
-  if (!filters.eventLuckAny) parts.push(`EventLuck:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
-  if (!filters.oppLuckAny) parts.push(`OppLuck:${(filters.oppLuckRange[0]/1000).toFixed(0)}K~${(filters.oppLuckRange[1]/1000).toFixed(0)}K`);
+  if (!filters.eduLuckAny) parts.push(`RollZ:${filters.eduLuckRange[0]}~${filters.eduLuckRange[1]}`);
+  if (!filters.careerLuckAny) parts.push(`OppZ:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
+  if (!filters.eventLuckAny) parts.push(`TotalZ:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
   if (filters.profession !== 'any') parts.push(`Career:${filters.profession}`);
   
   return parts.length > 0 ? parts.join(' | ') : 'All agents (no filters)';
@@ -1074,10 +1070,10 @@ function CohortPanel({
       const totalTraits = agent.traits.INT + agent.traits.WORK + agent.traits.NEPO + agent.traits.CHAR + agent.traits.RISK;
       if (!filters.totalAny && (totalTraits < filters.totalRange[0] || totalTraits > filters.totalRange[1])) return false;
       
-      if (!filters.eduLuckAny && (agent.luck.educationRollLuck < filters.eduLuckRange[0] || agent.luck.educationRollLuck > filters.eduLuckRange[1])) return false;
-      if (!filters.careerLuckAny && (agent.luck.careerRollLuck < filters.careerLuckRange[0] || agent.luck.careerRollLuck > filters.careerLuckRange[1])) return false;
-      if (!filters.eventLuckAny && (agent.luck.eventRollLuck < filters.eventLuckRange[0] || agent.luck.eventRollLuck > filters.eventLuckRange[1])) return false;
-      if (!filters.oppLuckAny && (agent.luck.opportunityLuck < filters.oppLuckRange[0] || agent.luck.opportunityLuck > filters.oppLuckRange[1])) return false;
+      // Use z-scored luck values for consistent filtering (all on -3 to 3 scale)
+      if (!filters.eduLuckAny && (agent.luck.rollLuckZ < filters.eduLuckRange[0] || agent.luck.rollLuckZ > filters.eduLuckRange[1])) return false;
+      if (!filters.careerLuckAny && (agent.luck.opportunityLuckZ < filters.careerLuckRange[0] || agent.luck.opportunityLuckZ > filters.careerLuckRange[1])) return false;
+      if (!filters.eventLuckAny && (agent.luck.totalLuckZ < filters.eventLuckRange[0] || agent.luck.totalLuckZ > filters.eventLuckRange[1])) return false;
       
       if (filters.profession !== 'any') {
         const careerStage = agent.stages.find(s => s.career);
@@ -1354,49 +1350,41 @@ function CohortPanel({
                 min={10}
                 max={100}
               />
+              <div className="text-[9px] text-muted-foreground px-1 mt-1">
+                Z-scores: 0=avg, +/-1=common, +/-2=rare, +/-3=extreme
+              </div>
               <RangeSliderFilter
-                label="Edu Luck"
-                filterId={`edu-luck-${id}`}
+                label="Roll Z"
+                filterId={`roll-luck-z-${id}`}
                 range={filters.eduLuckRange}
                 setRange={(r) => updateFilter('eduLuckRange', r)}
                 isAny={filters.eduLuckAny}
                 setIsAny={(v) => updateFilter('eduLuckAny', v)}
-                min={-1}
-                max={1}
-                step={0.1}
+                min={-3}
+                max={3}
+                step={0.5}
               />
               <RangeSliderFilter
-                label="Job Luck"
-                filterId={`career-luck-${id}`}
+                label="Opp Z"
+                filterId={`opp-luck-z-${id}`}
                 range={filters.careerLuckRange}
                 setRange={(r) => updateFilter('careerLuckRange', r)}
                 isAny={filters.careerLuckAny}
                 setIsAny={(v) => updateFilter('careerLuckAny', v)}
-                min={-1}
-                max={1}
-                step={0.1}
+                min={-3}
+                max={3}
+                step={0.5}
               />
               <RangeSliderFilter
-                label="Evt Luck"
-                filterId={`event-luck-${id}`}
+                label="Total Z"
+                filterId={`total-luck-z-${id}`}
                 range={filters.eventLuckRange}
                 setRange={(r) => updateFilter('eventLuckRange', r)}
                 isAny={filters.eventLuckAny}
                 setIsAny={(v) => updateFilter('eventLuckAny', v)}
-                min={-1}
-                max={1}
-                step={0.1}
-              />
-              <RangeSliderFilter
-                label="Opp Luck"
-                filterId={`opp-luck-${id}`}
-                range={filters.oppLuckRange}
-                setRange={(r) => updateFilter('oppLuckRange', r)}
-                isAny={filters.oppLuckAny}
-                setIsAny={(v) => updateFilter('oppLuckAny', v)}
-                min={-1000000}
-                max={1000000}
-                step={50000}
+                min={-3}
+                max={3}
+                step={0.5}
               />
               <div className="flex items-center gap-2">
                 <Label className="text-xs font-medium shrink-0 w-14">Career</Label>

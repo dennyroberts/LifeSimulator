@@ -1058,31 +1058,40 @@ interface ControlledLuckGridProps {
 export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
   const [filter, setFilter] = useState<OthersFilter>('average');
   
+  // Use z-scored values for consistent scales across all luck types
+  // All z-scores have mean 0 and approximately unit variance
   const luckPlots = [
-    { key: 'educationRollLuck', label: 'Education Luck', color: 'hsl(var(--chart-1))' },
-    { key: 'careerRollLuck', label: 'Career Luck', color: 'hsl(var(--chart-2))' },
-    { key: 'eventRollLuck', label: 'Event Luck', color: 'hsl(var(--chart-3))' },
-    { key: 'rollLuck', label: 'Combined Roll Luck', color: 'hsl(var(--chart-4))' },
-    { key: 'opportunityLuck', label: 'Opportunity Luck', color: 'hsl(var(--chart-5))' },
-    { key: 'netLuck', label: 'Total Combined Luck', color: 'hsl(var(--chart-1))' },
+    { 
+      key: 'opportunityLuckZ', 
+      label: 'Opportunity Luck (Z)', 
+      color: 'hsl(var(--chart-5))',
+      description: 'Luck from trait-based opportunities (normalized)'
+    },
+    { 
+      key: 'rollLuckZ', 
+      label: 'Roll Luck (Z)', 
+      color: 'hsl(var(--chart-4))',
+      description: 'Luck from all dice rolls combined (normalized)'
+    },
+    { 
+      key: 'totalLuckZ', 
+      label: 'Total Luck (Z)', 
+      color: 'hsl(var(--chart-1))',
+      description: 'Average of opportunity and roll luck z-scores'
+    },
   ];
   
   // Fixed Y-axis at 6M for consistency, points above will overflow
   const yMax = 6_000_000;
   
-  const filtered = filterByAllTraits(results, filter);
+  // Fixed X-axis range for z-scores: -3 to 3 covers 99.7% of data
+  const zScoreRange: [number, number] = [-3, 3];
   
-  const getLuckRange = (key: string): [number, number] => {
-    const vals = results.map(r => r.luck[key as keyof typeof r.luck] as number);
-    const min = Math.min(...vals);
-    const max = Math.max(...vals);
-    const absMax = Math.max(Math.abs(min), Math.abs(max));
-    return [-absMax, absMax];
-  };
+  const filtered = filterByAllTraits(results, filter);
 
   return (
     <div className="space-y-3" data-testid="controlled-luck-grid">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm text-muted-foreground">Trait Filter:</span>
         <select
           value={filter}
@@ -1097,20 +1106,25 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
         <span className="text-[10px] text-muted-foreground">n={filtered.length}</span>
       </div>
       
+      <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2 space-y-1">
+        <div><strong>Z-scores explained:</strong> Values centered at 0 (average luck). Positive = lucky, negative = unlucky.</div>
+        <div>Most agents fall between -2 and +2. Values beyond +/-3 are extremely rare.</div>
+      </div>
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {luckPlots.map(({ key, label, color }) => {
-          const [xMin, xMax] = getLuckRange(key);
+        {luckPlots.map(({ key, label, color, description }) => {
           return (
             <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
-              <div className="text-sm font-medium text-center mb-1">{label}</div>
+              <div className="text-sm font-medium text-center mb-0.5">{label}</div>
+              <div className="text-[10px] text-muted-foreground text-center mb-1">{description}</div>
               <ControlledScatterPlot 
                 results={filtered} 
                 xKey={key} 
                 xLabel={label} 
                 color={color} 
                 yMax={yMax}
-                xMin={xMin}
-                xMax={xMax}
+                xMin={zScoreRange[0]}
+                xMax={zScoreRange[1]}
               />
             </div>
           );

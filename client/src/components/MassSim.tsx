@@ -957,48 +957,42 @@ function RangeSliderFilter({
   const widthPct = ((range[1] - range[0]) / rangeSpan) * 100;
   
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <Label className="text-xs font-medium">{label}</Label>
-        <div className="flex items-center gap-1">
-          <Checkbox
-            id={checkboxId}
-            checked={isAny}
-            onCheckedChange={(checked) => setIsAny(checked === true)}
-            className="h-3 w-3"
-            data-testid={`checkbox-any-${filterId}`}
-          />
-          <Label htmlFor={checkboxId} className="text-[10px] text-muted-foreground cursor-pointer">Any</Label>
-        </div>
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center gap-1.5 shrink-0">
+        <Checkbox
+          id={checkboxId}
+          checked={isAny}
+          onCheckedChange={(checked) => setIsAny(checked === true)}
+          className="h-3 w-3"
+          data-testid={`checkbox-any-${filterId}`}
+        />
+        <Label htmlFor={checkboxId} className="text-xs font-medium cursor-pointer w-12">{label}</Label>
       </div>
-      {!isAny && (
-        <>
-          {/* Visual bar showing the range */}
-          <div className="relative h-2 bg-muted rounded-full">
+      {!isAny ? (
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <input
+            type="text"
+            value={range[0]}
+            onChange={(e) => handleMinChange(e.target.value)}
+            className="w-8 text-[10px] font-mono px-1 py-0.5 bg-muted border-0 rounded text-center"
+            data-testid={`input-min-${filterId}`}
+          />
+          <div className="relative h-1.5 bg-muted rounded-full flex-1 min-w-[40px]">
             <div 
               className="absolute h-full bg-primary rounded-full"
-              style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+              style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 2)}%` }}
             />
           </div>
-          {/* Text inputs */}
-          <div className="flex items-center justify-between gap-2">
-            <input
-              type="text"
-              value={range[0]}
-              onChange={(e) => handleMinChange(e.target.value)}
-              className="w-12 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
-              data-testid={`input-min-${filterId}`}
-            />
-            <span className="text-[10px] text-muted-foreground">to</span>
-            <input
-              type="text"
-              value={range[1]}
-              onChange={(e) => handleMaxChange(e.target.value)}
-              className="w-12 text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-center"
-              data-testid={`input-max-${filterId}`}
-            />
-          </div>
-        </>
+          <input
+            type="text"
+            value={range[1]}
+            onChange={(e) => handleMaxChange(e.target.value)}
+            className="w-8 text-[10px] font-mono px-1 py-0.5 bg-muted border-0 rounded text-center"
+            data-testid={`input-max-${filterId}`}
+          />
+        </div>
+      ) : (
+        <span className="text-[10px] text-muted-foreground">Any value</span>
       )}
     </div>
   );
@@ -1252,8 +1246,9 @@ function CohortPanel({
       </CardHeader>
       
       {isExpanded && (
-        <CardContent className="space-y-4 pt-0">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <CardContent className="space-y-3 pt-0">
+          {/* Trait Filters - 2 columns on mobile, 3 on larger screens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             <RangeSliderFilter
               label="INT"
               filterId={`int-${id}`}
@@ -1305,7 +1300,7 @@ function CohortPanel({
               max={20}
             />
             <RangeSliderFilter
-              label="Total Traits"
+              label="Total"
               filterId={`total-${id}`}
               range={filters.totalRange}
               setRange={(r) => updateFilter('totalRange', r)}
@@ -1316,9 +1311,10 @@ function CohortPanel({
             />
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Luck & Profession Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
             <RangeSliderFilter
-              label="Education Luck"
+              label="Edu Luck"
               filterId={`edu-luck-${id}`}
               range={filters.eduLuckRange}
               setRange={(r) => updateFilter('eduLuckRange', r)}
@@ -1329,7 +1325,7 @@ function CohortPanel({
               formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
             />
             <RangeSliderFilter
-              label="Career Luck"
+              label="Job Luck"
               filterId={`career-luck-${id}`}
               range={filters.careerLuckRange}
               setRange={(r) => updateFilter('careerLuckRange', r)}
@@ -1340,7 +1336,7 @@ function CohortPanel({
               formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
             />
             <RangeSliderFilter
-              label="Event Luck"
+              label="Evt Luck"
               filterId={`event-luck-${id}`}
               range={filters.eventLuckRange}
               setRange={(r) => updateFilter('eventLuckRange', r)}
@@ -1350,10 +1346,10 @@ function CohortPanel({
               max={10}
               formatValue={(v) => v >= 0 ? `+${v}` : String(v)}
             />
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">Profession</Label>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium shrink-0">Career</Label>
               <Select value={filters.profession} onValueChange={(v) => updateFilter('profession', v)}>
-                <SelectTrigger className="h-8 text-xs" data-testid={`filter-profession-${id}`}>
+                <SelectTrigger className="h-7 text-xs flex-1" data-testid={`filter-profession-${id}`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -1147,7 +1147,9 @@ function CohortPanel({
   const handleLoadSearch = (searchId: string) => {
     const search = savedSearches.find(s => s.id === searchId);
     if (search) {
-      setFilters({ ...search.filters });
+      // Migrate old saved searches: merge with defaults to handle missing/removed fields
+      const migratedFilters = { ...defaultFilters, ...search.filters };
+      setFilters(migratedFilters);
       setCohortName(search.name);
       setLoadedSearchId(search.id);
       setHasUnsavedChanges(false);

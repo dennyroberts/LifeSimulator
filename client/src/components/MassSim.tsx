@@ -1458,15 +1458,15 @@ interface CohortStats {
 }
 
 const defaultFilters: CohortFilters = {
-  intRange: [9, 11], intAny: false,
-  workRange: [9, 11], workAny: false,
-  nepoRange: [9, 11], nepoAny: false,
-  charRange: [9, 11], charAny: false,
-  riskRange: [9, 11], riskAny: false,
+  intRange: [2, 20], intAny: true,
+  workRange: [2, 20], workAny: true,
+  nepoRange: [2, 20], nepoAny: true,
+  charRange: [2, 20], charAny: true,
+  riskRange: [2, 20], riskAny: true,
   totalRange: [10, 100], totalAny: true,
-  eduLuckRange: [-3, 3], eduLuckAny: true,  // rollLuckZ filter
-  careerLuckRange: [-3, 3], careerLuckAny: true,  // opportunityLuckZ filter
-  eventLuckRange: [-3, 3], eventLuckAny: true,  // totalLuckZ filter
+  eduLuckRange: [-3, 3], eduLuckAny: true,
+  careerLuckRange: [-3, 3], careerLuckAny: true,
+  eventLuckRange: [-3, 3], eventLuckAny: true,
   profession: 'any',
   education: 'any',
   lifeEvent1: 'any',
@@ -1504,9 +1504,9 @@ function formatFilterSummary(filters: CohortFilters): string {
   if (!filters.charAny) parts.push(`CHAR:${filters.charRange[0]}-${filters.charRange[1]}`);
   if (!filters.riskAny) parts.push(`RISK:${filters.riskRange[0]}-${filters.riskRange[1]}`);
   if (!filters.totalAny) parts.push(`Total:${filters.totalRange[0]}-${filters.totalRange[1]}`);
-  if (!filters.eduLuckAny) parts.push(`RollZ:${filters.eduLuckRange[0]}~${filters.eduLuckRange[1]}`);
-  if (!filters.careerLuckAny) parts.push(`OppZ:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
-  if (!filters.eventLuckAny) parts.push(`TotalZ:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
+  if (!filters.eduLuckAny) parts.push(`RollLuck:${filters.eduLuckRange[0]}~${filters.eduLuckRange[1]}`);
+  if (!filters.careerLuckAny) parts.push(`OppLuck:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
+  if (!filters.eventLuckAny) parts.push(`TotalLuck:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
   if (filters.profession !== 'any') parts.push(`Career:${filters.profession}`);
   if (filters.education !== 'any') parts.push(`Edu:${filters.education}`);
   
@@ -1989,10 +1989,6 @@ function CohortPanel({
                 min={2}
                 max={20}
               />
-            </div>
-            
-            {/* Right: Other filters */}
-            <div className="flex flex-col gap-1.5 flex-1">
               <RangeSliderFilter
                 label="Total"
                 filterId={`total-${id}`}
@@ -2003,11 +1999,11 @@ function CohortPanel({
                 min={10}
                 max={100}
               />
-              <div className="text-[9px] text-muted-foreground px-1 mt-1">
-                Z-scores: 0=avg, +/-1=common, +/-2=rare, +/-3=extreme
+              <div className="text-[9px] text-muted-foreground px-1 mt-2">
+                Luck filters (0=avg, ±1=common, ±2=rare, ±3=extreme)
               </div>
               <RangeSliderFilter
-                label="Roll Z"
+                label="Roll Luck"
                 filterId={`roll-luck-z-${id}`}
                 range={filters.eduLuckRange}
                 setRange={(r) => updateFilter('eduLuckRange', r)}
@@ -2018,7 +2014,7 @@ function CohortPanel({
                 step={0.5}
               />
               <RangeSliderFilter
-                label="Opp Z"
+                label="Opp Luck"
                 filterId={`opp-luck-z-${id}`}
                 range={filters.careerLuckRange}
                 setRange={(r) => updateFilter('careerLuckRange', r)}
@@ -2029,7 +2025,7 @@ function CohortPanel({
                 step={0.5}
               />
               <RangeSliderFilter
-                label="Total Z"
+                label="Total Luck"
                 filterId={`total-luck-z-${id}`}
                 range={filters.eventLuckRange}
                 setRange={(r) => updateFilter('eventLuckRange', r)}
@@ -2039,6 +2035,10 @@ function CohortPanel({
                 max={3}
                 step={0.5}
               />
+            </div>
+            
+            {/* Right: Career, Education, Life Events */}
+            <div className="flex flex-col gap-1.5 flex-1">
               <div className="flex items-center gap-2">
                 <Label className="text-xs font-medium shrink-0 w-14">Career</Label>
                 <Select value={filters.profession} onValueChange={(v) => updateFilter('profession', v)}>

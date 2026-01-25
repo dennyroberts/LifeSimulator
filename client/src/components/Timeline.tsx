@@ -603,7 +603,7 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
         <div className="p-2 rounded bg-muted mb-2">
           {outcome.isCritical && (
             <div className={`text-[9px] font-bold mb-1 ${outcome.criticalType === 'success' ? 'text-chart-4' : 'text-destructive'}`}>
-              Critical (2x)
+              Critical (3x)
             </div>
           )}
           <div className="font-mono text-xs space-y-0.5">

@@ -265,9 +265,9 @@ export function computeEvFail(stage: number, event: Event): number {
   return computeEV(stage, event.fail.jumpPct, event.fail.growthDelta);
 }
 
-// Compute EV for critical success (2x multiplier, always positive outcome)
+// Compute EV for critical success (1.5x multiplier on top of base, always positive outcome)
 export function computeEvCritSuccess(stage: number, event: Event): number {
-  const critMultiplier = 2.0;
+  const critMultiplier = 1.5;
   let jumpPct = event.success.jumpPct * critMultiplier;
   let growthDelta = event.success.growthDelta * critMultiplier;
   // Critical success flips negative to positive
@@ -276,9 +276,9 @@ export function computeEvCritSuccess(stage: number, event: Event): number {
   return computeEV(stage, jumpPct, growthDelta);
 }
 
-// Compute EV for critical failure (2x multiplier, always negative outcome)
+// Compute EV for critical failure (1.5x multiplier on top of base, always negative outcome)
 export function computeEvCritFail(stage: number, event: Event): number {
-  const critMultiplier = 2.0;
+  const critMultiplier = 1.5;
   let jumpPct = event.fail.jumpPct * critMultiplier;
   let growthDelta = event.fail.growthDelta * critMultiplier;
   // Critical failure flips positive to negative with minimum penalties
@@ -769,7 +769,7 @@ export function resolveEvent(
   let evRealized = 0;
   
   const multiplier = (config as any).effectMultiplier || 1.0;
-  const criticalMultiplier = isCritical ? 2.0 : 1.0;
+  const criticalMultiplier = isCritical ? 1.5 : 1.0;
   
   if (gateFailed) {
     evRealized = 0;

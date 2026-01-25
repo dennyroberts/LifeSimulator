@@ -179,7 +179,7 @@
   },
   {
     "id": "we_need_to_talk",
-    "name": "Performance Improvement Plan",
+    "name": "Put on a PIP",
     "icon": "MessageSquareWarning",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -192,7 +192,7 @@
     "fail": { "jumpPct": -0.05, "growthDelta": -0.01 },
     "outcomes": {
       "success": "Dodged the bullet",
-      "fail": "Written up officially",
+      "fail": "Your performance does not improve; fired",
       "critSuccess": "Turned it around completely",
       "critFail": "Escorted out by security",
       "traitSuccess": {
@@ -590,7 +590,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.008 },
-    "fail": { "jumpPct": -0.25, "growthDelta": -0.025 },
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.02 },
     "outcomes": {
       "success": "Weathered the storm",
       "fail": "Swept away by change",
@@ -650,7 +650,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.007 },
-    "fail": { "jumpPct": -0.15, "growthDelta": -0.015 },
+    "fail": { "jumpPct": -0.2, "growthDelta": -0.015 },
     "outcomes": {
       "success": "With months of care they made a full recovery",
       "fail": "They required your care for years",

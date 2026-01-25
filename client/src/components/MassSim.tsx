@@ -948,18 +948,27 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
     if (!containerRef.current) return;
     
     const container = containerRef.current;
-    const dots = container.querySelectorAll('[data-dot]');
-    if (dots.length === 0) return;
-    
     const containerRect = container.getBoundingClientRect();
-    const points: { x: number; y: number }[] = [];
+    const containerWidth = containerRect.width;
     
-    dots.forEach((dot) => {
+    // Get all dots and sort by their original index
+    const dotElements = Array.from(container.querySelectorAll('[data-dot-index]'));
+    if (dotElements.length === 0) return;
+    
+    // Sort dots by their original timeline index
+    dotElements.sort((a, b) => {
+      const aIdx = parseInt(a.getAttribute('data-dot-index') || '0');
+      const bIdx = parseInt(b.getAttribute('data-dot-index') || '0');
+      return aIdx - bIdx;
+    });
+    
+    const points: { x: number; y: number; index: number }[] = dotElements.map((dot) => {
       const rect = dot.getBoundingClientRect();
-      points.push({
+      return {
         x: rect.left - containerRect.left + rect.width / 2,
-        y: rect.top - containerRect.top + rect.height / 2
-      });
+        y: rect.top - containerRect.top + rect.height / 2,
+        index: parseInt(dot.getAttribute('data-dot-index') || '0')
+      };
     });
     
     if (points.length < 2) return;
@@ -975,22 +984,30 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
       
       if (rowIndex !== prevRowIndex) {
         // Transitioning between rows - draw curved connector
-        const curveRadius = 12;
-        const isGoingLeft = rowIndex % 2 === 1;
+        const curveRadius = 10;
+        // Keep curves within container bounds
+        const maxX = containerWidth - 4;
+        const minX = 4;
         
-        if (isGoingLeft) {
-          // Going from right of row N to right of row N+1
-          path += ` L ${prev.x + curveRadius} ${prev.y}`;
-          path += ` Q ${prev.x + curveRadius * 2} ${prev.y}, ${prev.x + curveRadius * 2} ${prev.y + curveRadius}`;
-          path += ` L ${prev.x + curveRadius * 2} ${curr.y - curveRadius}`;
-          path += ` Q ${prev.x + curveRadius * 2} ${curr.y}, ${prev.x + curveRadius} ${curr.y}`;
+        // Previous row ended on the right (even row) -> curve on right
+        // Previous row ended on the left (odd row) -> curve on left
+        const prevRowWasEven = prevRowIndex % 2 === 0;
+        
+        if (prevRowWasEven) {
+          // Curve on the right side (row 0->1, 2->3, etc)
+          const curveX = Math.min(prev.x + curveRadius, maxX);
+          path += ` L ${curveX} ${prev.y}`;
+          path += ` Q ${curveX + curveRadius} ${prev.y}, ${curveX + curveRadius} ${prev.y + curveRadius}`;
+          path += ` L ${curveX + curveRadius} ${curr.y - curveRadius}`;
+          path += ` Q ${curveX + curveRadius} ${curr.y}, ${curveX} ${curr.y}`;
           path += ` L ${curr.x} ${curr.y}`;
         } else {
-          // Going from left of row N to left of row N+1
-          path += ` L ${prev.x - curveRadius} ${prev.y}`;
-          path += ` Q ${prev.x - curveRadius * 2} ${prev.y}, ${prev.x - curveRadius * 2} ${prev.y + curveRadius}`;
-          path += ` L ${prev.x - curveRadius * 2} ${curr.y - curveRadius}`;
-          path += ` Q ${prev.x - curveRadius * 2} ${curr.y}, ${prev.x - curveRadius} ${curr.y}`;
+          // Curve on the left side (row 1->2, 3->4, etc)
+          const curveX = Math.max(prev.x - curveRadius, minX);
+          path += ` L ${curveX} ${prev.y}`;
+          path += ` Q ${curveX - curveRadius} ${prev.y}, ${curveX - curveRadius} ${prev.y + curveRadius}`;
+          path += ` L ${curveX - curveRadius} ${curr.y - curveRadius}`;
+          path += ` Q ${curveX - curveRadius} ${curr.y}, ${curveX} ${curr.y}`;
           path += ` L ${curr.x} ${curr.y}`;
         }
       } else {
@@ -1003,11 +1020,11 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   }, [stages, rows.length]);
   
   return (
-    <div ref={containerRef} className="relative px-3">
+    <div ref={containerRef} className="relative px-4">
       {/* SVG overlay for the continuous snaking line */}
       {pathData && (
         <svg 
-          className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          className="absolute inset-0 w-full h-full pointer-events-none"
           style={{ zIndex: 0 }}
         >
           <path
@@ -1030,13 +1047,13 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
           <div key={rowIndex} className="relative">
             {/* Age labels and dots */}
             <div className="relative h-7 flex justify-between items-start">
-              {displayRow.map(({ stage }) => {
+              {displayRow.map(({ stage, originalIndex }) => {
                 const age = stageToAge(stage.stage);
                 return (
                   <div key={stage.stage} className="flex flex-col items-center z-10">
                     <div className="text-[10px] text-muted-foreground font-mono leading-none">{age}</div>
                     <div 
-                      data-dot
+                      data-dot-index={originalIndex}
                       className="w-3 h-3 rounded-full bg-chart-1 border-2 border-background mt-1" 
                     />
                   </div>

@@ -40,10 +40,7 @@ function App() {
                 <p className="text-foreground font-medium mb-2">
                   Welcome to Life Simulator!
                 </p>
-                <p className="text-muted-foreground mb-3">
-                  Simulate life trajectories using D&D-style d20 mechanics. Each life consists of 8 major events — some good, some bad. 
-                  Agents have five traits that influence outcomes:
-                </p>
+                <p className="text-muted-foreground mb-3">Simulate life trajectories using D&D-style d20 mechanics. Each life consists of 9 major events — some good, some bad. Agents have five traits that influence outcomes:</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
                   <span><strong className="text-foreground">INT</strong> Intelligence</span>
                   <span><strong className="text-foreground">WORK</strong> Work Ethic</span>

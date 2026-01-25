@@ -10,15 +10,23 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.10, "growthDelta": 0.003 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.1, "growthDelta": 0.003 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "You get promoted",
       "fail": "Passed over again",
       "critSuccess": "Fast-tracked to executive",
       "critFail": "Publicly humiliated",
-      "traitSuccess": { "WORK": "Your work ethic got you noticed", "CHAR": "Your charisma won them over", "INT": "Your sharp thinking impressed leadership" },
-      "traitFail": { "WORK": "Your poor work ethic held you back", "CHAR": "Your lack of charm lost the decision", "INT": "Your ideas weren't compelling enough" }
+      "traitSuccess": {
+        "WORK": "Your work ethic got you noticed",
+        "CHAR": "Your charisma won them over",
+        "INT": "Your sharp thinking impressed leadership"
+      },
+      "traitFail": {
+        "WORK": "Your poor work ethic held you back",
+        "CHAR": "Your lack of charm lost the decision",
+        "INT": "Your ideas weren't compelling enough"
+      }
     }
   },
   {
@@ -39,8 +47,16 @@
       "fail": "Froze under pressure",
       "critSuccess": "Standing ovation moment",
       "critFail": "Career-ending embarrassment",
-      "traitSuccess": { "WORK": "Your work ethic ensured you were prepared", "INT": "Your intelligence let you think on your feet", "CHAR": "Your charisma commanded the room" },
-      "traitFail": { "WORK": "Your lack of preparation showed", "INT": "You weren't sharp enough under pressure", "CHAR": "You couldn't command the room" }
+      "traitSuccess": {
+        "WORK": "Your work ethic ensured you were prepared",
+        "INT": "Your intelligence let you think on your feet",
+        "CHAR": "Your charisma commanded the room"
+      },
+      "traitFail": {
+        "WORK": "Your lack of preparation showed",
+        "INT": "You weren't sharp enough under pressure",
+        "CHAR": "You couldn't command the room"
+      }
     }
   },
   {
@@ -54,20 +70,26 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.0, "growthDelta": 0.006 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "They fast-track your promotions and raises",
       "fail": "Just another employee to them",
       "critSuccess": "They take you with them when they move up",
       "critFail": "Boss turns on you, blocks your advancement",
-      "traitSuccess": { "CHAR": "Your charisma made you their trusted right-hand", "WORK": "Your work ethic made them look good" },
-      "traitFail": { "CHAR": "Your lack of personality made you forgettable", "WORK": "Your poor output made them look elsewhere" }
+      "traitSuccess": {
+        "CHAR": "Your charisma made you their trusted right-hand",
+        "WORK": "Your work ethic made them look good"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of personality made you forgettable",
+        "WORK": "Your poor output made them look elsewhere"
+      }
     }
   },
   {
     "id": "a_really_bad_boss",
-    "name": "A Really Bad Boss",
+    "name": "A Toxic Workplace",
     "icon": "UserX",
     "rarity": "common",
     "rollRequired": true,
@@ -76,15 +98,21 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.00, "growthDelta": -0.002 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.008 },
+    "success": { "jumpPct": 0.0, "growthDelta": -0.002 },
+    "fail": { "jumpPct": 0.0, "growthDelta": -0.008 },
     "outcomes": {
       "success": "Survived the tyrant",
       "fail": "Crushed your spirit",
-      "critSuccess": "You got them fired and took their spot",
+      "critSuccess": "You got *them* fired",
       "critFail": "Completely destroyed you",
-      "traitSuccess": { "CHAR": "Your charisma kept you on their good side", "WORK": "Your work ethic made you too valuable to target" },
-      "traitFail": { "CHAR": "Your lack of charm made you an easy target", "WORK": "Your poor performance gave them ammunition" }
+      "traitSuccess": {
+        "CHAR": "Your charisma kept you on their good side",
+        "WORK": "Your work ethic made you too valuable to lose"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of charm made you an easy target",
+        "WORK": "Your poor performance gave them ammunition"
+      }
     }
   },
   {
@@ -99,14 +127,22 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.003 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.002 },
+    "fail": { "jumpPct": 0.0, "growthDelta": -0.002 },
     "outcomes": {
       "success": "Smart lateral move",
       "fail": "Went nowhere fast",
       "critSuccess": "Perfect positioning achieved",
       "critFail": "A career-killing move",
-      "traitSuccess": { "CHAR": "Your charisma talked your way in", "NEPO": "Your family connections opened doors", "INT": "You were smart enough to spot the opportunity" },
-      "traitFail": { "CHAR": "Your lack of charm failed to impress", "NEPO": "No connections to help you transition", "INT": "You completely misread the situation" }
+      "traitSuccess": {
+        "CHAR": "Your charisma talked your way in",
+        "NEPO": "Your family connections opened doors",
+        "INT": "You were smart enough to spot the opportunity"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of charm failed to impress",
+        "NEPO": "No connections to help you transition",
+        "INT": "You completely misread the situation"
+      }
     }
   },
   {
@@ -120,20 +156,30 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.10, "growthDelta": 0.010 },
+    "success": { "jumpPct": 0.1, "growthDelta": 0.01 },
     "fail": { "jumpPct": -0.08, "growthDelta": -0.008 },
     "outcomes": {
       "success": "Leadership suits you",
       "fail": "Not ready for this",
       "critSuccess": "Born to lead",
       "critFail": "Spectacular public failure",
-      "traitSuccess": { "WORK": "Your work ethic earned their respect", "CHAR": "Your charisma rallied the team behind you", "INT": "Your intelligence impressed with strategic vision", "NEPO": "Your family name opened doors" },
-      "traitFail": { "WORK": "Your poor work habits undermined your authority", "CHAR": "Your lack of presence failed to inspire the team", "INT": "Your poor judgment led to bad decisions", "NEPO": "No connections to back you up when things got tough" }
+      "traitSuccess": {
+        "WORK": "Your work ethic earned their respect",
+        "CHAR": "Your charisma rallied the team behind you",
+        "INT": "Your intelligence impressed with strategic vision",
+        "NEPO": "Your family name opened doors"
+      },
+      "traitFail": {
+        "WORK": "Your poor work habits undermined your authority",
+        "CHAR": "Your lack of presence failed to inspire the team",
+        "INT": "Your poor judgment led to bad decisions",
+        "NEPO": "No connections to back you up when things got tough"
+      }
     }
   },
   {
     "id": "we_need_to_talk",
-    "name": "The \"We Need to Talk\" Meeting",
+    "name": "Performance Improvement Plan",
     "icon": "MessageSquareWarning",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -142,15 +188,21 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.00, "growthDelta": -0.001 },
-    "fail": { "jumpPct": -0.05, "growthDelta": -0.010 },
+    "success": { "jumpPct": 0.0, "growthDelta": -0.001 },
+    "fail": { "jumpPct": -0.05, "growthDelta": -0.01 },
     "outcomes": {
       "success": "Dodged the bullet",
       "fail": "Written up officially",
       "critSuccess": "Turned it around completely",
       "critFail": "Escorted out by security",
-      "traitSuccess": { "WORK": "Your work ethic and track record saved you", "CHAR": "Your charisma talked your way out" },
-      "traitFail": { "WORK": "Your poor work ethic got you fired", "CHAR": "Your lack of charisma made things worse" }
+      "traitSuccess": {
+        "WORK": "Your work ethic and track record saved you",
+        "CHAR": "Your charisma talked your way out"
+      },
+      "traitFail": {
+        "WORK": "Your poor work ethic got you fired",
+        "CHAR": "Your lack of charisma made things worse"
+      }
     }
   },
   {
@@ -164,15 +216,21 @@
     "riskGated": true,
     "riskGateDC": 14,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.05, "growthDelta": 0.010 },
+    "success": { "jumpPct": 0.05, "growthDelta": 0.015 },
     "fail": { "jumpPct": -0.02, "growthDelta": -0.004 },
     "outcomes": {
       "success": "The new skills unlocks higher-paying opportunities",
       "fail": "Your pivot cost you momentum and salary",
       "critSuccess": "Your skills are in high demand!",
       "critFail": "Years wasted learning the wrong thing",
-      "traitSuccess": { "WORK": "Your work ethic let you master the new skills", "INT": "Your brains let you grasp the new skills easily" },
-      "traitFail": { "WORK": "Your lack of discipline slowed your progress", "INT": "You're not bright enough to master the new skills" }
+      "traitSuccess": {
+        "WORK": "Your work ethic let you master the new skills",
+        "INT": "Your brains let you grasp the new skills easily"
+      },
+      "traitFail": {
+        "WORK": "Your lack of discipline slowed your progress",
+        "INT": "You're not bright enough to master the new skills"
+      }
     }
   },
   {
@@ -182,19 +240,29 @@
     "rarity": "common",
     "rollRequired": true,
     "DC": 16,
-    "checkTraits": { "WORK": 1.0, "INT": 0.5, "CHAR": 0.5, "NEPO": 0.5},
+    "checkTraits": { "WORK": 1.0, "INT": 0.5, "CHAR": 0.5, "NEPO": 0.5 },
     "riskGated": true,
     "riskGateDC": 16,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.05, "growthDelta": 0.010 },
+    "success": { "jumpPct": 0.05, "growthDelta": 0.015 },
     "fail": { "jumpPct": -0.05, "growthDelta": -0.008 },
     "outcomes": {
       "success": "New skills unlock higher-paying opportunities",
       "fail": "Career pivot cost you momentum and salary",
       "critSuccess": "Became an expert in a lucrative field",
       "critFail": "Years wasted learning the wrong thing",
-      "traitSuccess": { "WORK": "Your work ethic let you thrive in the new career", "INT": "Your were clever enough to land the pivot", "CHAR": "You talked your way into the new field easily", "NEPO": "Connections in the field help you out" },
-      "traitFail": { "WORK": "Your didn't put in the work required", "INT": "You weren't clever enough to succeed at the pivot", "CHAR": "You fail to market yourself effectively", "NEPO": "No connections in the new field" }
+      "traitSuccess": {
+        "WORK": "Your work ethic let you thrive in the new career",
+        "INT": "Your were clever enough to land the pivot",
+        "CHAR": "You talked your way into the new field easily",
+        "NEPO": "Connections in the field help you out"
+      },
+      "traitFail": {
+        "WORK": "Your didn't put in the work required",
+        "INT": "You weren't clever enough to succeed at the pivot",
+        "CHAR": "You fail to market yourself effectively",
+        "NEPO": "No connections in the new field"
+      }
     }
   },
   {
@@ -209,14 +277,20 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Bigger opportunities land at your feet",
       "fail": "Your 15 minutes of fame end early",
       "critSuccess": "Headhunters fight over you",
       "critFail": "Your reputation tanks publicly",
-      "traitSuccess": { "CHAR": "Your charisma makes everyone want to work with you", "NEPO": "Your family name commands respect" },
-      "traitFail": { "CHAR": "Your lack of presence ends your moment early", "NEPO": "Your lack of connections made this fizzle" }
+      "traitSuccess": {
+        "CHAR": "Your charisma makes everyone want to work with you",
+        "NEPO": "Your family name commands respect"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of presence ends your moment early",
+        "NEPO": "Your lack of connections made this fizzle"
+      }
     }
   },
   {
@@ -231,14 +305,20 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.06, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Golden opportunity seized",
       "fail": "Window of opportunity closed on you",
       "critSuccess": "Their word goes very far",
       "critFail": "Burned that bridge forever",
-      "traitSuccess": { "NEPO": "Your family connections came through", "CHAR": "Your charisma made a great impression" },
-      "traitFail": { "NEPO": "Turns out you don't know anyone powerful", "CHAR": "Your poor impression closed the door" }
+      "traitSuccess": {
+        "NEPO": "Your family connections came through",
+        "CHAR": "Your charisma made a great impression"
+      },
+      "traitFail": {
+        "NEPO": "Turns out you don't know anyone powerful",
+        "CHAR": "Your poor impression closed the door"
+      }
     }
   },
   {
@@ -252,15 +332,23 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.08, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.08, "growthDelta": 0.01 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Fame finds you",
       "fail": "Your 15 minutes of fame end early",
       "critSuccess": "Overnight sensation",
       "critFail": "Viral for wrong reasons",
-      "traitSuccess": { "CHAR": "Your charisma gave you natural star power", "NEPO": "Your family connections put you in the right circles", "WORK": "Your grind helped you maintain the momentum" },
-      "traitFail": { "CHAR": "Your lack of presence made fame slip away", "NEPO": "No connections to amplify your moment", "WORK": "They notice you're all sizzle and no steak" }
+      "traitSuccess": {
+        "CHAR": "Your charisma gave you natural star power",
+        "NEPO": "Your family connections put you in the right circles",
+        "WORK": "Your grind helped you maintain the momentum"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of presence made fame slip away",
+        "NEPO": "No connections to amplify your moment",
+        "WORK": "They notice you're all sizzle and no steak"
+      }
     }
   },
   {
@@ -274,15 +362,23 @@
     "riskGated": true,
     "riskGateDC": 13,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.12, "growthDelta": 0.004 },
+    "success": { "jumpPct": 0.15, "growthDelta": 0.01 },
     "fail": { "jumpPct": -0.03, "growthDelta": -0.004 },
     "outcomes": {
       "success": "Landed the big one",
       "fail": "Offer falls through",
       "critSuccess": "Dream job secured",
       "critFail": "Lost current job too",
-      "traitSuccess": { "CHAR": "Your charisma negotiated masterfully", "NEPO": "Your family connections helped from inside", "WORK": "Your work ethic and track record sealed it" },
-      "traitFail": { "CHAR": "Your weak negotiation skills cost you the deal", "NEPO": "No inside connections to advocate for you", "WORK": "Your thin resume couldn't compete" }
+      "traitSuccess": {
+        "CHAR": "Your charisma negotiated masterfully",
+        "NEPO": "Your family connections helped from inside",
+        "WORK": "Your work ethic and track record sealed it"
+      },
+      "traitFail": {
+        "CHAR": "Your weak negotiation skills cost you the deal",
+        "NEPO": "No inside connections to advocate for you",
+        "WORK": "Your thin resume couldn't compete"
+      }
     }
   },
   {
@@ -296,15 +392,23 @@
     "riskGated": true,
     "riskGateDC": 16,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.10, "growthDelta": 0.010 },
+    "success": { "jumpPct": 0.15, "growthDelta": 0.015 },
     "fail": { "jumpPct": -0.03, "growthDelta": -0.006 },
     "outcomes": {
       "success": "Your passion project takes off",
       "fail": "Project fizzles out",
       "critSuccess": "It's a huge hit",
       "critFail": "Failed and lost everything",
-      "traitSuccess": { "WORK": "Your outworked all competitors", "INT": "Your intelligence led to brilliant execution", "CHAR": "Your charisma made customers love you" },
-      "traitFail": { "WORK": "Your lack of hustle doomed the venture", "INT": "Your poor planning led to costly mistakes", "CHAR": "Your lack of salesmanship killed momentum" }
+      "traitSuccess": {
+        "WORK": "Your outworked all competitors",
+        "INT": "Your intelligence led to brilliant execution",
+        "CHAR": "Your charisma made customers love you"
+      },
+      "traitFail": {
+        "WORK": "Your lack of hustle doomed the venture",
+        "INT": "Your poor planning led to costly mistakes",
+        "CHAR": "Your lack of salesmanship killed momentum"
+      }
     }
   },
   {
@@ -318,15 +422,21 @@
     "riskGated": true,
     "riskGateDC": 13,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
+    "success": { "jumpPct": 0.05, "growthDelta": 0.008 },
     "fail": { "jumpPct": -0.02, "growthDelta": -0.003 },
     "outcomes": {
       "success": "New city, new job market brimming with opportunity",
       "fail": "The wrong move for you",
       "critSuccess": "Landed in a booming market at the perfect time",
       "critFail": "Burned savings on a move that went nowhere",
-      "traitSuccess": { "NEPO": "Your connections there got you hired fast", "CHAR": "Your charisma helps you make friends quick" },
-      "traitFail": { "NEPO": "No network in the new city to help you land", "CHAR": "Your poor networking left you isolated" }
+      "traitSuccess": {
+        "NEPO": "Your connections there got you hired fast",
+        "CHAR": "Your charisma helps you make friends quick"
+      },
+      "traitFail": {
+        "NEPO": "No network in the new city to help you land",
+        "CHAR": "Your poor networking left you isolated"
+      }
     }
   },
   {
@@ -340,15 +450,25 @@
     "riskGated": true,
     "riskGateDC": 16,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.2, "growthDelta": 0.01 },
-    "fail": { "jumpPct": -0.05, "growthDelta": -0.010 },
+    "success": { "jumpPct": 0.2, "growthDelta": 0.015 },
+    "fail": { "jumpPct": -0.05, "growthDelta": -0.01 },
     "outcomes": {
       "success": "Big bet pays off",
       "fail": "Crashed and burned",
       "critSuccess": "Legendary success story",
       "critFail": "Lost absolutely everything",
-      "traitSuccess": { "WORK": "Your work ethic and obsessive found the right play", "CHAR": "You charmed your way into solid information", "INT": "Your intelligence calculated everything perfectly", "NEPO": "Your family's inside knowledge helped" },
-      "traitFail": { "WORK": "You dind't crunch the numbers", "CHAR": "Your lack of conviction scared away supporters", "INT": "Your poor judgment led you astray", "NEPO": "No safety net when you fell" }
+      "traitSuccess": {
+        "WORK": "Your work ethic and obsessive found the right play",
+        "CHAR": "You charmed your way into solid information",
+        "INT": "Your intelligence calculated everything perfectly",
+        "NEPO": "Your family's inside knowledge helped"
+      },
+      "traitFail": {
+        "WORK": "You dind't crunch the numbers",
+        "CHAR": "Your lack of conviction scared away supporters",
+        "INT": "Your poor judgment led you astray",
+        "NEPO": "No safety net when you fell"
+      }
     }
   },
   {
@@ -362,20 +482,30 @@
     "riskGated": true,
     "riskGateDC": 16,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.10, "growthDelta": 0.03 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.020 },
+    "success": { "jumpPct": 0.2, "growthDelta": 0.03 },
+    "fail": { "jumpPct": -0.1, "growthDelta": -0.015 },
     "outcomes": {
       "success": "Your app is huge",
       "fail": "Equity ended up worthless",
       "critSuccess": "It's a unicorn!",
       "critFail": "Watched millions vanish",
-      "traitSuccess": { "INT": "Your smart idea pays off", "NEPO": "Your family connections brought in the right investors", "CHAR": "Your charisma closed the deal", "WORK": "Your work ethic built something valuable" },
-      "traitFail": { "INT": "Your dumb idea was doomed from the start", "NEPO": "No connections to bring serious investors", "CHAR": "Your poor pitch killed the deal", "WORK": "Your half-built product wasn't worth buying" }
+      "traitSuccess": {
+        "INT": "Your smart idea pays off",
+        "NEPO": "Your family connections brought in the right investors",
+        "CHAR": "Your charisma closed the deal",
+        "WORK": "Your work ethic built something valuable"
+      },
+      "traitFail": {
+        "INT": "Your dumb idea was doomed from the start",
+        "NEPO": "No connections to bring serious investors",
+        "CHAR": "Your poor pitch killed the deal",
+        "WORK": "Your half-built product wasn't worth buying"
+      }
     }
   },
   {
     "id": "positioned_when_the_wave_hit",
-    "name": "You Were Positioned When the Wave Hit",
+    "name": "Positioned When the Wave Hit",
     "icon": "Waves",
     "rarity": "jackpot",
     "rollRequired": true,
@@ -384,15 +514,21 @@
     "riskGated": true,
     "riskGateDC": 12,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.2, "growthDelta": 0.020 },
-    "fail": { "jumpPct": -0.15, "growthDelta": -0.010 },
+    "success": { "jumpPct": 0.2, "growthDelta": 0.02 },
+    "fail": { "jumpPct": -0.15, "growthDelta": -0.01 },
     "outcomes": {
       "success": "Rode the wave up",
       "fail": "Wiped out completely",
       "critSuccess": "Perfect timing magic",
       "critFail": "Crushed by the wave",
-      "traitSuccess": { "NEPO": "Your family's inside knowledge helped", "INT": "Your intelligence saw the turn coming" },
-      "traitFail": { "NEPO": "No insiders to help you out", "INT": "You weren't astute enough to notice the opportunity" }
+      "traitSuccess": {
+        "NEPO": "Your family's inside knowledge helped",
+        "INT": "Your intelligence saw the turn coming"
+      },
+      "traitFail": {
+        "NEPO": "No insiders to help you out",
+        "INT": "You weren't astute enough to notice the opportunity"
+      }
     }
   },
   {
@@ -406,8 +542,8 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.40, "growthDelta": 0.00 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.4, "growthDelta": 0.0 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Windfall arrives",
       "fail": "Turns out it was nothing",
@@ -418,7 +554,7 @@
   },
   {
     "id": "a_lucky_break_pays_off",
-    "name": "A Lucky Break Pays Off",
+    "name": "A Lucky Break",
     "icon": "Clover",
     "rarity": "rare",
     "rollRequired": true,
@@ -427,15 +563,19 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.05, "growthDelta": 0.000 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.05, "growthDelta": 0.0 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Right place, right time—bonus lands in your lap",
       "fail": "The opportunity slipped through your fingers",
       "critSuccess": "Pure luck turns into pure profit",
       "critFail": "Bad timing cost you big",
-      "traitSuccess": { "WORK": "Your work ethic meant you were prepared for opportunity" },
-      "traitFail": { "WORK": "Your lack of preparation meant you missed the moment" }
+      "traitSuccess": {
+        "WORK": "Your work ethic meant you were prepared for opportunity"
+      },
+      "traitFail": {
+        "WORK": "Your lack of preparation meant you missed the moment"
+      }
     }
   },
   {
@@ -456,8 +596,18 @@
       "fail": "Swept away by change",
       "critSuccess": "Pivoted beautifully",
       "critFail": "Skills now worthless",
-      "traitSuccess": { "WORK": "Your work ethic let you adapt quickly", "NEPO": "Your family connections found you work", "CHAR": "Your charisma networked you to safety", "INT": "Your foresight saw the collapse coming" },
-      "traitFail": { "WORK": "You couldn't adapt fast enough", "NEPO": "No connections to fall back on", "CHAR": "No friends to help you out", "INT": "You failed to see the writing on the wall" }
+      "traitSuccess": {
+        "WORK": "Your work ethic let you adapt quickly",
+        "NEPO": "Your family connections found you work",
+        "CHAR": "Your charisma networked you to safety",
+        "INT": "Your foresight saw the collapse coming"
+      },
+      "traitFail": {
+        "WORK": "You couldn't adapt fast enough",
+        "NEPO": "No connections to fall back on",
+        "CHAR": "No friends to help you out",
+        "INT": "You failed to see the writing on the wall"
+      }
     }
   },
   {
@@ -471,15 +621,21 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": -0.05, "growthDelta": -0.010 },
-    "fail": { "jumpPct": -0.20, "growthDelta": -0.020 },
+    "success": { "jumpPct": -0.05, "growthDelta": -0.01 },
+    "fail": { "jumpPct": -0.2, "growthDelta": -0.02 },
     "outcomes": {
       "success": "Made a full recovery",
       "fail": "Long road to recovery",
       "critSuccess": "Bounced back stronger",
       "critFail": "Life-altering injuries",
-      "traitSuccess": { "WORK": "Your work ethic meant your job waited for you", "NEPO": "Your family connections covered expenses" },
-      "traitFail": { "WORK": "Your expendability meant they replaced you", "NEPO": "No family support to cover medical bills" }
+      "traitSuccess": {
+        "WORK": "Your work ethic meant your job waited for you",
+        "NEPO": "Your family connections covered expenses"
+      },
+      "traitFail": {
+        "WORK": "Your expendability meant they replaced you",
+        "NEPO": "No family support to cover medical bills"
+      }
     }
   },
   {
@@ -500,8 +656,14 @@
       "fail": "They required your care for years",
       "critSuccess": "The experience made you stronger",
       "critFail": "Life-long care is needed",
-      "traitSuccess": { "WORK": "Your work ethic meant you could handle taking care of them", "NEPO": "Your family connections covered a nurse" },
-      "traitFail": { "WORK": "Tadditional care work was too much", "NEPO": "No family support to cover medical bills" }
+      "traitSuccess": {
+        "WORK": "Your work ethic meant you could handle taking care of them",
+        "NEPO": "Your family connections covered a nurse"
+      },
+      "traitFail": {
+        "WORK": "Tadditional care work was too much",
+        "NEPO": "No family support to cover medical bills"
+      }
     }
   },
   {
@@ -516,14 +678,22 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.02, "growthDelta": -0.002 },
-    "fail": { "jumpPct": -0.10, "growthDelta": -0.006 },
+    "fail": { "jumpPct": -0.1, "growthDelta": -0.006 },
     "outcomes": {
       "success": "Case dismissed",
       "fail": "Paid the settlement",
       "critSuccess": "Won and countersued",
       "critFail": "Financially ruined",
-      "traitSuccess": { "NEPO": "Your family lawyers crushed it", "CHAR": "Your charisma won over the jury", "WORK": "Your extensive documentation saved you" },
-      "traitFail": { "NEPO": "No access to good lawyers", "CHAR": "Your poor demeanor hurt your case", "WORK": "Your sloppy documentation made you look guilty" }
+      "traitSuccess": {
+        "NEPO": "Your family lawyers crushed it",
+        "CHAR": "Your charisma won over the jury",
+        "WORK": "Your extensive documentation saved you"
+      },
+      "traitFail": {
+        "NEPO": "No access to good lawyers",
+        "CHAR": "Your poor demeanor hurt your case",
+        "WORK": "Your sloppy documentation made you look guilty"
+      }
     }
   },
   {
@@ -537,15 +707,21 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.00, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.0, "growthDelta": 0.006 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "You flourish with the support of your partner",
       "fail": "Relationship eventually fell apart",
       "critSuccess": "Married a high earner who supports your career",
       "critFail": "A broken heart threw you into a tailspin",
-      "traitSuccess": { "CHAR": "Your charm landed the perfect, supportive match", "WORK": "You worked hard to find the right person" },
-      "traitFail": { "CHAR": "Your lack of appeal kept you searching", "WORK": "Your poor ambition wasn't attractive" }
+      "traitSuccess": {
+        "CHAR": "Your charm landed the perfect, supportive match",
+        "WORK": "You worked hard to find the right person"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of appeal kept you searching",
+        "WORK": "Your poor ambition wasn't attractive"
+      }
     }
   },
   {
@@ -559,15 +735,21 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.00, "growthDelta": 0.007 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "success": { "jumpPct": 0.0, "growthDelta": 0.007 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "They teach you the shortcuts to success",
       "fail": "They were too busy to invest in you",
       "critSuccess": "Their network becomes your network",
       "critFail": "They took credit for your work",
-      "traitSuccess": { "CHAR": "Your charisma made them see you as their protégé", "WORK": "Your work ethic earned their investment" },
-      "traitFail": { "CHAR": "Your lack of likability made them pass you over", "WORK": "Your poor effort wasn't worth their time" }
+      "traitSuccess": {
+        "CHAR": "Your charisma made them see you as their protégé",
+        "WORK": "Your work ethic earned their investment"
+      },
+      "traitFail": {
+        "CHAR": "Your lack of likability made them pass you over",
+        "WORK": "Your poor effort wasn't worth their time"
+      }
     }
   },
   {
@@ -582,14 +764,22 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Prestige unlocked",
       "fail": "Didn't make the cut",
       "critSuccess": "Elite credential secured",
       "critFail": "Rejected and blacklisted",
-      "traitSuccess": { "NEPO": "Your family connections got you in", "WORK": "Your work ethic earned you your spot", "INT": "Your intelligence impressed in interviews" },
-      "traitFail": { "NEPO": "No connections to get your foot in the door", "WORK": "Your weak portfolio didn't impress", "INT": "You bombed the technical interviews" }
+      "traitSuccess": {
+        "NEPO": "Your family connections got you in",
+        "WORK": "Your work ethic earned you your spot",
+        "INT": "Your intelligence impressed in interviews"
+      },
+      "traitFail": {
+        "NEPO": "No connections to get your foot in the door",
+        "WORK": "Your weak portfolio didn't impress",
+        "INT": "You bombed the technical interviews"
+      }
     }
   },
   {
@@ -604,14 +794,22 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.03, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.00, "growthDelta": 0.000 },
+    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Momentum building",
       "fail": "Wind died down",
       "critSuccess": "Perfect timing",
       "critFail": "It was a bubble",
-      "traitSuccess": { "INT": "Your intelligence spotted the trend early", "WORK": "Your work ethic had you ready to capitalize", "NEPO": "Family connections tipped you off" },
-      "traitFail": { "INT": "You failed to see the opportunity", "WORK": "Your lack of preparation meant you missed the wave", "NEPO": "No inside information to act on" }
+      "traitSuccess": {
+        "INT": "Your intelligence spotted the trend early",
+        "WORK": "Your work ethic had you ready to capitalize",
+        "NEPO": "Family connections tipped you off"
+      },
+      "traitFail": {
+        "INT": "You failed to see the opportunity",
+        "WORK": "Your lack of preparation meant you missed the wave",
+        "NEPO": "No inside information to act on"
+      }
     }
   },
   {
@@ -625,15 +823,21 @@
     "riskGated": true,
     "riskGateDC": 14,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.30, "growthDelta": 0.030 },
+    "success": { "jumpPct": 0.3, "growthDelta": 0.03 },
     "fail": { "jumpPct": -0.1, "growthDelta": -0.005 },
     "outcomes": {
       "success": "Excellent market fit",
       "fail": "Wasted time and money on a bad idea",
       "critSuccess": "Changed the world!",
       "critFail": "Someone stole the idea",
-      "traitSuccess": { "INT": "Your intelligence led to a genius breakthrough", "WORK": "Your work ethic and years of research paid off" },
-      "traitFail": { "INT": "Your limited thinking couldn't crack the problem", "WORK": "Your lack of persistence abandoned the project too early" }
+      "traitSuccess": {
+        "INT": "Your intelligence led to a genius breakthrough",
+        "WORK": "Your work ethic and years of research paid off"
+      },
+      "traitFail": {
+        "INT": "Your limited thinking couldn't crack the problem",
+        "WORK": "Your lack of persistence abandoned the project too early"
+      }
     }
   },
   {
@@ -648,14 +852,20 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.005 },
-    "fail": { "jumpPct": -0.30, "growthDelta": -0.030 },
+    "fail": { "jumpPct": -0.3, "growthDelta": -0.03 },
     "outcomes": {
       "success": "Charges dropped",
       "fail": "Convicted as charged",
       "critSuccess": "Walked away clean",
       "critFail": "Maximum sentence",
-      "traitSuccess": { "NEPO": "Your family hired top lawyers", "CHAR": "Your charisma convinced the judge to show mercy" },
-      "traitFail": { "NEPO": "No money for a decent lawyer", "CHAR": "Your poor demeanor made the judge throw the book at you" }
+      "traitSuccess": {
+        "NEPO": "Your family hired top lawyers",
+        "CHAR": "Your charisma convinced the judge to show mercy"
+      },
+      "traitFail": {
+        "NEPO": "No money for a decent lawyer",
+        "CHAR": "Your poor demeanor made the judge throw the book at you"
+      }
     }
   },
   {
@@ -676,8 +886,18 @@
       "fail": "Months of unemployment",
       "critSuccess": "Better job immediately",
       "critFail": "Career derailed completely",
-      "traitSuccess": { "WORK": "Your work ethic and reputation preceded you", "NEPO": "Your family network found you work", "CHAR": "Your charisma had you interviewing like a pro", "INT": "Your skills made you a hot commodity" },
-      "traitFail": { "WORK": "Your poor track record made you unhireable", "NEPO": "No network to tap for leads", "CHAR": "Your weak interviews left you jobless", "INT": "Your outdated skills left you behind" }
+      "traitSuccess": {
+        "WORK": "Your work ethic and reputation preceded you",
+        "NEPO": "Your family network found you work",
+        "CHAR": "Your charisma had you interviewing like a pro",
+        "INT": "Your skills made you a hot commodity"
+      },
+      "traitFail": {
+        "WORK": "Your poor track record made you unhireable",
+        "NEPO": "No network to tap for leads",
+        "CHAR": "Your weak interviews left you jobless",
+        "INT": "Your outdated skills left you behind"
+      }
     }
   },
   {
@@ -698,8 +918,14 @@
       "fail": "Dropped out",
       "critSuccess": "Top of your class",
       "critFail": "Debt with nothing to show",
-      "traitSuccess": { "INT": "Your intelligence earned academic excellence", "WORK": "Your work ethic powered you through" },
-      "traitFail": { "INT": "You couldn't keep up with the coursework", "WORK": "Your lack of discipline led you to quit" }
+      "traitSuccess": {
+        "INT": "Your intelligence earned academic excellence",
+        "WORK": "Your work ethic powered you through"
+      },
+      "traitFail": {
+        "INT": "You couldn't keep up with the coursework",
+        "WORK": "Your lack of discipline led you to quit"
+      }
     }
   },
   {
@@ -720,8 +946,14 @@
       "fail": "Ugly court battle",
       "critSuccess": "You come out ahead",
       "critFail": "Lost everything",
-      "traitSuccess": { "NEPO": "Your family lawyers protected you", "CHAR": "Your charisma kept you on good terms" },
-      "traitFail": { "NEPO": "No legal resources to protect your assets", "CHAR": "Your poor communication made everything hostile" }
+      "traitSuccess": {
+        "NEPO": "Your family lawyers protected you",
+        "CHAR": "Your charisma kept you on good terms"
+      },
+      "traitFail": {
+        "NEPO": "No legal resources to protect your assets",
+        "CHAR": "Your poor communication made everything hostile"
+      }
     }
   },
   {
@@ -736,14 +968,20 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.03, "growthDelta": -0.001 },
-    "fail": { "jumpPct": -0.20, "growthDelta": -0.002 },
+    "fail": { "jumpPct": -0.2, "growthDelta": -0.002 },
     "outcomes": {
       "success": "Dug yourself out",
       "fail": "Drowning in debt",
       "critSuccess": "Turned it around completely",
       "critFail": "Declared bankruptcy",
-      "traitSuccess": { "NEPO": "Your family bailed you out", "WORK": "Your work ethic had you working extra to pay it off" },
-      "traitFail": { "NEPO": "No family money to help you out", "WORK": "Your lack of hustle kept you sinking deeper" }
+      "traitSuccess": {
+        "NEPO": "Your family bailed you out",
+        "WORK": "Your work ethic had you working extra to pay it off"
+      },
+      "traitFail": {
+        "NEPO": "No family money to help you out",
+        "WORK": "Your lack of hustle kept you sinking deeper"
+      }
     }
   },
   {
@@ -758,14 +996,20 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.00, "growthDelta": -0.002 },
+    "fail": { "jumpPct": 0.0, "growthDelta": -0.002 },
     "outcomes": {
       "success": "You solved what others couldn't",
       "fail": "The problem beat you",
       "critSuccess": "Breakthrough that changed everything",
       "critFail": "Wasted months on a dead end",
-      "traitSuccess": { "INT": "Your brilliant mind cracked the code", "WORK": "Your persistence paid off" },
-      "traitFail": { "INT": "The problem was beyond your abilities", "WORK": "You gave up too soon" }
+      "traitSuccess": {
+        "INT": "Your brilliant mind cracked the code",
+        "WORK": "Your persistence paid off"
+      },
+      "traitFail": {
+        "INT": "The problem was beyond your abilities",
+        "WORK": "You gave up too soon"
+      }
     }
   },
   {
@@ -779,15 +1023,21 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.10, "growthDelta": 0.012 },
+    "success": { "jumpPct": 0.1, "growthDelta": 0.012 },
     "fail": { "jumpPct": -0.03, "growthDelta": -0.005 },
     "outcomes": {
       "success": "Your idea reshapes the industry",
       "fail": "The idea was ahead of its time",
       "critSuccess": "You're hailed as a visionary",
       "critFail": "Dismissed as a crackpot",
-      "traitSuccess": { "INT": "Your genius insight was undeniable", "WORK": "Your relentless refinement made it viable" },
-      "traitFail": { "INT": "Your idea wasn't as revolutionary as you thought", "WORK": "You failed to execute on the vision" }
+      "traitSuccess": {
+        "INT": "Your genius insight was undeniable",
+        "WORK": "Your relentless refinement made it viable"
+      },
+      "traitFail": {
+        "INT": "Your idea wasn't as revolutionary as you thought",
+        "WORK": "You failed to execute on the vision"
+      }
     }
   },
   {
@@ -802,14 +1052,22 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": -0.05, "growthDelta": -0.008 },
-    "fail": { "jumpPct": -0.20, "growthDelta": -0.020 },
+    "fail": { "jumpPct": -0.2, "growthDelta": -0.02 },
     "outcomes": {
       "success": "You fought your way back",
       "fail": "Lost years to the addiction",
       "critSuccess": "Recovery made you stronger",
       "critFail": "Hit rock bottom",
-      "traitSuccess": { "WORK": "Your discipline helped you stay clean", "NEPO": "Your family paid for the best rehab", "CHAR": "Your support network kept you accountable" },
-      "traitFail": { "WORK": "You couldn't stick to recovery", "NEPO": "No family support to help you through", "CHAR": "You pushed everyone away" }
+      "traitSuccess": {
+        "WORK": "Your discipline helped you stay clean",
+        "NEPO": "Your family paid for the best rehab",
+        "CHAR": "Your support network kept you accountable"
+      },
+      "traitFail": {
+        "WORK": "You couldn't stick to recovery",
+        "NEPO": "No family support to help you through",
+        "CHAR": "You pushed everyone away"
+      }
     }
   }
 ]

@@ -618,7 +618,13 @@ function AgentCard({ agentData, rank, isTop = false }: {
               <Clover className="h-3 w-3 text-chart-2" />
               <span>Luck</span>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-4 gap-2 text-xs">
+              <div>
+                <div className="text-muted-foreground">Opp</div>
+                <div className={`font-mono font-semibold ${actual.luck.opportunityLuckZ >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+                  {actual.luck.opportunityLuckZ >= 0 ? '+' : ''}{actual.luck.opportunityLuckZ.toFixed(2)}σ
+                </div>
+              </div>
               <div>
                 <div className="text-muted-foreground">Edu</div>
                 <div className={`font-mono font-semibold ${actual.luck.educationRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
@@ -643,7 +649,13 @@ function AgentCard({ agentData, rank, isTop = false }: {
         {/* Mobile luck row - compact horizontal */}
         <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2">
           <Clover className="h-3 w-3 text-chart-2 shrink-0" />
-          <div className="flex items-center gap-3 font-mono">
+          <div className="flex items-center gap-3 font-mono flex-wrap">
+            <span>
+              <span className="text-muted-foreground">Opp:</span>
+              <span className={actual.luck.opportunityLuckZ >= 0 ? 'text-chart-2' : 'text-destructive'}>
+                {actual.luck.opportunityLuckZ >= 0 ? '+' : ''}{actual.luck.opportunityLuckZ.toFixed(2)}σ
+              </span>
+            </span>
             <span>
               <span className="text-muted-foreground">Edu:</span>
               <span className={actual.luck.educationRollLuck >= 0 ? 'text-chart-2' : 'text-destructive'}>

@@ -1112,17 +1112,8 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
   // Calculate dynamic range for raw roll luck values
   const filtered = filterByAllTraits(results, filter);
   
-  const getRange = (key: keyof LuckAnalysis): [number, number] => {
-    if (filtered.length === 0) return [-1000, 1000];
-    const values = filtered.map(r => r.luck[key] as number).filter(v => v !== undefined);
-    if (values.length === 0) return [-1000, 1000];
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    // Add 10% padding, minimum 50 to prevent too tight a range
-    const range = Math.abs(max - min);
-    const padding = Math.max(range * 0.1, 50);
-    return [Math.floor(min - padding), Math.ceil(max + padding)];
-  };
+  // Use same z-score range for roll luck breakdown (these are also normalized deviation values)
+  const rollLuckRange: [number, number] = [-3, 3];
 
   return (
     <div className="space-y-4" data-testid="controlled-luck-grid">
@@ -1179,7 +1170,6 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {rollLuckBreakdown.map(({ key, label, color, description }) => {
-            const range = getRange(key);
             return (
               <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
                 <div className="text-sm font-medium text-center mb-0.5">{label}</div>
@@ -1190,8 +1180,8 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
                   xLabel={label} 
                   color={color} 
                   yMax={yMax}
-                  xMin={range[0]}
-                  xMax={range[1]}
+                  xMin={rollLuckRange[0]}
+                  xMax={rollLuckRange[1]}
                 />
               </div>
             );

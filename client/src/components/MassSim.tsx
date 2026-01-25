@@ -522,6 +522,34 @@ function AgentTable({ agents, isTop, worldMode, seed }: {
   );
 }
 
+// Calculate how many life events were tipped by traits
+function calculateTraitWinLoss(stages: SimulatedStage[]): { wins: number; losses: number } {
+  let wins = 0;
+  let losses = 0;
+  
+  for (const stage of stages) {
+    const outcome = stage.eventOutcome;
+    if (!outcome || outcome.mainRoll === undefined || outcome.mainDC === undefined) continue;
+    
+    const roll = outcome.mainRoll;
+    const mod = outcome.mainMod || 0;
+    const dc = outcome.mainDC;
+    const totalRoll = roll + mod;
+    
+    // Win: You passed with traits but would have failed without them
+    if (totalRoll >= dc && roll < dc) {
+      wins++;
+    }
+    // Loss: You failed with traits but would have passed without them
+    // (This happens when mod is negative, e.g., low trait values)
+    else if (totalRoll < dc && roll >= dc) {
+      losses++;
+    }
+  }
+  
+  return { wins, losses };
+}
+
 function AgentCard({ agentData, rank, isTop = false }: { 
   agentData: AgentWithScenarios; 
   rank: number;
@@ -531,6 +559,7 @@ function AgentCard({ agentData, rank, isTop = false }: {
   const actualGrade = getLifetimeGrade(actual.lifetimeEarnings);
   const bestGrade = getLifetimeGrade(best.lifetimeEarnings);
   const worstGrade = getLifetimeGrade(worst.lifetimeEarnings);
+  const traitWL = calculateTraitWinLoss(actual.stages);
   
   const [biography, setBiography] = useState<string | null>(null);
   const [bioLoading, setBioLoading] = useState(false);
@@ -585,9 +614,15 @@ function AgentCard({ agentData, rank, isTop = false }: {
                 {formatCurrency(actual.lifetimeEarnings)}
               </span>
             </div>
-            {/* Row 2: Traits */}
-            <div className="mt-1">
+            {/* Row 2: Traits + Trait W/L */}
+            <div className="mt-1 flex items-center gap-3 flex-wrap">
               <TraitDisplay traits={actual.traits} compact />
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                Trait W/L:
+                <span className={traitWL.wins > 0 ? 'text-chart-2 font-semibold' : 'text-muted-foreground'}>{traitWL.wins}</span>
+                <span>/</span>
+                <span className={traitWL.losses > 0 ? 'text-destructive font-semibold' : 'text-muted-foreground'}>{traitWL.losses}</span>
+              </span>
             </div>
             {/* Row 3: Career + Bio button */}
             <div className="flex items-center gap-x-3 gap-y-1 mt-1 text-xs flex-wrap">

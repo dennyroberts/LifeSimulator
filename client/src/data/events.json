@@ -332,7 +332,7 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.08, "growthDelta": 0.01 },
+    "success": { "jumpPct": 0.05, "growthDelta": 0.015 },
     "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Fame finds you",

@@ -942,41 +942,27 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   }
   
   return (
-    <div className="relative">
+    <div className="relative px-3">
       {rows.map((row, rowIndex) => {
         const isReversed = rowIndex % 2 === 1;
         const displayRow = isReversed ? [...row].reverse() : row;
         const isLastRow = rowIndex === rows.length - 1;
         
         return (
-          <div key={rowIndex} className="relative mb-2">
-            {/* Timeline line section */}
-            <div className="relative h-8 mx-2">
+          <div key={rowIndex} className="relative">
+            {/* Timeline line with dots */}
+            <div className="relative h-7">
               {/* Horizontal line */}
-              <div className="absolute top-4 left-0 right-0 h-[3px] bg-muted-foreground/40 rounded-full" />
+              <div className="absolute top-[18px] left-0 right-0 h-[3px] bg-muted-foreground/30 rounded-full" />
               
-              {/* Right curve connector (for even rows going to odd) */}
-              {!isLastRow && !isReversed && (
-                <div className="absolute top-4 -right-2 w-4 h-[calc(100%+44px)]">
-                  <div className="absolute top-0 right-0 w-4 h-full border-r-[3px] border-muted-foreground/40 rounded-r-xl" />
-                </div>
-              )}
-              
-              {/* Left curve connector (for odd rows going to even) */}
-              {!isLastRow && isReversed && (
-                <div className="absolute top-4 -left-2 w-4 h-[calc(100%+44px)]">
-                  <div className="absolute top-0 left-0 w-4 h-full border-l-[3px] border-muted-foreground/40 rounded-l-xl" />
-                </div>
-              )}
-              
-              {/* Age labels and dots */}
-              <div className="absolute inset-0 flex justify-between items-start">
+              {/* Age labels and dots positioned along the line */}
+              <div className="relative flex justify-between items-start h-full">
                 {displayRow.map(({ stage }) => {
                   const age = stageToAge(stage.stage);
                   return (
-                    <div key={stage.stage} className="flex flex-col items-center">
-                      <div className="text-[10px] text-muted-foreground font-mono">{age}</div>
-                      <div className="w-3 h-3 rounded-full bg-chart-1 border-2 border-background shadow-sm mt-0.5" />
+                    <div key={stage.stage} className="flex flex-col items-center z-10">
+                      <div className="text-[10px] text-muted-foreground font-mono leading-none">{age}</div>
+                      <div className="w-3 h-3 rounded-full bg-chart-1 border-2 border-background mt-1" />
                     </div>
                   );
                 })}
@@ -984,11 +970,32 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
             </div>
             
             {/* Event cards */}
-            <div className={`flex gap-1 mt-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex gap-1.5 mt-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
               {row.map(({ stage }) => (
                 <MiniEventCardWithName key={stage.stage} stage={stage} />
               ))}
             </div>
+            
+            {/* Curved connector to next row - positioned after cards */}
+            {!isLastRow && (
+              <div className={`flex ${isReversed ? 'justify-start -ml-3' : 'justify-end -mr-3'} my-1`}>
+                <svg 
+                  width="24" 
+                  height="32" 
+                  viewBox="0 0 24 32" 
+                  className="text-muted-foreground/30"
+                  style={{ transform: isReversed ? 'scaleX(-1)' : 'none' }}
+                >
+                  <path
+                    d="M 0 0 Q 24 0, 24 16 Q 24 32, 0 32"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            )}
           </div>
         );
       })}
@@ -996,24 +1003,22 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   );
 }
 
-// Compact event card that shows the event name
+// Compact event card that shows the event name (allows text wrapping)
 function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0] }) {
-  const age = stageToAge(stage.stage);
-  
   if (stage.isEducation && stage.education) {
     const edu = stage.education;
     return (
       <Popover>
         <PopoverTrigger asChild>
           <div 
-            className="flex-1 p-1.5 rounded text-[9px] border cursor-pointer bg-chart-1/10 border-chart-1/20"
+            className="flex-1 p-1.5 rounded text-[10px] border cursor-pointer bg-chart-1/10 border-chart-1/20 min-w-0"
             data-testid={`mini-named-${stage.stage}`}
           >
             <div className="flex items-center gap-1 mb-0.5">
               <GraduationCap className="h-3 w-3 text-chart-1 shrink-0" />
-              <span className="font-medium truncate">Education</span>
+              <span className="font-medium text-chart-1">Education</span>
             </div>
-            <div className="text-muted-foreground truncate">{edu.label}</div>
+            <div className="text-muted-foreground leading-tight">{edu.label}</div>
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
@@ -1029,14 +1034,14 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
       <Popover>
         <PopoverTrigger asChild>
           <div 
-            className="flex-1 p-1.5 rounded text-[9px] border cursor-pointer bg-chart-3/10 border-chart-3/20"
+            className="flex-1 p-1.5 rounded text-[10px] border cursor-pointer bg-chart-3/10 border-chart-3/20 min-w-0"
             data-testid={`mini-named-${stage.stage}`}
           >
             <div className="flex items-center gap-1 mb-0.5">
               <Briefcase className="h-3 w-3 text-chart-3 shrink-0" />
-              <span className="font-medium truncate">Career</span>
+              <span className="font-medium text-chart-3">Career</span>
             </div>
-            <div className="text-muted-foreground truncate">{career.career.name}</div>
+            <div className="text-muted-foreground leading-tight">{career.career.name}</div>
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">
@@ -1056,7 +1061,7 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
       <Popover>
         <PopoverTrigger asChild>
           <div 
-            className={`flex-1 p-1.5 rounded text-[9px] border cursor-pointer ${
+            className={`flex-1 p-1.5 rounded text-[10px] border cursor-pointer min-w-0 ${
               success ? 'bg-chart-2/10 border-chart-2/20' : 'bg-destructive/10 border-destructive/20'
             }`}
             data-testid={`mini-named-${stage.stage}`}
@@ -1067,7 +1072,7 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
                 {success ? 'Pass' : 'Fail'}
               </span>
             </div>
-            <div className="text-muted-foreground truncate">{event?.name || 'Event'}</div>
+            <div className="text-muted-foreground leading-tight">{event?.name || 'Event'}</div>
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-0 border-none shadow-xl" side="top" align="center">

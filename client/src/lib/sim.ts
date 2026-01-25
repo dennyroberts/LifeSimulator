@@ -1095,22 +1095,30 @@ export function generateRandomAspiration(rng: () => number): CareerAspiration {
   return ASPIRATIONS[Math.floor(rng() * ASPIRATIONS.length)];
 }
 
+// Generate shared events for "same deck" mode - call once before batching
+export function generateSharedEvents(seed: string): Map<number, Event> {
+  const sharedEvents = new Map<number, Event>();
+  for (const stageNum of config.eventStages) {
+    const stageRng = createRng(`${seed}|stage${stageNum}`);
+    sharedEvents.set(stageNum, drawEvent(stageRng));
+  }
+  return sharedEvents;
+}
+
 export function runMassSimulation(
   numAgents: number,
   worldMode: WorldMode,
   seed: string,
   sameDeck: boolean,
-  aspirationsEnabled: boolean = true
+  aspirationsEnabled: boolean = true,
+  preGeneratedSharedEvents?: Map<number, Event>
 ): SimulationResult[] {
   const masterRng = createRng(seed);
   
+  // Use pre-generated shared events if provided, otherwise generate (for backwards compatibility)
   let sharedEvents: Map<number, Event> | undefined;
   if (sameDeck) {
-    sharedEvents = new Map();
-    for (const stageNum of config.eventStages) {
-      const stageRng = createRng(`${seed}|stage${stageNum}`);
-      sharedEvents.set(stageNum, drawEvent(stageRng));
-    }
+    sharedEvents = preGeneratedSharedEvents || generateSharedEvents(seed);
   }
   
   const results: SimulationResult[] = [];

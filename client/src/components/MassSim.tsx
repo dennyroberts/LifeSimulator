@@ -36,6 +36,7 @@ import {
   type Event,
   type CareerAspiration,
   runMassSimulation,
+  generateSharedEvents,
   formatCurrency,
   formatEV,
   getLifetimeGrade,
@@ -85,6 +86,9 @@ export function MassSim() {
     const batches = Math.ceil(agentCount / batchSize);
     const allResults: SimulationResult[] = [];
     
+    // Generate shared events ONCE before batching (so all batches use the same deck)
+    const sharedEvents = sameDeck ? generateSharedEvents(currentSeed) : undefined;
+    
     for (let i = 0; i < batches; i++) {
       if (!isMountedRef.current) return;
       
@@ -97,7 +101,8 @@ export function MassSim() {
         worldMode,
         `${currentSeed}|batch${i}`,
         sameDeck,
-        aspirationsEnabled
+        aspirationsEnabled,
+        sharedEvents
       );
       
       batchResults.forEach((r) => {

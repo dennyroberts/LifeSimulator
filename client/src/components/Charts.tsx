@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type StageResult, type SimulationResult, formatCurrency } from '@/lib/sim';
+import { type StageResult, type SimulationResult, type LuckAnalysis, formatCurrency } from '@/lib/sim';
 
 interface IncomeChartProps {
   stages: StageResult[];
@@ -1060,7 +1060,7 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
   
   // Use z-scored values for consistent scales across all luck types
   // All z-scores have mean 0 and approximately unit variance
-  const luckPlots = [
+  const zScorePlots = [
     { 
       key: 'opportunityLuckZ', 
       label: 'Opportunity Luck (Z)', 
@@ -1081,16 +1081,49 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
     },
   ];
   
+  // Roll luck breakdown by phase (raw values, not z-scored)
+  const rollLuckBreakdown: { key: keyof LuckAnalysis; label: string; color: string; description: string }[] = [
+    { 
+      key: 'educationRollLuck', 
+      label: 'Education Roll Luck', 
+      color: 'hsl(var(--chart-2))',
+      description: 'Roll luck from education stage'
+    },
+    { 
+      key: 'careerRollLuck', 
+      label: 'Career Roll Luck', 
+      color: 'hsl(var(--chart-3))',
+      description: 'Roll luck from career determination'
+    },
+    { 
+      key: 'eventRollLuck', 
+      label: 'Event Roll Luck', 
+      color: 'hsl(var(--chart-4))',
+      description: 'Roll luck from life events'
+    },
+  ];
+  
   // Fixed Y-axis at 6M for consistency, points above will overflow
   const yMax = 6_000_000;
   
   // Fixed X-axis range for z-scores: -3 to 3 covers 99.7% of data
   const zScoreRange: [number, number] = [-3, 3];
   
+  // Calculate dynamic range for raw roll luck values
   const filtered = filterByAllTraits(results, filter);
+  
+  const getRange = (key: keyof LuckAnalysis): [number, number] => {
+    if (filtered.length === 0) return [-100000, 100000];
+    const values = filtered.map(r => r.luck[key] as number).filter(v => v !== undefined);
+    if (values.length === 0) return [-100000, 100000];
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const padding = Math.max(Math.abs(max - min) * 0.1, 10000);
+    return [Math.floor(min - padding), Math.ceil(max + padding)];
+  };
 
   return (
-    <div className="space-y-3" data-testid="controlled-luck-grid">
+    <div className="space-y-4" data-testid="controlled-luck-grid">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm text-muted-foreground">Trait Filter:</span>
         <select
@@ -1106,29 +1139,62 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
         <span className="text-[10px] text-muted-foreground">n={filtered.length}</span>
       </div>
       
-      <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2 space-y-1">
-        <div><strong>Z-scores explained:</strong> Values centered at 0 (average luck). Positive = lucky, negative = unlucky.</div>
-        <div>Most agents fall between -2 and +2. Values beyond +/-3 are extremely rare.</div>
+      {/* Z-Score Section */}
+      <div>
+        <div className="text-sm font-semibold mb-2">Normalized Luck (Z-Scores)</div>
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2 space-y-1 mb-3">
+          <div><strong>Z-scores explained:</strong> Values centered at 0 (average luck). Positive = lucky, negative = unlucky.</div>
+          <div>Most agents fall between -2 and +2. Values beyond +/-3 are extremely rare.</div>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {zScorePlots.map(({ key, label, color, description }) => {
+            return (
+              <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
+                <div className="text-sm font-medium text-center mb-0.5">{label}</div>
+                <div className="text-[10px] text-muted-foreground text-center mb-1">{description}</div>
+                <ControlledScatterPlot 
+                  results={filtered} 
+                  xKey={key} 
+                  xLabel={label} 
+                  color={color} 
+                  yMax={yMax}
+                  xMin={zScoreRange[0]}
+                  xMax={zScoreRange[1]}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {luckPlots.map(({ key, label, color, description }) => {
-          return (
-            <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
-              <div className="text-sm font-medium text-center mb-0.5">{label}</div>
-              <div className="text-[10px] text-muted-foreground text-center mb-1">{description}</div>
-              <ControlledScatterPlot 
-                results={filtered} 
-                xKey={key} 
-                xLabel={label} 
-                color={color} 
-                yMax={yMax}
-                xMin={zScoreRange[0]}
-                xMax={zScoreRange[1]}
-              />
-            </div>
-          );
-        })}
+      {/* Roll Luck Breakdown Section */}
+      <div>
+        <div className="text-sm font-semibold mb-2">Roll Luck by Phase (Raw $ Impact)</div>
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2 mb-3">
+          How much each life phase's dice rolls deviated from expected value (in dollars).
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rollLuckBreakdown.map(({ key, label, color, description }) => {
+            const range = getRange(key);
+            return (
+              <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
+                <div className="text-sm font-medium text-center mb-0.5">{label}</div>
+                <div className="text-[10px] text-muted-foreground text-center mb-1">{description}</div>
+                <ControlledScatterPlot 
+                  results={filtered} 
+                  xKey={key} 
+                  xLabel={label} 
+                  color={color} 
+                  yMax={yMax}
+                  xMin={range[0]}
+                  xMax={range[1]}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

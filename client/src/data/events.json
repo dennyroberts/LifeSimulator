@@ -6,7 +6,7 @@
     "rarity": "common",
     "rollRequired": true,
     "DC": 12,
-    "checkTraits": { "WORK": 1.0, "CHAR": 1.0 },
+    "checkTraits": { "WORK": 1.0, "CHAR": 1.0, "INT": 0.5 },
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
@@ -17,8 +17,8 @@
       "fail": "Passed over again",
       "critSuccess": "Fast-tracked to executive",
       "critFail": "Publicly humiliated",
-      "traitSuccess": { "WORK": "Your work ethic got you noticed", "CHAR": "Your charisma won them over" },
-      "traitFail": { "WORK": "Your poor work ethic held you back", "CHAR": "Your lack of charm lost the decision" }
+      "traitSuccess": { "WORK": "Your work ethic got you noticed", "CHAR": "Your charisma won them over", "INT": "Your sharp thinking impressed leadership" },
+      "traitFail": { "WORK": "Your poor work ethic held you back", "CHAR": "Your lack of charm lost the decision", "INT": "Your ideas weren't compelling enough" }
     }
   },
   {
@@ -445,7 +445,7 @@
     "rarity": "sinkhole",
     "rollRequired": true,
     "DC": 14,
-    "checkTraits": { "WORK": 1.0, "NEPO": 0.5, "CHAR": 0.5 },
+    "checkTraits": { "WORK": 1.0, "NEPO": 0.5, "CHAR": 0.5, "INT": 0.5 },
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
@@ -456,8 +456,8 @@
       "fail": "Swept away by change",
       "critSuccess": "Pivoted beautifully",
       "critFail": "Skills now worthless",
-      "traitSuccess": { "WORK": "Your work ethic let you adapt quickly", "NEPO": "Your family connections found you work", "CHAR": "Your charisma networked you to safety" },
-      "traitFail": { "WORK": "You couldn't adapt fast enough", "NEPO": "No connections to fall back on", "CHAR": "No friends to help you out" }
+      "traitSuccess": { "WORK": "Your work ethic let you adapt quickly", "NEPO": "Your family connections found you work", "CHAR": "Your charisma networked you to safety", "INT": "Your foresight saw the collapse coming" },
+      "traitFail": { "WORK": "You couldn't adapt fast enough", "NEPO": "No connections to fall back on", "CHAR": "No friends to help you out", "INT": "You failed to see the writing on the wall" }
     }
   },
   {
@@ -665,7 +665,7 @@
     "rarity": "uncommon",
     "rollRequired": true,
     "DC": 15,
-    "checkTraits": { "WORK": 1.0, "NEPO": 0.5, "CHAR": 0.5 },
+    "checkTraits": { "WORK": 1.0, "NEPO": 0.5, "CHAR": 0.5, "INT": 0.5 },
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
@@ -676,8 +676,8 @@
       "fail": "Months of unemployment",
       "critSuccess": "Better job immediately",
       "critFail": "Career derailed completely",
-      "traitSuccess": { "WORK": "Your work ethic and reputation preceded you", "NEPO": "Your family network found you work", "CHAR": "Your charisma had you interviewing like a pro" },
-      "traitFail": { "WORK": "Your poor track record made you unhireable", "NEPO": "No network to tap for leads", "CHAR": "Your weak interviews left you jobless" }
+      "traitSuccess": { "WORK": "Your work ethic and reputation preceded you", "NEPO": "Your family network found you work", "CHAR": "Your charisma had you interviewing like a pro", "INT": "Your skills made you a hot commodity" },
+      "traitFail": { "WORK": "Your poor track record made you unhireable", "NEPO": "No network to tap for leads", "CHAR": "Your weak interviews left you jobless", "INT": "Your outdated skills left you behind" }
     }
   },
   {
@@ -744,6 +744,50 @@
       "critFail": "Declared bankruptcy",
       "traitSuccess": { "NEPO": "Your family bailed you out", "WORK": "Your work ethic had you working extra to pay it off" },
       "traitFail": { "NEPO": "No family money to help you out", "WORK": "Your lack of hustle kept you sinking deeper" }
+    }
+  },
+  {
+    "id": "crack_a_hard_problem",
+    "name": "You Crack a Hard Problem",
+    "icon": "Puzzle",
+    "rarity": "common",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "INT": 1.5, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
+    "fail": { "jumpPct": 0.00, "growthDelta": -0.002 },
+    "outcomes": {
+      "success": "You solved what others couldn't",
+      "fail": "The problem beat you",
+      "critSuccess": "Breakthrough that changed everything",
+      "critFail": "Wasted months on a dead end",
+      "traitSuccess": { "INT": "Your brilliant mind cracked the code", "WORK": "Your persistence paid off" },
+      "traitFail": { "INT": "The problem was beyond your abilities", "WORK": "You gave up too soon" }
+    }
+  },
+  {
+    "id": "a_revolutionary_idea",
+    "name": "A Revolutionary Idea",
+    "icon": "Lightbulb",
+    "rarity": "rare",
+    "rollRequired": true,
+    "DC": 17,
+    "checkTraits": { "INT": 1.5, "WORK": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": 0.10, "growthDelta": 0.012 },
+    "fail": { "jumpPct": -0.03, "growthDelta": -0.005 },
+    "outcomes": {
+      "success": "Your idea reshapes the industry",
+      "fail": "The idea was ahead of its time",
+      "critSuccess": "You're hailed as a visionary",
+      "critFail": "Dismissed as a crackpot",
+      "traitSuccess": { "INT": "Your genius insight was undeniable", "WORK": "Your relentless refinement made it viable" },
+      "traitFail": { "INT": "Your idea wasn't as revolutionary as you thought", "WORK": "You failed to execute on the vision" }
     }
   }
 ]

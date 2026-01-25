@@ -492,7 +492,6 @@ export function SingleLife() {
           </CardContent>
         </Card>
       </div>
-      
       {result && (
         <>
           <Card>
@@ -515,7 +514,7 @@ export function SingleLife() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">Agent</div>
+                    <div className="text-xs text-muted-foreground">Sim</div>
                     <div className="text-base sm:text-lg font-bold truncate max-w-[120px] sm:max-w-none" data-testid="result-agent-name">
                       {result.name}
                     </div>

@@ -928,8 +928,10 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
 }
 
 
-// Snaking timeline for mobile - thick curved line with dots and event cards
+// Snaking timeline for mobile - continuous curved line with dots and event cards
 function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pathData, setPathData] = useState<string>('');
   const itemsPerRow = 3;
   const rows: { stage: SimulationResult['stages'][0]; originalIndex: number }[][] = [];
   
@@ -941,8 +943,84 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
     rows.push(row);
   }
   
+  // Calculate SVG path after render
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const dots = container.querySelectorAll('[data-dot]');
+    if (dots.length === 0) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const points: { x: number; y: number }[] = [];
+    
+    dots.forEach((dot) => {
+      const rect = dot.getBoundingClientRect();
+      points.push({
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.top - containerRect.top + rect.height / 2
+      });
+    });
+    
+    if (points.length < 2) return;
+    
+    // Build path through all points with smooth curves at row transitions
+    let path = `M ${points[0].x} ${points[0].y}`;
+    
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const rowIndex = Math.floor(i / itemsPerRow);
+      const prevRowIndex = Math.floor((i - 1) / itemsPerRow);
+      
+      if (rowIndex !== prevRowIndex) {
+        // Transitioning between rows - draw curved connector
+        const curveRadius = 12;
+        const isGoingLeft = rowIndex % 2 === 1;
+        
+        if (isGoingLeft) {
+          // Going from right of row N to right of row N+1
+          path += ` L ${prev.x + curveRadius} ${prev.y}`;
+          path += ` Q ${prev.x + curveRadius * 2} ${prev.y}, ${prev.x + curveRadius * 2} ${prev.y + curveRadius}`;
+          path += ` L ${prev.x + curveRadius * 2} ${curr.y - curveRadius}`;
+          path += ` Q ${prev.x + curveRadius * 2} ${curr.y}, ${prev.x + curveRadius} ${curr.y}`;
+          path += ` L ${curr.x} ${curr.y}`;
+        } else {
+          // Going from left of row N to left of row N+1
+          path += ` L ${prev.x - curveRadius} ${prev.y}`;
+          path += ` Q ${prev.x - curveRadius * 2} ${prev.y}, ${prev.x - curveRadius * 2} ${prev.y + curveRadius}`;
+          path += ` L ${prev.x - curveRadius * 2} ${curr.y - curveRadius}`;
+          path += ` Q ${prev.x - curveRadius * 2} ${curr.y}, ${prev.x - curveRadius} ${curr.y}`;
+          path += ` L ${curr.x} ${curr.y}`;
+        }
+      } else {
+        // Same row - straight line
+        path += ` L ${curr.x} ${curr.y}`;
+      }
+    }
+    
+    setPathData(path);
+  }, [stages, rows.length]);
+  
   return (
-    <div className="relative px-3">
+    <div ref={containerRef} className="relative px-3">
+      {/* SVG overlay for the continuous snaking line */}
+      {pathData && (
+        <svg 
+          className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          style={{ zIndex: 0 }}
+        >
+          <path
+            d={pathData}
+            fill="none"
+            stroke="hsl(var(--muted-foreground) / 0.35)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+      
       {rows.map((row, rowIndex) => {
         const isReversed = rowIndex % 2 === 1;
         const displayRow = isReversed ? [...row].reverse() : row;
@@ -950,23 +1028,20 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
         
         return (
           <div key={rowIndex} className="relative">
-            {/* Timeline line with dots */}
-            <div className="relative h-7">
-              {/* Horizontal line */}
-              <div className="absolute top-[18px] left-0 right-0 h-[3px] bg-muted-foreground/30 rounded-full" />
-              
-              {/* Age labels and dots positioned along the line */}
-              <div className="relative flex justify-between items-start h-full">
-                {displayRow.map(({ stage }) => {
-                  const age = stageToAge(stage.stage);
-                  return (
-                    <div key={stage.stage} className="flex flex-col items-center z-10">
-                      <div className="text-[10px] text-muted-foreground font-mono leading-none">{age}</div>
-                      <div className="w-3 h-3 rounded-full bg-chart-1 border-2 border-background mt-1" />
-                    </div>
-                  );
-                })}
-              </div>
+            {/* Age labels and dots */}
+            <div className="relative h-7 flex justify-between items-start">
+              {displayRow.map(({ stage }) => {
+                const age = stageToAge(stage.stage);
+                return (
+                  <div key={stage.stage} className="flex flex-col items-center z-10">
+                    <div className="text-[10px] text-muted-foreground font-mono leading-none">{age}</div>
+                    <div 
+                      data-dot
+                      className="w-3 h-3 rounded-full bg-chart-1 border-2 border-background mt-1" 
+                    />
+                  </div>
+                );
+              })}
             </div>
             
             {/* Event cards */}
@@ -976,26 +1051,8 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
               ))}
             </div>
             
-            {/* Curved connector to next row - positioned after cards */}
-            {!isLastRow && (
-              <div className={`flex ${isReversed ? 'justify-start -ml-3' : 'justify-end -mr-3'} my-1`}>
-                <svg 
-                  width="24" 
-                  height="32" 
-                  viewBox="0 0 24 32" 
-                  className="text-muted-foreground/30"
-                  style={{ transform: isReversed ? 'scaleX(-1)' : 'none' }}
-                >
-                  <path
-                    d="M 0 0 Q 24 0, 24 16 Q 24 32, 0 32"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            )}
+            {/* Spacing between rows for the curve */}
+            {!isLastRow && <div className="h-8" />}
           </div>
         );
       })}

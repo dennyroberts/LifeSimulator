@@ -45,6 +45,7 @@ import {
 import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import eventsData from '@/data/events.json';
 
 type AgentCount = 1000 | 10000 | 50000 | 100000 | 500000;
 
@@ -1251,6 +1252,13 @@ const careerList = [
   'Creative Fields', 'Marketing', 'Tech', 'Finance', 'Lawyer', 'Doctor'
 ];
 
+const educationList = [
+  'Elite institution', 'Strong university', 'Regional / state school', 
+  'Community / vocational', 'Straight to workforce'
+];
+
+const eventList = eventsData.map((e: { name: string }) => e.name).sort();
+
 interface CohortFilters {
   intRange: [number, number];
   intAny: boolean;
@@ -1271,6 +1279,10 @@ interface CohortFilters {
   eventLuckRange: [number, number];  // totalLuckZ filter
   eventLuckAny: boolean;
   profession: string;
+  education: string;
+  lifeEvent1: string;
+  lifeEvent2: string;
+  lifeEvent3: string;
 }
 
 interface CohortStats {
@@ -1295,6 +1307,10 @@ const defaultFilters: CohortFilters = {
   careerLuckRange: [-3, 3], careerLuckAny: true,  // opportunityLuckZ filter
   eventLuckRange: [-3, 3], eventLuckAny: true,  // totalLuckZ filter
   profession: 'any',
+  education: 'any',
+  lifeEvent1: 'any',
+  lifeEvent2: 'any',
+  lifeEvent3: 'any',
 };
 
 interface SavedSearch {
@@ -1331,6 +1347,18 @@ function formatFilterSummary(filters: CohortFilters): string {
   if (!filters.careerLuckAny) parts.push(`OppZ:${filters.careerLuckRange[0]}~${filters.careerLuckRange[1]}`);
   if (!filters.eventLuckAny) parts.push(`TotalZ:${filters.eventLuckRange[0]}~${filters.eventLuckRange[1]}`);
   if (filters.profession !== 'any') parts.push(`Career:${filters.profession}`);
+  if (filters.education !== 'any') parts.push(`Edu:${filters.education}`);
+  
+  // Count life events
+  const eventFilters = [filters.lifeEvent1, filters.lifeEvent2, filters.lifeEvent3].filter(e => e !== 'any');
+  if (eventFilters.length > 0) {
+    const eventCounts: Record<string, number> = {};
+    eventFilters.forEach(e => { eventCounts[e] = (eventCounts[e] || 0) + 1; });
+    const eventSummary = Object.entries(eventCounts).map(([name, count]) => 
+      count > 1 ? `${name} x${count}` : name
+    ).join(', ');
+    parts.push(`Events:${eventSummary}`);
+  }
   
   return parts.length > 0 ? parts.join(' | ') : 'All agents (no filters)';
 }
@@ -1511,6 +1539,33 @@ function CohortPanel({
         const careerStage = agent.stages.find(s => s.career);
         const careerName = careerStage?.career?.career?.name;
         if (careerName !== filters.profession) return false;
+      }
+      
+      // Education filter
+      if (filters.education !== 'any') {
+        const eduStage = agent.stages.find(s => s.education);
+        const eduLabel = eduStage?.education?.label;
+        if (eduLabel !== filters.education) return false;
+      }
+      
+      // Life event filters - count how many times each event was selected
+      const eventFilters = [filters.lifeEvent1, filters.lifeEvent2, filters.lifeEvent3].filter(e => e !== 'any');
+      if (eventFilters.length > 0) {
+        // Count required occurrences for each event
+        const requiredCounts: Record<string, number> = {};
+        eventFilters.forEach(e => { requiredCounts[e] = (requiredCounts[e] || 0) + 1; });
+        
+        // Count actual occurrences in agent's life
+        const agentEventNames = agent.stages
+          .filter(s => s.eventOutcome)
+          .map(s => s.eventOutcome?.event?.name || '');
+        const actualCounts: Record<string, number> = {};
+        agentEventNames.forEach(name => { actualCounts[name] = (actualCounts[name] || 0) + 1; });
+        
+        // Check if agent has at least the required count for each event
+        for (const [eventName, requiredCount] of Object.entries(requiredCounts)) {
+          if ((actualCounts[eventName] || 0) < requiredCount) return false;
+        }
       }
       
       return true;
@@ -1835,6 +1890,65 @@ function CohortPanel({
                     <SelectItem value="any">Any</SelectItem>
                     {careerList.map(c => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-medium shrink-0 w-14">Education</Label>
+                <Select value={filters.education} onValueChange={(v) => updateFilter('education', v)}>
+                  <SelectTrigger className="h-6 text-xs flex-1" data-testid={`filter-education-${id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {educationList.map(e => (
+                      <SelectItem key={e} value={e}>{e}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="text-[9px] text-muted-foreground px-1 mt-2">
+                Life Events (select same event multiple times to require repeats)
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-medium shrink-0 w-14">Event 1</Label>
+                <Select value={filters.lifeEvent1} onValueChange={(v) => updateFilter('lifeEvent1', v)}>
+                  <SelectTrigger className="h-6 text-xs flex-1" data-testid={`filter-event1-${id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {eventList.map((e: string) => (
+                      <SelectItem key={e} value={e}>{e}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-medium shrink-0 w-14">Event 2</Label>
+                <Select value={filters.lifeEvent2} onValueChange={(v) => updateFilter('lifeEvent2', v)}>
+                  <SelectTrigger className="h-6 text-xs flex-1" data-testid={`filter-event2-${id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {eventList.map((e: string) => (
+                      <SelectItem key={e} value={e}>{e}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-medium shrink-0 w-14">Event 3</Label>
+                <Select value={filters.lifeEvent3} onValueChange={(v) => updateFilter('lifeEvent3', v)}>
+                  <SelectTrigger className="h-6 text-xs flex-1" data-testid={`filter-event3-${id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {eventList.map((e: string) => (
+                      <SelectItem key={e} value={e}>{e}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

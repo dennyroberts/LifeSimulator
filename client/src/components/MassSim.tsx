@@ -422,6 +422,73 @@ function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: s
   return { actual: agent, best, worst };
 }
 
+// Group averages summary component
+function GroupAverages({ agents, isTop }: { agents: SimulationResult[]; isTop: boolean }) {
+  if (agents.length === 0) return null;
+  
+  const avgEarnings = agents.reduce((sum, a) => sum + a.lifetimeEarnings, 0) / agents.length;
+  
+  const avgTraits = {
+    INT: agents.reduce((sum, a) => sum + a.traits.INT, 0) / agents.length,
+    WORK: agents.reduce((sum, a) => sum + a.traits.WORK, 0) / agents.length,
+    NEPO: agents.reduce((sum, a) => sum + a.traits.NEPO, 0) / agents.length,
+    CHAR: agents.reduce((sum, a) => sum + a.traits.CHAR, 0) / agents.length,
+    RISK: agents.reduce((sum, a) => sum + a.traits.RISK, 0) / agents.length,
+  };
+  
+  const avgOpportunityLuck = agents.reduce((sum, a) => sum + a.luck.opportunityLuckZ, 0) / agents.length;
+  const avgRollLuck = agents.reduce((sum, a) => sum + a.luck.rollLuckZ, 0) / agents.length;
+  const avgTotalLuck = agents.reduce((sum, a) => sum + a.luck.totalLuckZ, 0) / agents.length;
+  
+  const formatLuckZ = (z: number) => {
+    const sign = z >= 0 ? '+' : '';
+    return `${sign}${z.toFixed(2)}σ`;
+  };
+  
+  const getLuckColor = (z: number) => {
+    if (z > 0.5) return 'text-chart-2';
+    if (z < -0.5) return 'text-destructive';
+    return 'text-muted-foreground';
+  };
+  
+  return (
+    <div className={`p-3 rounded-md border mb-3 ${isTop ? 'bg-chart-2/5 border-chart-2/20' : 'bg-destructive/5 border-destructive/20'}`}>
+      <div className="text-xs font-semibold text-muted-foreground mb-2">Group Averages</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm">
+        {/* Earnings */}
+        <div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Lifetime Earnings</div>
+          <div className={`font-mono font-bold ${isTop ? 'text-chart-2' : 'text-destructive'}`}>
+            {formatCurrency(avgEarnings)}
+          </div>
+        </div>
+        
+        {/* Traits */}
+        <div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Avg Traits</div>
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs font-mono">
+            <span>INT:<span className="font-semibold ml-0.5">{avgTraits.INT.toFixed(1)}</span></span>
+            <span>WORK:<span className="font-semibold ml-0.5">{avgTraits.WORK.toFixed(1)}</span></span>
+            <span>NEPO:<span className="font-semibold ml-0.5">{avgTraits.NEPO.toFixed(1)}</span></span>
+            <span>CHAR:<span className="font-semibold ml-0.5">{avgTraits.CHAR.toFixed(1)}</span></span>
+            <span>RISK:<span className="font-semibold ml-0.5">{avgTraits.RISK.toFixed(1)}</span></span>
+          </div>
+        </div>
+        
+        {/* Luck */}
+        <div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Avg Luck (Z-Score)</div>
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs font-mono">
+            <span>Opp:<span className={`font-semibold ml-0.5 ${getLuckColor(avgOpportunityLuck)}`}>{formatLuckZ(avgOpportunityLuck)}</span></span>
+            <span>Roll:<span className={`font-semibold ml-0.5 ${getLuckColor(avgRollLuck)}`}>{formatLuckZ(avgRollLuck)}</span></span>
+            <span>Total:<span className={`font-semibold ml-0.5 ${getLuckColor(avgTotalLuck)}`}>{formatLuckZ(avgTotalLuck)}</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AgentTable({ agents, isTop, worldMode, seed }: { 
   agents: SimulationResult[]; 
   isTop: boolean;
@@ -433,15 +500,18 @@ function AgentTable({ agents, isTop, worldMode, seed }: {
   }, [agents, worldMode, seed]);
 
   return (
-    <div className="space-y-3" data-testid={`agent-list-${isTop ? 'top' : 'bottom'}`}>
-      {agentsWithScenarios.map((agentData, i) => (
-        <AgentCard 
-          key={i} 
-          agentData={agentData} 
-          rank={i + 1}
-          isTop={isTop}
-        />
-      ))}
+    <div data-testid={`agent-list-${isTop ? 'top' : 'bottom'}`}>
+      <GroupAverages agents={agents} isTop={isTop} />
+      <div className="space-y-3">
+        {agentsWithScenarios.map((agentData, i) => (
+          <AgentCard 
+            key={i} 
+            agentData={agentData} 
+            rank={i + 1}
+            isTop={isTop}
+          />
+        ))}
+      </div>
     </div>
   );
 }

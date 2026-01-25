@@ -48,7 +48,7 @@ import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import eventsData from '@/data/events.json';
 
-type AgentCount = 1000 | 10000 | 50000 | 100000 | 250000;
+type AgentCount = 1000 | 10000 | 50000 | 100000;
 
 // Stack-safe helper functions for processing large arrays (500K+ items)
 
@@ -281,7 +281,7 @@ export function MassSim() {
             <div>
               <Label>Number of Sims</Label>
               <div className="flex flex-wrap gap-2 mt-1.5">
-                {([1000, 10000, 50000, 100000, 250000] as AgentCount[]).map((count) => (
+                {([1000, 10000, 50000, 100000] as AgentCount[]).map((count) => (
                   <Button
                     key={count}
                     variant={agentCount === count ? 'default' : 'outline'}
@@ -289,7 +289,7 @@ export function MassSim() {
                     onClick={() => setAgentCount(count)}
                     data-testid={`button-count-${count}`}
                   >
-                    {count === 1000 ? '1K' : count === 10000 ? '10K' : count === 50000 ? '50K' : count === 100000 ? '100K' : '250K'}
+                    {count === 1000 ? '1K' : count === 10000 ? '10K' : count === 50000 ? '50K' : '100K'}
                   </Button>
                 ))}
               </div>

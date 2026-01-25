@@ -1081,25 +1081,28 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
     },
   ];
   
-  // Roll luck breakdown by phase (raw values, not z-scored)
-  const rollLuckBreakdown: { key: keyof LuckAnalysis; label: string; color: string; description: string }[] = [
+  // Roll luck breakdown by phase with individual x-axis ranges
+  const rollLuckBreakdown: { key: keyof LuckAnalysis; label: string; color: string; description: string; range: [number, number] }[] = [
     { 
       key: 'educationRollLuck', 
       label: 'Education Roll Luck', 
       color: 'hsl(var(--chart-2))',
-      description: 'Roll luck from education stage'
+      description: 'Roll luck from education stage',
+      range: [-1, 1]
     },
     { 
       key: 'careerRollLuck', 
       label: 'Career Roll Luck', 
       color: 'hsl(var(--chart-3))',
-      description: 'Roll luck from career determination'
+      description: 'Roll luck from career determination',
+      range: [-1, 1]
     },
     { 
       key: 'eventRollLuck', 
       label: 'Event Roll Luck', 
       color: 'hsl(var(--chart-4))',
-      description: 'Roll luck from life events'
+      description: 'Roll luck from life events',
+      range: [-3, 3]
     },
   ];
   
@@ -1111,9 +1114,6 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
   
   // Calculate dynamic range for raw roll luck values
   const filtered = filterByAllTraits(results, filter);
-  
-  // Use same z-score range for roll luck breakdown (these are also normalized deviation values)
-  const rollLuckRange: [number, number] = [-3, 3];
 
   return (
     <div className="space-y-4" data-testid="controlled-luck-grid">
@@ -1169,7 +1169,7 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rollLuckBreakdown.map(({ key, label, color, description }) => {
+          {rollLuckBreakdown.map(({ key, label, color, description, range }) => {
             return (
               <div key={key} className="p-3 rounded-md bg-card border border-card-border flex flex-col items-center">
                 <div className="text-sm font-medium text-center mb-0.5">{label}</div>
@@ -1180,8 +1180,8 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
                   xLabel={label} 
                   color={color} 
                   yMax={yMax}
-                  xMin={rollLuckRange[0]}
-                  xMax={rollLuckRange[1]}
+                  xMin={range[0]}
+                  xMax={range[1]}
                 />
               </div>
             );

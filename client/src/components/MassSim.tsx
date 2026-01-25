@@ -33,6 +33,7 @@ import { IncomeHistogram, ScatterGrid, ControlledTraitGrid, ControlledLuckGrid }
 import {
   type WorldMode,
   type SimulationResult,
+  type StageResult,
   type Event,
   type CareerAspiration,
   runMassSimulation,
@@ -48,6 +49,139 @@ import { apiRequest } from '@/lib/queryClient';
 import eventsData from '@/data/events.json';
 
 type AgentCount = 1000 | 10000 | 50000 | 100000 | 500000;
+
+// Stack-safe helper functions for processing large arrays (500K+ items)
+
+// Get top N items without full sort (O(n*k) but no recursion/stack issues)
+function getTopN<T>(arr: T[], n: number, getValue: (item: T) => number): T[] {
+  if (arr.length <= n) return [...arr].sort((a, b) => getValue(b) - getValue(a));
+  
+  const top: T[] = [];
+  const topValues: number[] = [];
+  let minTopValue = -Infinity;
+  let minTopIndex = 0;
+  
+  for (let i = 0; i < arr.length; i++) {
+    const value = getValue(arr[i]);
+    
+    if (top.length < n) {
+      top.push(arr[i]);
+      topValues.push(value);
+      if (value < minTopValue || top.length === 1) {
+        minTopValue = value;
+        minTopIndex = top.length - 1;
+      }
+    } else if (value > minTopValue) {
+      top[minTopIndex] = arr[i];
+      topValues[minTopIndex] = value;
+      // Find new minimum
+      minTopValue = topValues[0];
+      minTopIndex = 0;
+      for (let j = 1; j < topValues.length; j++) {
+        if (topValues[j] < minTopValue) {
+          minTopValue = topValues[j];
+          minTopIndex = j;
+        }
+      }
+    }
+  }
+  
+  // Sort the final top N
+  return top.sort((a, b) => getValue(b) - getValue(a));
+}
+
+// Get bottom N items without full sort
+function getBottomN<T>(arr: T[], n: number, getValue: (item: T) => number): T[] {
+  if (arr.length <= n) return [...arr].sort((a, b) => getValue(a) - getValue(b));
+  
+  const bottom: T[] = [];
+  const bottomValues: number[] = [];
+  let maxBottomValue = Infinity;
+  let maxBottomIndex = 0;
+  
+  for (let i = 0; i < arr.length; i++) {
+    const value = getValue(arr[i]);
+    
+    if (bottom.length < n) {
+      bottom.push(arr[i]);
+      bottomValues.push(value);
+      if (value > maxBottomValue || bottom.length === 1) {
+        maxBottomValue = value;
+        maxBottomIndex = bottom.length - 1;
+      }
+    } else if (value < maxBottomValue) {
+      bottom[maxBottomIndex] = arr[i];
+      bottomValues[maxBottomIndex] = value;
+      // Find new maximum
+      maxBottomValue = bottomValues[0];
+      maxBottomIndex = 0;
+      for (let j = 1; j < bottomValues.length; j++) {
+        if (bottomValues[j] > maxBottomValue) {
+          maxBottomValue = bottomValues[j];
+          maxBottomIndex = j;
+        }
+      }
+    }
+  }
+  
+  // Sort the final bottom N (lowest first, then reverse for display)
+  return bottom.sort((a, b) => getValue(a) - getValue(b));
+}
+
+// Calculate stats without chained array methods
+function calculateStats(arr: SimulationResult[]): { mean: number; median: number; min: number; max: number; count: number } {
+  if (arr.length === 0) return { mean: 0, median: 0, min: 0, max: 0, count: 0 };
+  
+  let sum = 0;
+  let min = arr[0].lifetimeEarnings;
+  let max = arr[0].lifetimeEarnings;
+  
+  // Single pass for sum, min, max
+  for (let i = 0; i < arr.length; i++) {
+    const val = arr[i].lifetimeEarnings;
+    sum += val;
+    if (val < min) min = val;
+    if (val > max) max = val;
+  }
+  
+  const mean = sum / arr.length;
+  
+  // For median, use quickselect-style approach (iterative)
+  // Copy values to array for median calculation
+  const values = new Float64Array(arr.length);
+  for (let i = 0; i < arr.length; i++) {
+    values[i] = arr[i].lifetimeEarnings;
+  }
+  
+  // TypedArray.sort is iterative and stack-safe
+  values.sort();
+  const median = values[Math.floor(values.length / 2)];
+  
+  return { mean, median, min, max, count: arr.length };
+}
+
+// Stack-safe random sample using Fisher-Yates partial shuffle
+function getRandomSampleSafe<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return [...arr];
+  
+  // Create index array and partially shuffle
+  const indices = new Uint32Array(arr.length);
+  for (let i = 0; i < arr.length; i++) indices[i] = i;
+  
+  // Only shuffle first n elements (Fisher-Yates partial)
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(Math.random() * (arr.length - i));
+    const temp = indices[i];
+    indices[i] = indices[j];
+    indices[j] = temp;
+  }
+  
+  const result: T[] = [];
+  for (let i = 0; i < n; i++) {
+    result.push(arr[indices[i]]);
+  }
+  return result;
+}
 
 export function MassSim() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
@@ -123,22 +257,14 @@ export function MassSim() {
   const { topAgents, bottomAgents, stats } = useMemo(() => {
     if (!results) return { topAgents: [], bottomAgents: [], stats: null };
     
-    const sorted = [...results].sort((a, b) => b.lifetimeEarnings - a.lifetimeEarnings);
-    const topAgents = sorted.slice(0, 10);
-    const bottomAgents = sorted.slice(-10).reverse();
+    // Use stack-safe functions for large arrays (500K+)
+    const getValue = (r: SimulationResult) => r.lifetimeEarnings;
+    const topAgents = getTopN(results, 10, getValue);
+    // getBottomN returns ascending (lowest first), which matches original behavior
+    const bottomAgents = getBottomN(results, 10, getValue);
+    const stats = calculateStats(results);
     
-    const earnings = results.map(r => r.lifetimeEarnings);
-    const mean = earnings.reduce((a, b) => a + b, 0) / earnings.length;
-    const sortedEarnings = [...earnings].sort((a, b) => a - b);
-    const median = sortedEarnings[Math.floor(sortedEarnings.length / 2)];
-    const min = sortedEarnings[0];
-    const max = sortedEarnings[sortedEarnings.length - 1];
-    
-    return {
-      topAgents,
-      bottomAgents,
-      stats: { mean, median, min, max, count: results.length }
-    };
+    return { topAgents, bottomAgents, stats };
   }, [results]);
 
   return (
@@ -523,7 +649,7 @@ function AgentTable({ agents, isTop, worldMode, seed }: {
 }
 
 // Calculate how many life events were tipped by traits
-function calculateTraitWinLoss(stages: SimulatedStage[]): { wins: number; losses: number } {
+function calculateTraitWinLoss(stages: StageResult[]): { wins: number; losses: number } {
   let wins = 0;
   let losses = 0;
   
@@ -1539,9 +1665,7 @@ function CohortPanel({
   
   // Helper to get random sample from array
   const getRandomSample = <T,>(arr: T[], n: number): T[] => {
-    if (arr.length <= n) return [...arr];
-    const shuffled = [...arr].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, n);
+    return getRandomSampleSafe(arr, n);
   };
   
   const handleRefreshSample = () => {

@@ -789,5 +789,27 @@
       "traitSuccess": { "INT": "Your genius insight was undeniable", "WORK": "Your relentless refinement made it viable" },
       "traitFail": { "INT": "Your idea wasn't as revolutionary as you thought", "WORK": "You failed to execute on the vision" }
     }
+  },
+  {
+    "id": "addiction_takes_hold",
+    "name": "Addiction Takes Hold",
+    "icon": "Pill",
+    "rarity": "sinkhole",
+    "rollRequired": true,
+    "DC": 14,
+    "checkTraits": { "WORK": 1.0, "NEPO": 1.0, "CHAR": 0.5 },
+    "riskGated": false,
+    "riskGateDC": null,
+    "riskGateWeight": 1.0,
+    "success": { "jumpPct": -0.05, "growthDelta": -0.008 },
+    "fail": { "jumpPct": -0.20, "growthDelta": -0.020 },
+    "outcomes": {
+      "success": "You fought your way back",
+      "fail": "Lost years to the addiction",
+      "critSuccess": "Recovery made you stronger",
+      "critFail": "Hit rock bottom",
+      "traitSuccess": { "WORK": "Your discipline helped you stay clean", "NEPO": "Your family paid for the best rehab", "CHAR": "Your support network kept you accountable" },
+      "traitFail": { "WORK": "You couldn't stick to recovery", "NEPO": "No family support to help you through", "CHAR": "You pushed everyone away" }
+    }
   }
 ]

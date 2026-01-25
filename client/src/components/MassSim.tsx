@@ -1820,17 +1820,20 @@ function CohortPanel({
     <Card data-testid={`cohort-panel-${id}`}>
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-2">
-          {/* Row 1: Cohort name (full width) */}
-          <input
-            type="text"
-            value={cohortName}
-            onChange={(e) => {
-              setCohortName(e.target.value);
-              setHasUnsavedChanges(true);
-            }}
-            className="text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1"
-            data-testid={`cohort-name-${id}`}
-          />
+          {/* Row 1: Cohort name + subtitle (full width) */}
+          <div>
+            <input
+              type="text"
+              value={cohortName}
+              onChange={(e) => {
+                setCohortName(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              className="text-sm font-semibold bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-1"
+              data-testid={`cohort-name-${id}`}
+            />
+            <p className="text-xs text-muted-foreground mt-1 px-1">Search / filter by specific traits, luck, or life events.</p>
+          </div>
           {/* Row 2: Toggle + action buttons */}
           <div className="flex items-center justify-between gap-2">
             <button 

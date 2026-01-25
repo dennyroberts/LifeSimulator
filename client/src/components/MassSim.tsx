@@ -928,7 +928,7 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
 }
 
 
-// Snaking timeline for mobile - shows a curved line with dots above event cards
+// Snaking timeline for mobile - thick curved line with dots and event cards
 function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   const itemsPerRow = 3;
   const rows: { stage: SimulationResult['stages'][0]; originalIndex: number }[][] = [];
@@ -938,11 +938,6 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
       stage,
       originalIndex: i + idx
     }));
-    const rowIndex = Math.floor(i / itemsPerRow);
-    // Reverse every other row to create snake pattern
-    if (rowIndex % 2 === 1) {
-      row.reverse();
-    }
     rows.push(row);
   }
   
@@ -950,42 +945,46 @@ function SnakingTimeline({ stages }: { stages: SimulationResult['stages'] }) {
     <div className="relative">
       {rows.map((row, rowIndex) => {
         const isReversed = rowIndex % 2 === 1;
+        const displayRow = isReversed ? [...row].reverse() : row;
         const isLastRow = rowIndex === rows.length - 1;
         
         return (
-          <div key={rowIndex} className="relative mb-1">
-            {/* Timeline rail with dots */}
-            <div className="relative h-5 mb-1">
+          <div key={rowIndex} className="relative mb-2">
+            {/* Timeline line section */}
+            <div className="relative h-8 mx-2">
               {/* Horizontal line */}
-              <div className="absolute top-2 left-2 right-2 h-0.5 bg-border" />
+              <div className="absolute top-4 left-0 right-0 h-[3px] bg-muted-foreground/40 rounded-full" />
               
-              {/* Dots for each event */}
-              <div className={`flex justify-between px-2 ${isReversed ? 'flex-row-reverse' : ''}`}>
-                {row.map(({ stage, originalIndex }, itemIndex) => {
+              {/* Right curve connector (for even rows going to odd) */}
+              {!isLastRow && !isReversed && (
+                <div className="absolute top-4 -right-2 w-4 h-[calc(100%+44px)]">
+                  <div className="absolute top-0 right-0 w-4 h-full border-r-[3px] border-muted-foreground/40 rounded-r-xl" />
+                </div>
+              )}
+              
+              {/* Left curve connector (for odd rows going to even) */}
+              {!isLastRow && isReversed && (
+                <div className="absolute top-4 -left-2 w-4 h-[calc(100%+44px)]">
+                  <div className="absolute top-0 left-0 w-4 h-full border-l-[3px] border-muted-foreground/40 rounded-l-xl" />
+                </div>
+              )}
+              
+              {/* Age labels and dots */}
+              <div className="absolute inset-0 flex justify-between items-start">
+                {displayRow.map(({ stage }) => {
                   const age = stageToAge(stage.stage);
                   return (
-                    <div key={stage.stage} className="flex flex-col items-center z-10 bg-background px-1">
-                      <div className="text-[9px] text-muted-foreground font-mono">{age}</div>
-                      <div className="w-2 h-2 rounded-full bg-chart-1 border border-background" />
+                    <div key={stage.stage} className="flex flex-col items-center">
+                      <div className="text-[10px] text-muted-foreground font-mono">{age}</div>
+                      <div className="w-3 h-3 rounded-full bg-chart-1 border-2 border-background shadow-sm mt-0.5" />
                     </div>
                   );
                 })}
               </div>
-              
-              {/* Curved connector to next row */}
-              {!isLastRow && (
-                <div 
-                  className={`absolute -bottom-1 w-3 h-3 border-b-2 border-border ${
-                    isReversed 
-                      ? 'left-1 border-l-2 rounded-bl-lg' 
-                      : 'right-1 border-r-2 rounded-br-lg'
-                  }`}
-                />
-              )}
             </div>
             
             {/* Event cards */}
-            <div className={`flex gap-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex gap-1 mt-1 ${isReversed ? 'flex-row-reverse' : ''}`}>
               {row.map(({ stage }) => (
                 <MiniEventCardWithName key={stage.stage} stage={stage} />
               ))}

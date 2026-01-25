@@ -803,14 +803,16 @@ export function resolveEvent(
     evRealized = computeEV(stage, jumpPct, growthDelta);
   }
   
-  let newGrowth = clamp(
-    currentGrowth + growthDelta,
-    config.growthClamp.min,
-    config.growthClamp.max
-  );
+  let newGrowth = currentGrowth + growthDelta;
   
   let newIncome = currentIncome * (1 + newGrowth) * (1 + jumpPct);
+  const hitFloor = newIncome <= config.incomeFloor;
   newIncome = Math.max(config.incomeFloor, newIncome);
+  
+  // Reset growth to 0 if we hit the income floor with negative growth
+  if (hitFloor && newGrowth < 0) {
+    newGrowth = 0;
+  }
   
   // Select outcome message with trait-deciding logic
   let outcomeMessage: string | undefined;
@@ -931,11 +933,7 @@ export function simulateLife(
   const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration, forcedRoll);
   
   let income = careerOutcome.finalSalary;
-  let growth = clamp(
-    careerOutcome.finalGrowth + educationOutcome.growthDelta,
-    config.growthClamp.min,
-    config.growthClamp.max
-  );
+  let growth = careerOutcome.finalGrowth + educationOutcome.growthDelta;
   
   peakIncome = Math.max(peakIncome, income);
   
@@ -946,7 +944,7 @@ export function simulateLife(
     career: careerOutcome,
     incomeAfter: income
   });
-  lifetimeEarnings += income * 8;
+  lifetimeEarnings += income * 6;
   
   for (const stageNum of config.eventStages) {
     let event: Event;
@@ -973,7 +971,7 @@ export function simulateLife(
       incomeAfter: income
     });
     peakIncome = Math.max(peakIncome, income);
-    lifetimeEarnings += income * 8;
+    lifetimeEarnings += income * 6;
   }
   
   const evBaselineHand = computeEvBaselineHand();

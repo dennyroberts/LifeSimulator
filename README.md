@@ -1,6 +1,6 @@
-# Intelligence Is Overrated? — Life Simulation
+# Life Simulator
 
-A web-based life simulation that explores how luck, talent, and circumstances interact to shape career outcomes. Watch virtual sims navigate education, careers, and life events—with outcomes determined by dice rolls modified by personal traits.
+A web-based life simulation that explores how life unfolds at a mass scale. Watch virtual sims navigate education, careers, and life events—with outcomes determined by dice rolls modified by personal traits.
 
 ## Overview
 
@@ -36,9 +36,13 @@ Modifier = floor((Trait Score - 10) / 2)
 |-------|----------|
 | 0-1   | -5       |
 | 2-3   | -4       |
+| 4-5   | -3       |
+| 6-7   | -2       |
 | 8-9   | -1       |
 | 10-11 | +0       |
 | 12-13 | +1       |
+| 14-15 | +2       |
+| 16-17 | +3       |
 | 18-19 | +4       |
 | 20    | +5       |
 
@@ -95,20 +99,16 @@ Events are drawn randomly from a weighted deck with 37 unique events across 5 ra
 
 ### Event Resolution
 
-1. **Risk Gate Check** (if applicable): Some events require a RISK check to even attempt. Roll d20 + RISK modifier vs. Gate DC. If you fail, you don't take the risk and the event has no effect.
+1. **Risk Gate Check** (if applicable): Some events require a RISK check to even attempt. Roll d20 + RISK modifier vs. Gate DC (dice check). If you fail, you don't take the risk and the event has no effect.
 
 2. **Main Check**: Roll d20 + relevant trait modifiers vs. Event DC to determine success or failure.
 
-### Effect Multipliers
-
-All event effects are amplified by a base **2× effect multiplier**, making every event impactful. This means the values shown in event data are doubled when applied.
-
 ### Critical Rolls
 
-Critical rolls add an additional **1.5× multiplier** on top of the base 2×, resulting in **3× total effect**:
+Critical rolls add an additional **1.5× multiplier**.
 
-- **Natural 20 (Critical Success)**: 3× effect magnitude. Any negative outcomes are flipped to positive.
-- **Natural 1 (Critical Failure)**: 3× effect magnitude. Any positive outcomes are flipped to negative. Additionally, minimum penalties are enforced (-5% jump, -0.5% growth) to ensure critical failures always hurt.
+- **Natural 20 (Critical Success)**: 1.5× effect magnitude. Any negative outcomes are flipped to positive.
+- **Natural 1 (Critical Failure)**: 1.5× effect magnitude. Any positive outcomes are flipped to negative. Additionally, minimum penalties are enforced (-5% jump, -0.5% growth) to ensure critical failures always hurt.
 
 ### Event Effects
 
@@ -231,14 +231,14 @@ When filtering by events, selecting the same event multiple times requires multi
 
 ### Stage Length and Income Progression
 
-Each of the 9 life stages represents approximately 8 years. Income progresses each stage:
+Each of the 9 life stages represents approximately 6 years. Income progresses each stage:
 
 ```
 New Income = Current Income × (1 + Growth Rate) × (1 + Jump%)
-Lifetime Earnings = Sum of (Income at each stage × 8 years)
+Lifetime Earnings = Sum of (Income at each stage × 6 years)
 ```
 
-Income has a floor of $1,000 and growth rate is clamped between -10% and +40%.
+Income has a floor of $1,000. If a sim hits the income floor while having a negative growth rate, the growth rate resets to 0% to allow recovery.
 
 ### Seeded Randomness
 

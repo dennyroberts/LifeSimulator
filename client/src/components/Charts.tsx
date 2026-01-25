@@ -1113,12 +1113,14 @@ export function ControlledLuckGrid({ results }: ControlledLuckGridProps) {
   const filtered = filterByAllTraits(results, filter);
   
   const getRange = (key: keyof LuckAnalysis): [number, number] => {
-    if (filtered.length === 0) return [-100000, 100000];
+    if (filtered.length === 0) return [-1000, 1000];
     const values = filtered.map(r => r.luck[key] as number).filter(v => v !== undefined);
-    if (values.length === 0) return [-100000, 100000];
+    if (values.length === 0) return [-1000, 1000];
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const padding = Math.max(Math.abs(max - min) * 0.1, 10000);
+    // Add 10% padding, minimum 50 to prevent too tight a range
+    const range = Math.abs(max - min);
+    const padding = Math.max(range * 0.1, 50);
     return [Math.floor(min - padding), Math.ceil(max + padding)];
   };
 

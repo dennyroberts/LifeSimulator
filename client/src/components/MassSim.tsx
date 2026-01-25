@@ -279,7 +279,7 @@ export function MassSim() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
-              <Label>Number of Agents</Label>
+              <Label>Number of Sims</Label>
               <div className="flex flex-wrap gap-2 mt-1.5">
                 {([1000, 10000, 50000, 100000, 250000] as AgentCount[]).map((count) => (
                   <Button
@@ -398,7 +398,6 @@ export function MassSim() {
           </div>
         </CardContent>
       </Card>
-      
       {stats && results && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

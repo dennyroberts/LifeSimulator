@@ -334,16 +334,13 @@ export function computeEvCritSuccess(stage: number, event: Event): number {
   return computeEV(stage, jumpPct, growthDelta);
 }
 
-// Compute EV for critical failure (1.5x multiplier on top of base, always negative outcome)
+// Compute EV for critical failure (1.5x multiplier on fail outcome)
 export function computeEvCritFail(stage: number, event: Event): number {
   const critMultiplier = 1.5;
   let jumpPct = event.fail.jumpPct * critMultiplier;
   let growthDelta = event.fail.growthDelta * critMultiplier;
-  // Critical failure flips positive to negative with minimum penalties
-  if (jumpPct > 0) jumpPct = -Math.abs(jumpPct);
-  if (growthDelta > 0) growthDelta = -Math.abs(growthDelta);
-  if (jumpPct > -0.05) jumpPct = -0.05;
-  if (growthDelta > -0.005) growthDelta = -0.005;
+  // If growthDelta is 0, apply a small -0.1% penalty
+  if (growthDelta === 0) growthDelta = -0.001;
   return computeEV(stage, jumpPct, growthDelta);
 }
 
@@ -878,14 +875,10 @@ export function resolveEvent(
     jumpPct = event.fail.jumpPct * multiplier * criticalMultiplier;
     growthDelta = event.fail.growthDelta * multiplier * criticalMultiplier;
     
-    // Critical failure (nat 1): flip any positive outcomes to negative
-    // and ensure at least some minimum negative effect
+    // Critical failure (nat 1): 1.5x the fail outcome
+    // If growthDelta ends up 0, apply a small -0.1% penalty
     if (isCritical && criticalType === 'failure') {
-      if (jumpPct > 0) jumpPct = -Math.abs(jumpPct);
-      if (growthDelta > 0) growthDelta = -Math.abs(growthDelta);
-      // Ensure minimum negative effects on critical failure
-      if (jumpPct > -0.05) jumpPct = -0.05;
-      if (growthDelta > -0.005) growthDelta = -0.005;
+      if (growthDelta === 0) growthDelta = -0.001;
     }
     
     // Use actual values with critical effects for evRealized

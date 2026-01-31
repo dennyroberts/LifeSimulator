@@ -1255,33 +1255,34 @@ export interface LifetimeGrade {
 }
 
 export function getLifetimeGrade(lifetimeEarnings: number): LifetimeGrade {
-  if (lifetimeEarnings >= 20_000_000) {
+  // Recalibrated for higher incomes after buffing life-changing events
+  if (lifetimeEarnings >= 30_000_000) {
     return { grade: 'A++', color: 'text-yellow-400' };
-  } else if (lifetimeEarnings >= 12_000_000) {
+  } else if (lifetimeEarnings >= 18_000_000) {
     return { grade: 'A+', color: 'text-yellow-500' };
-  } else if (lifetimeEarnings >= 8_000_000) {
+  } else if (lifetimeEarnings >= 12_000_000) {
     return { grade: 'A', color: 'text-green-400' };
-  } else if (lifetimeEarnings >= 6_000_000) {
+  } else if (lifetimeEarnings >= 9_000_000) {
     return { grade: 'A-', color: 'text-green-500' };
-  } else if (lifetimeEarnings >= 4_500_000) {
+  } else if (lifetimeEarnings >= 7_000_000) {
     return { grade: 'B+', color: 'text-emerald-400' };
-  } else if (lifetimeEarnings >= 3_500_000) {
+  } else if (lifetimeEarnings >= 5_500_000) {
     return { grade: 'B', color: 'text-emerald-500' };
-  } else if (lifetimeEarnings >= 2_800_000) {
+  } else if (lifetimeEarnings >= 4_200_000) {
     return { grade: 'B-', color: 'text-teal-400' };
-  } else if (lifetimeEarnings >= 2_200_000) {
+  } else if (lifetimeEarnings >= 3_300_000) {
     return { grade: 'C+', color: 'text-blue-400' };
-  } else if (lifetimeEarnings >= 1_800_000) {
+  } else if (lifetimeEarnings >= 2_700_000) {
     return { grade: 'C', color: 'text-blue-500' };
-  } else if (lifetimeEarnings >= 1_400_000) {
+  } else if (lifetimeEarnings >= 2_100_000) {
     return { grade: 'C-', color: 'text-sky-400' };
-  } else if (lifetimeEarnings >= 1_100_000) {
+  } else if (lifetimeEarnings >= 1_600_000) {
     return { grade: 'D+', color: 'text-orange-400' };
-  } else if (lifetimeEarnings >= 800_000) {
+  } else if (lifetimeEarnings >= 1_200_000) {
     return { grade: 'D', color: 'text-orange-500' };
-  } else if (lifetimeEarnings >= 500_000) {
+  } else if (lifetimeEarnings >= 750_000) {
     return { grade: 'D-', color: 'text-orange-600' };
-  } else if (lifetimeEarnings >= 350_000) {
+  } else if (lifetimeEarnings >= 500_000) {
     return { grade: 'F', color: 'text-red-500' };
   } else {
     return { grade: 'F-', color: 'text-red-600' };

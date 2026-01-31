@@ -1037,7 +1037,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     };
     
     const getOutcomeText = () => {
-      if (outcome.gateFailed) return 'Skipped';
+      if (outcome.gateFailed) return "Didn't Risk";
       if (outcome.success) return 'Pass';
       return 'Fail';
     };
@@ -1378,20 +1378,37 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
     const event = outcome.event;
     const Icon = getEventIcon(event?.icon);
     const success = outcome.success;
+    const gateFailed = outcome.gateFailed;
+    
+    const getBgBorderClass = () => {
+      if (gateFailed) return 'bg-muted/30 border-muted';
+      if (success) return 'bg-chart-2/10 border-chart-2/20';
+      return 'bg-destructive/10 border-destructive/20';
+    };
+    
+    const getIconTextColor = () => {
+      if (gateFailed) return 'text-muted-foreground';
+      if (success) return 'text-chart-2';
+      return 'text-destructive';
+    };
+    
+    const getStatusText = () => {
+      if (gateFailed) return "Didn't Risk";
+      if (success) return 'Pass';
+      return 'Fail';
+    };
     
     return (
       <Popover>
         <PopoverTrigger asChild>
           <div 
-            className={`flex-1 p-1.5 rounded text-[10px] border cursor-pointer min-w-0 ${
-              success ? 'bg-chart-2/10 border-chart-2/20' : 'bg-destructive/10 border-destructive/20'
-            }`}
+            className={`flex-1 p-1.5 rounded text-[10px] border cursor-pointer min-w-0 ${getBgBorderClass()}`}
             data-testid={`mini-named-${stage.stage}`}
           >
             <div className="flex items-center gap-1 mb-0.5">
-              <Icon className={`h-3 w-3 shrink-0 ${success ? 'text-chart-2' : 'text-destructive'}`} />
-              <span className={`font-medium ${success ? 'text-chart-2' : 'text-destructive'}`}>
-                {success ? 'Pass' : 'Fail'}
+              <Icon className={`h-3 w-3 shrink-0 ${getIconTextColor()}`} />
+              <span className={`font-medium ${getIconTextColor()}`}>
+                {getStatusText()}
               </span>
             </div>
             <div className="text-muted-foreground leading-tight">{event?.name || 'Event'}</div>

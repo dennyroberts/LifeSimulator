@@ -242,7 +242,7 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
   };
   
   const getStatusText = () => {
-    if (outcome.gateFailed) return "Skipped";
+    if (outcome.gateFailed) return "Didn't Risk";
     if (outcome.success) return "Pass";
     return "Fail";
   };

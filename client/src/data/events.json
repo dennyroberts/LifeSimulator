@@ -482,7 +482,7 @@
     "riskGated": true,
     "riskGateDC": 16,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.2, "growthDelta": 0.035 },
+    "success": { "jumpPct": 0.2, "growthDelta": 0.04 },
     "fail": { "jumpPct": -0.1, "growthDelta": -0.015 },
     "outcomes": {
       "success": "Your app is huge",

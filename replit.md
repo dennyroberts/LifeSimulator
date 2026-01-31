@@ -51,7 +51,7 @@ client/src/
   - If growthDelta ends up 0, applies -0.1% penalty
 
 ### Growth Constraints
-- **Decay threshold**: 1.5% - growth above this decays by 0.25%/year until reaching 1.5%
+- **Decay threshold**: 1.5% - growth above this decays by 0.1%/year until reaching 1.5%
 - **Growth floor**: -1% - growth can never go below this (prevents death spirals)
 - Applied globally across simulation and all EV/analytics calculations
 

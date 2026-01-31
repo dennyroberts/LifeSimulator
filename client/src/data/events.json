@@ -542,10 +542,10 @@
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
-    "success": { "jumpPct": 0.3, "growthDelta": 0.0 },
-    "fail": { "jumpPct": -0.15, "growthDelta": 0.0 },
+    "success": { "jumpPct": 0.12, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.06, "growthDelta": 0.0 },
     "outcomes": {
-      "success": "Windfall arrives",
+      "success": "Inheritance buys you some runway",
       "fail": "It was a scam",
       "critSuccess": "Jackpot beyond your dreams!",
       "critFail": "Turned out to be a scam",

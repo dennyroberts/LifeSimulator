@@ -176,6 +176,38 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+export const YEARS_PER_STAGE = 6;
+
+export function compoundIncome(startingIncome: number, growthRate: number, years: number = YEARS_PER_STAGE): { income: number; growth: number } {
+  let income = startingIncome;
+  let growth = growthRate;
+  for (let y = 0; y < years; y++) {
+    income *= (1 + growth);
+    // Apply income floor and growth reset during compounding
+    if (income <= config.incomeFloor) {
+      income = config.incomeFloor;
+      if (growth < 0) growth = 0;
+    }
+  }
+  return { income, growth };
+}
+
+export function computeStageEarnings(startingIncome: number, growthRate: number, years: number = YEARS_PER_STAGE): number {
+  let total = 0;
+  let income = startingIncome;
+  let growth = growthRate;
+  for (let y = 0; y < years; y++) {
+    total += income;
+    income *= (1 + growth);
+    // Apply income floor and growth reset during compounding
+    if (income <= config.incomeFloor) {
+      income = config.incomeFloor;
+      if (growth < 0) growth = 0;
+    }
+  }
+  return total;
+}
+
 export function getMod(score: number): number {
   return Math.floor((score - 10) / 2);
 }
@@ -237,20 +269,22 @@ export function computeTraitContributions(
   return contributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 }
 
-// Compute EV for any given jump% and growth delta
+// Compute EV for any given jump% and growth delta (with annual compounding)
 export function computeEV(stage: number, jumpPct: number, growthDelta: number): number {
   const g0 = config.baseGrowthEV;
-  const remaining = 8 - stage + 1;
+  const remainingStages = 8 - stage + 1;
+  const remainingYears = remainingStages * YEARS_PER_STAGE;
   
   let baseline = 0;
   let withEffect = 0;
   
-  for (let i = 0; i < remaining; i++) {
-    baseline += Math.pow(1 + g0, i);
-    if (i === 0) {
-      withEffect += (1 + jumpPct) * Math.pow(1 + g0 + growthDelta, i);
+  for (let year = 0; year < remainingYears; year++) {
+    baseline += Math.pow(1 + g0, year);
+    // Jump applies at year 0, then growth delta affects all subsequent years
+    if (year === 0) {
+      withEffect += (1 + jumpPct);
     } else {
-      withEffect += Math.pow(1 + g0 + growthDelta, i);
+      withEffect += (1 + jumpPct) * Math.pow(1 + g0 + growthDelta, year);
     }
   }
   
@@ -368,17 +402,18 @@ export function computeEvBaselineHand(): number {
   return total;
 }
 
-// Compute EV for education outcome (growth delta affects all 8 remaining stages)
+// Compute EV for education outcome (growth delta affects all remaining years)
 export function computeEducationEV(growthDelta: number): number {
   const g0 = config.baseGrowthEV;
   const remainingStages = 8; // stages 2-9
+  const remainingYears = remainingStages * YEARS_PER_STAGE;
   
   let baseline = 0;
   let withEducation = 0;
   
-  for (let i = 0; i < remainingStages; i++) {
-    baseline += Math.pow(1 + g0, i);
-    withEducation += Math.pow(1 + g0 + growthDelta, i);
+  for (let year = 0; year < remainingYears; year++) {
+    baseline += Math.pow(1 + g0, year);
+    withEducation += Math.pow(1 + g0 + growthDelta, year);
   }
   
   return withEducation - baseline;
@@ -411,12 +446,11 @@ export function computeEducationExpectedEV(traits: Traits, worldMode: WorldMode)
   return expectedEV;
 }
 
-// Compute EV for career outcome (salary and growth affect all 8 remaining stages)
+// Compute EV for career outcome (salary and growth affect all remaining years with annual compounding)
 // Returns raw delta in the same units as education/event EV
 export function computeCareerEV(salary: number, growth: number, isNat20: boolean): number {
-  const g0 = config.baseGrowthEV;
   const remainingStages = 8; // stages 2-9
-  const baseSalary = config.startingIncome; // reference baseline salary
+  const remainingYears = remainingStages * YEARS_PER_STAGE;
   const nat20Multiplier = isNat20 ? 1.2 : 1.0;
   
   // Compute baseline (what you'd get with average career)
@@ -427,14 +461,13 @@ export function computeCareerEV(salary: number, growth: number, isNat20: boolean
   let baseline = 0;
   let withCareer = 0;
   
-  for (let i = 0; i < remainingStages; i++) {
-    baseline += avgSalary * Math.pow(1 + avgGrowth, i);
-    withCareer += salary * nat20Multiplier * Math.pow(1 + growth, i);
+  for (let year = 0; year < remainingYears; year++) {
+    baseline += avgSalary * Math.pow(1 + avgGrowth, year);
+    withCareer += salary * nat20Multiplier * Math.pow(1 + growth, year);
   }
   
   // Normalize to EV scale (same as education: relative growth impact)
   // Divide by baseline to get a unitless ratio comparable to other EV measures
-  const baselineWithBaseGrowth = remainingStages * baseSalary; // simplified reference
   return (withCareer - baseline) / (baseline || 1);
 }
 
@@ -805,7 +838,8 @@ export function resolveEvent(
   
   let newGrowth = currentGrowth + growthDelta;
   
-  let newIncome = currentIncome * (1 + newGrowth) * (1 + jumpPct);
+  // Event applies jump% directly to current income (compounding is handled externally)
+  let newIncome = currentIncome * (1 + jumpPct);
   const hitFloor = newIncome <= config.incomeFloor;
   newIncome = Math.max(config.incomeFloor, newIncome);
   
@@ -944,7 +978,14 @@ export function simulateLife(
     career: careerOutcome,
     incomeAfter: income
   });
-  lifetimeEarnings += income * 6;
+  // Career stage (ages 24-30): income compounds annually for 6 years
+  lifetimeEarnings += computeStageEarnings(income, growth);
+  
+  // Compound income to get end-of-career-stage income (going into first event)
+  const careerCompound = compoundIncome(income, growth, YEARS_PER_STAGE);
+  income = careerCompound.income;
+  growth = careerCompound.growth;
+  peakIncome = Math.max(peakIncome, income);
   
   for (const stageNum of config.eventStages) {
     let event: Event;
@@ -960,18 +1001,29 @@ export function simulateLife(
     
     drawnEvents.push({ event, stage: stageNum });
     
+    // Event applies at start of stage: jump% to current income, modify growth
     const result = resolveEvent(event, stageNum, agent.traits, worldMode, agentRng, income, growth, forcedRoll);
+    
+    // Update income and growth from event result
     income = result.newIncome;
     growth = result.newGrowth;
+    peakIncome = Math.max(peakIncome, income);
+    
+    // Earnings for this stage: work at post-event income/growth for 6 years
+    lifetimeEarnings += computeStageEarnings(income, growth);
+    
+    // Compound income for 6 years (going into next event)
+    const stageCompound = compoundIncome(income, growth, YEARS_PER_STAGE);
+    income = stageCompound.income;
+    growth = stageCompound.growth;
+    peakIncome = Math.max(peakIncome, income);
     
     stages.push({
       stage: stageNum,
       isEducation: false,
       eventOutcome: result.outcome,
-      incomeAfter: income
+      incomeAfter: result.newIncome
     });
-    peakIncome = Math.max(peakIncome, income);
-    lifetimeEarnings += income * 6;
   }
   
   const evBaselineHand = computeEvBaselineHand();

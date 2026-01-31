@@ -57,3 +57,7 @@ client/src/
 - Created complete simulation engine with luck analysis
 - Built all UI components following design guidelines
 - Implemented dark/light theme toggle
+- Changed income model to annual compounding (6 years per stage)
+- Removed growth rate caps (-10%/+40% limits eliminated)
+- Added growth rate reset to 0% when hitting income floor with negative growth
+- Updated EV calculations to use annual compounding

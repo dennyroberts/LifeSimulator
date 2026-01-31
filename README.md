@@ -231,14 +231,20 @@ When filtering by events, selecting the same event multiple times requires multi
 
 ### Stage Length and Income Progression
 
-Each of the 9 life stages represents approximately 6 years. Income progresses each stage:
+Each of the 9 life stages represents approximately 6 years. Income compounds **annually** within each stage:
 
 ```
-New Income = Current Income × (1 + Growth Rate) × (1 + Jump%)
-Lifetime Earnings = Sum of (Income at each stage × 6 years)
+Year N Income = Previous Year Income × (1 + Growth Rate)
+Stage Lifetime Earnings = Sum of all 6 years of income within the stage
 ```
 
-Income has a floor of $1,000. If a sim hits the income floor while having a negative growth rate, the growth rate resets to 0% to allow recovery.
+**Example:** If you start a stage at $68K salary with 5.6% growth:
+- Year 1: $68,000
+- Year 2: $68,000 × 1.056 = $71,808
+- Year 3: $71,808 × 1.056 = $75,829
+- ...and so on for 6 years
+
+When a life event occurs, it applies a **jump%** to your current (compounded) income and may modify your growth rate for future years. Income has a floor of $1,000. If a sim hits the income floor while having a negative growth rate, the growth rate resets to 0% to allow recovery.
 
 ### Seeded Randomness
 
@@ -248,13 +254,13 @@ All randomness uses a seeded pseudo-random number generator (mulberry32). This m
 
 ### Expected Value Calculations
 
-Event EV considers remaining stages and compounding:
+Event EV considers remaining years and annual compounding:
 
 ```
-EV = Σ(withEffect[i] - baseline[i]) for remaining stages
+EV = Σ(withEffect[year] - baseline[year]) for all remaining years
 ```
 
-Where effects compound over time through the growth rate delta.
+Where effects compound annually through the growth rate delta.
 
 ## Running Locally
 

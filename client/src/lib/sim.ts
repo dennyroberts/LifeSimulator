@@ -281,22 +281,33 @@ export function computeTraitContributions(
   return contributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 }
 
-// Compute EV for any given jump% and growth delta (with annual compounding)
+// Compute EV for any given jump% and growth delta (with annual compounding and growth decay)
 export function computeEV(stage: number, jumpPct: number, growthDelta: number): number {
   const g0 = config.baseGrowthEV;
   const remainingStages = 8 - stage + 1;
   const remainingYears = remainingStages * YEARS_PER_STAGE;
   
+  // Baseline: compute with growth decay
   let baseline = 0;
-  let withEffect = 0;
-  
+  let baselineGrowth = g0;
+  let baselineMultiplier = 1;
   for (let year = 0; year < remainingYears; year++) {
-    baseline += Math.pow(1 + g0, year);
-    // Jump applies at year 0, then growth delta affects all subsequent years
-    if (year === 0) {
-      withEffect += (1 + jumpPct);
-    } else {
-      withEffect += (1 + jumpPct) * Math.pow(1 + g0 + growthDelta, year);
+    baseline += baselineMultiplier;
+    baselineMultiplier *= (1 + baselineGrowth);
+    if (baselineGrowth > GROWTH_DECAY_THRESHOLD) {
+      baselineGrowth = Math.max(GROWTH_DECAY_THRESHOLD, baselineGrowth - GROWTH_DECAY_RATE);
+    }
+  }
+  
+  // With effect: jump applies immediately, then growth delta affects future with decay
+  let withEffect = 0;
+  let effectGrowth = g0 + growthDelta;
+  let effectMultiplier = 1 + jumpPct;
+  for (let year = 0; year < remainingYears; year++) {
+    withEffect += effectMultiplier;
+    effectMultiplier *= (1 + effectGrowth);
+    if (effectGrowth > GROWTH_DECAY_THRESHOLD) {
+      effectGrowth = Math.max(GROWTH_DECAY_THRESHOLD, effectGrowth - GROWTH_DECAY_RATE);
     }
   }
   
@@ -1104,8 +1115,10 @@ export function simulateLife(
   // Roll deviation: d20 variance = (20^2-1)/12 = 33.25, std = 5.77
   // With ~10 rolls (edu + career + ~8 events), total std ≈ 5.77 * sqrt(10) ≈ 18.2
   // Opportunity luck: based on event EV variance across the deck
-  // Empirically calibrated from 10k simulations: std ≈ 0.50
-  const OPPORTUNITY_LUCK_STD = 0.50;
+  // Recalibrated for growth decay (>5% decays 0.5%/year) and 1x effect multiplier
+  // EV is in units of "years of normalized income", ~7 events with varying magnitudes
+  // std ≈ 2.0 accounts for occasional jackpot/sinkhole combinations
+  const OPPORTUNITY_LUCK_STD = 2.0;
   const ROLL_DEVIATION_STD = 18.2;
   
   const opportunityLuckZ = opportunityLuck / OPPORTUNITY_LUCK_STD;

@@ -11,69 +11,69 @@
     "minRoll": 4,
     "maxRoll": 5,
     "baseSalary": 36000,
-    "baseGrowth": 0.015
+    "baseGrowth": 0.012
   },
   {
     "name": "Construction",
     "minRoll": 6,
     "maxRoll": 7,
     "baseSalary": 40000,
-    "baseGrowth": 0.02
+    "baseGrowth": 0.015
   },
   {
     "name": "Truck Driver",
     "minRoll": 8,
     "maxRoll": 9,
     "baseSalary": 44000,
-    "baseGrowth": 0.022
+    "baseGrowth": 0.02
   },
   {
     "name": "Healthcare",
     "minRoll": 10,
     "maxRoll": 11,
     "baseSalary": 48000,
-    "baseGrowth": 0.025
+    "baseGrowth": 0.022
   },
   {
     "name": "Creative Fields",
     "minRoll": 12,
     "maxRoll": 13,
     "baseSalary": 52000,
-    "baseGrowth": 0.03
+    "baseGrowth": 0.025
   },
   {
     "name": "Marketing",
     "minRoll": 14,
     "maxRoll": 15,
     "baseSalary": 56000,
-    "baseGrowth": 0.035
+    "baseGrowth": 0.025
   },
   {
     "name": "Tech",
     "minRoll": 16,
     "maxRoll": 17,
     "baseSalary": 60000,
-    "baseGrowth": 0.04
+    "baseGrowth": 0.03
   },
   {
     "name": "Finance",
     "minRoll": 18,
     "maxRoll": 18,
     "baseSalary": 64000,
-    "baseGrowth": 0.045
+    "baseGrowth": 0.032
   },
   {
     "name": "Lawyer",
     "minRoll": 19,
     "maxRoll": 19,
     "baseSalary": 68000,
-    "baseGrowth": 0.05
+    "baseGrowth": 0.032
   },
   {
     "name": "Doctor",
     "minRoll": 20,
     "maxRoll": 999,
     "baseSalary": 72000,
-    "baseGrowth": 0.055
+    "baseGrowth": 0.032
   }
 ]

@@ -23,21 +23,39 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
     const worstCareerSalary = 32000;
     const worstCareerGrowth = 0.01;
     
+    const YEARS_PER_STAGE = 6;
+    const GROWTH_DECAY_THRESHOLD = 0.015;
+    const GROWTH_DECAY_RATE = 0.0025;
+    const INCOME_FLOOR = 30000;
+    
     let bestIncome = worstCareerSalary;
     let worstIncome = worstCareerSalary;
-    const growthMin = -0.10;
-    const growthMax = 0.40;
-    const effectMultiplier = 1.0;
     let bestGrowth = bestCareerGrowth;
     let worstGrowth = worstCareerGrowth;
+    
+    const compoundWithDecay = (startIncome: number, startGrowth: number, years: number) => {
+      let income = startIncome;
+      let growth = startGrowth;
+      for (let y = 0; y < years; y++) {
+        income *= (1 + growth);
+        if (income <= INCOME_FLOOR) {
+          income = INCOME_FLOOR;
+          if (growth < 0) growth = 0;
+        }
+        if (growth > GROWTH_DECAY_THRESHOLD) {
+          growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
+        }
+      }
+      return { income, growth };
+    };
     
     for (const stage of stages) {
       if (stage.isEducation) {
         bestPath.push(0);
         worstPath.push(0);
         if (stage.education) {
-          bestGrowth = Math.max(growthMin, Math.min(growthMax, bestCareerGrowth + stage.education.growthDelta));
-          worstGrowth = Math.max(growthMin, Math.min(growthMax, worstCareerGrowth + stage.education.growthDelta));
+          bestGrowth = bestCareerGrowth + stage.education.growthDelta;
+          worstGrowth = worstCareerGrowth + stage.education.growthDelta;
         }
       } else if (stage.isCareer) {
         bestIncome = bestCareerSalary;
@@ -47,27 +65,29 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
       } else if (stage.eventOutcome) {
         const event = stage.eventOutcome.event;
         
-        let bestJump = event.success.jumpPct * effectMultiplier;
-        let bestGrowthDelta = event.success.growthDelta * effectMultiplier;
+        let bestJump = event.success.jumpPct;
+        let bestGrowthDelta = event.success.growthDelta;
         if (bestJump < 0) bestJump = Math.abs(bestJump);
         if (bestGrowthDelta < 0) bestGrowthDelta = Math.abs(bestGrowthDelta);
         
-        const newBestGrowth = Math.max(growthMin, Math.min(growthMax, bestGrowth + bestGrowthDelta));
-        const bestOutcome = bestIncome * (1 + newBestGrowth) * (1 + bestJump);
-        bestGrowth = newBestGrowth;
-        bestIncome = bestOutcome;
-        bestPath.push(bestOutcome);
+        bestIncome = bestIncome * (1 + bestJump);
+        bestGrowth = bestGrowth + bestGrowthDelta;
+        const bestResult = compoundWithDecay(bestIncome, bestGrowth, YEARS_PER_STAGE);
+        bestIncome = bestResult.income;
+        bestGrowth = bestResult.growth;
+        bestPath.push(bestIncome);
         
-        let worstJump = event.fail.jumpPct * effectMultiplier;
-        let worstGrowthDelta = event.fail.growthDelta * effectMultiplier;
+        let worstJump = event.fail.jumpPct;
+        let worstGrowthDelta = event.fail.growthDelta;
         if (worstJump > 0) worstJump = -Math.abs(worstJump);
         if (worstGrowthDelta > 0) worstGrowthDelta = -Math.abs(worstGrowthDelta);
         
-        const newWorstGrowth = Math.max(growthMin, Math.min(growthMax, worstGrowth + worstGrowthDelta));
-        const worstOutcome = Math.max(1000, worstIncome * (1 + newWorstGrowth) * (1 + worstJump));
-        worstGrowth = newWorstGrowth;
-        worstIncome = worstOutcome;
-        worstPath.push(worstOutcome);
+        worstIncome = Math.max(INCOME_FLOOR, worstIncome * (1 + worstJump));
+        worstGrowth = worstGrowth + worstGrowthDelta;
+        const worstResult = compoundWithDecay(worstIncome, worstGrowth, YEARS_PER_STAGE);
+        worstIncome = worstResult.income;
+        worstGrowth = worstResult.growth;
+        worstPath.push(worstIncome);
       } else {
         bestPath.push(bestIncome);
         worstPath.push(worstIncome);

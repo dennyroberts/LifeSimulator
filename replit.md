@@ -62,6 +62,6 @@ client/src/
 - Added growth rate reset to 0% when hitting income floor with negative growth
 - Updated EV calculations to use annual compounding
 - Removed 2x effect multiplier (effectMultiplier now 1.0) - criticals still get 1.5x
-- Added growth decay: growth above 5% decays by 0.25% per year (prevents perpetual compounding)
+- Added growth decay: growth above 1.5% decays by 0.25% per year until hitting 1.5% floor (prevents perpetual compounding)
 - Updated all EV calculations to account for growth decay
 - Fixed opportunity luck z-score: now uses computed std from actual deck variance (computeOpportunityLuckStd)

@@ -451,16 +451,16 @@ function CompactCareerCard({ stage }: { stage: StageResult }) {
         </div>
         
         <div className="mt-auto p-2 rounded bg-chart-1/10 border border-chart-1/20">
-          <div className="flex justify-between items-center">
-            <div>
+          <div className="flex justify-between items-center gap-2">
+            <div className="min-w-0">
               <div className="text-[10px] text-muted-foreground">Starting Salary</div>
               <div className="font-mono text-sm font-bold text-chart-1" data-testid="career-salary">
                 {formatCurrency(career.finalSalary)}
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0">
               <div className="text-[10px] text-muted-foreground">Growth</div>
-              <div className="font-mono text-sm font-semibold text-chart-2">
+              <div className="font-mono text-xs font-semibold text-chart-2">
                 {formatPercent(stage.growthAfter)}
               </div>
             </div>

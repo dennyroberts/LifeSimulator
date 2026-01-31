@@ -179,7 +179,7 @@ export function clamp(value: number, min: number, max: number): number {
 
 export const YEARS_PER_STAGE = 6;
 
-const GROWTH_DECAY_THRESHOLD = 0.05; // 5%
+const GROWTH_DECAY_THRESHOLD = 0.015; // 1.5%
 const GROWTH_DECAY_RATE = 0.0025; // 0.25% per year
 
 export function compoundIncome(startingIncome: number, growthRate: number, years: number = YEARS_PER_STAGE): { income: number; growth: number } {
@@ -192,7 +192,7 @@ export function compoundIncome(startingIncome: number, growthRate: number, years
       income = config.incomeFloor;
       if (growth < 0) growth = 0;
     }
-    // Decay growth above 5% by 0.25% per year
+    // Decay growth above 1.5% by 0.25% per year
     if (growth > GROWTH_DECAY_THRESHOLD) {
       growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
     }
@@ -212,7 +212,7 @@ export function computeStageEarnings(startingIncome: number, growthRate: number,
       income = config.incomeFloor;
       if (growth < 0) growth = 0;
     }
-    // Decay growth above 5% by 0.25% per year
+    // Decay growth above 1.5% by 0.25% per year
     if (growth > GROWTH_DECAY_THRESHOLD) {
       growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
     }

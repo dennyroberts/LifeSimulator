@@ -51,7 +51,7 @@ client/src/
   - If growthDelta ends up 0, applies -0.1% penalty
 
 ### Growth Constraints
-- **Decay threshold**: 1.5% - growth above this decays by 0.1%/year until reaching 1.5%
+- **Decay threshold**: 1.5% - growth above this decays by 0.05%/year (20 years to erase 1%)
 - **Growth floor**: -1% - growth can never go below this (prevents death spirals)
 - Applied globally across simulation and all EV/analytics calculations
 
@@ -88,3 +88,11 @@ client/src/
   - Applied globally: simulation, EV calculations, education/career lifetime projections
 - Growth constraints now: 1.5% decay threshold (upper), -1% floor (lower)
 - Simplified critical failure mechanics: 1.5x fail outcome, -0.1% growth if delta is 0
+- Buffed life-changing events by 50% (January 2026):
+  - Startup: 3.0%, Invention: 2.2%, Fame: 1.8%, Business: 1.8%
+  - Revolutionary Idea: 1.5%, Risky Investment: 1.2%, Smart Investments: 0.9%
+  - Career Pivot intentionally kept at 1.0%
+- Reduced decay rate to 0.05%/year (was 0.1%) - allows 30 years for 3% to decay to 1.5%
+- Recalibrated letter grades for higher income distribution
+- Changed "Skipped" to "Didn't Risk" for risk-gated events not taken
+- Fixed mobile timeline cards to show grey styling for skipped risks (was showing red)

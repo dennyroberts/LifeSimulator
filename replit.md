@@ -42,6 +42,19 @@ client/src/
 - Income progression with jump% and growth% mechanics
 - Risk gates on certain events
 
+### Critical Mechanics (Nat 20 / Nat 1)
+- **Critical Success (Nat 20 - 5% chance)**: 
+  - 1.5x multiplier on success outcome (both jump% and growth delta)
+  - Flips any negative outcomes to positive
+- **Critical Failure (Nat 1 - 5% chance)**: 
+  - 1.5x multiplier on fail outcome (both jump% and growth delta)
+  - If growthDelta ends up 0, applies -0.1% penalty
+
+### Growth Constraints
+- **Decay threshold**: 1.5% - growth above this decays by 0.25%/year until reaching 1.5%
+- **Growth floor**: -1% - growth can never go below this (prevents death spirals)
+- Applied globally across simulation and all EV/analytics calculations
+
 ### Key Files
 - `client/src/lib/sim.ts` - All simulation logic, EV calculations, luck computation
 - `client/src/lib/rng.ts` - Deterministic seeded random number generator
@@ -74,3 +87,4 @@ client/src/
 - Added -1% minimum growth floor to prevent death spirals (growth can't go below -1%)
   - Applied globally: simulation, EV calculations, education/career lifetime projections
 - Growth constraints now: 1.5% decay threshold (upper), -1% floor (lower)
+- Simplified critical failure mechanics: 1.5x fail outcome, -0.1% growth if delta is 0

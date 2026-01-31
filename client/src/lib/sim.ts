@@ -181,6 +181,7 @@ export const YEARS_PER_STAGE = 6;
 
 const GROWTH_DECAY_THRESHOLD = 0.015; // 1.5%
 const GROWTH_DECAY_RATE = 0.0025; // 0.25% per year
+const GROWTH_FLOOR = -0.01; // -1% minimum growth rate
 
 export function compoundIncome(startingIncome: number, growthRate: number, years: number = YEARS_PER_STAGE): { income: number; growth: number } {
   let income = startingIncome;
@@ -301,7 +302,7 @@ export function computeEV(stage: number, jumpPct: number, growthDelta: number): 
   
   // With effect: jump applies immediately, then growth delta affects future with decay
   let withEffect = 0;
-  let effectGrowth = g0 + growthDelta;
+  let effectGrowth = Math.max(GROWTH_FLOOR, g0 + growthDelta); // Apply growth floor
   let effectMultiplier = 1 + jumpPct;
   for (let year = 0; year < remainingYears; year++) {
     withEffect += effectMultiplier;
@@ -456,11 +457,11 @@ export function computeOpportunityLuckStd(): number {
 function computeLifetimeIncomeWithDecay(startingIncome: number, startingGrowth: number, years: number): number {
   let total = 0;
   let income = startingIncome;
-  let growth = startingGrowth;
+  let growth = Math.max(GROWTH_FLOOR, startingGrowth); // Apply growth floor
   for (let y = 0; y < years; y++) {
     total += income;
     income *= (1 + growth);
-    // Apply growth decay above 5%
+    // Apply growth decay above threshold
     if (growth > GROWTH_DECAY_THRESHOLD) {
       growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
     }
@@ -474,6 +475,7 @@ export function computeEducationEV(growthDelta: number): number {
   const remainingYears = 8 * YEARS_PER_STAGE; // stages 2-9
   
   const baseline = computeLifetimeIncomeWithDecay(1, g0, remainingYears);
+  // Growth floor is applied inside computeLifetimeIncomeWithDecay
   const withEducation = computeLifetimeIncomeWithDecay(1, g0 + growthDelta, remainingYears);
   
   return withEducation - baseline;
@@ -892,6 +894,9 @@ export function resolveEvent(
   
   let newGrowth = currentGrowth + growthDelta;
   
+  // Enforce -1% minimum growth floor to prevent runaway negative trajectories
+  newGrowth = Math.max(GROWTH_FLOOR, newGrowth);
+  
   // Event applies jump% directly to current income (compounding is handled externally)
   let newIncome = currentIncome * (1 + jumpPct);
   const hitFloor = newIncome <= config.incomeFloor;
@@ -1022,7 +1027,7 @@ export function simulateLife(
   const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration, forcedRoll);
   
   let income = careerOutcome.finalSalary;
-  let growth = careerOutcome.finalGrowth + educationOutcome.growthDelta;
+  let growth = Math.max(GROWTH_FLOOR, careerOutcome.finalGrowth + educationOutcome.growthDelta);
   
   peakIncome = Math.max(peakIncome, income);
   

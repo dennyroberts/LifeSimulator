@@ -45,7 +45,7 @@ client/src/
 ### Key Files
 - `client/src/lib/sim.ts` - All simulation logic, EV calculations, luck computation
 - `client/src/lib/rng.ts` - Deterministic seeded random number generator
-- `client/src/data/events.json` - 27 life events with rarities and effects
+- `client/src/data/events.json` - 37 life events with rarities and effects
 
 ## User Preferences
 - Using Inter font for UI, JetBrains Mono for numbers/stats
@@ -65,3 +65,11 @@ client/src/
 - Added growth decay: growth above 1.5% decays by 0.25% per year until hitting 1.5% floor (prevents perpetual compounding)
 - Updated all EV calculations to account for growth decay
 - Fixed opportunity luck z-score: now uses computed std from actual deck variance (computeOpportunityLuckStd)
+- Complete event rebalancing (January 2026):
+  - Reduced growth deltas across all 37 events to prevent runaway salaries
+  - Philosophy: Most events affect jump% (one-time), only transformative events get significant growth deltas
+  - Truly transformative events (±0.8% to ±1.5%): Startup, Invention, Business, Fame, Career Pivot, Revolutionary Idea
+  - Investment events use asymmetric risk: Risky Investment +0.6%/-0.3%, Smart Investments +0.5%/-0.3%
+  - Renamed "Side Hustle Takes Off" to "Start a Business"
+- Added -1% minimum growth floor to prevent death spirals (growth can't go below -1%)
+- Growth constraints now: 1.5% decay threshold (upper), -1% floor (lower)

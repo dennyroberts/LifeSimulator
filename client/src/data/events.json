@@ -11,7 +11,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.08, "growthDelta": 0.003 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.02, "growthDelta": -0.002 },
     "outcomes": {
       "success": "You get promoted",
       "fail": "Passed over again",
@@ -71,7 +71,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.0, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": 0.0, "growthDelta": -0.003 },
     "outcomes": {
       "success": "They fast-track your promotions and raises",
       "fail": "Just another employee to them",
@@ -277,7 +277,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.02, "growthDelta": -0.003 },
     "outcomes": {
       "success": "Bigger opportunities land at your feet",
       "fail": "Your 15 minutes of fame end early",
@@ -305,10 +305,10 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.06, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.02, "growthDelta": -0.002 },
     "outcomes": {
       "success": "Golden opportunity seized",
-      "fail": "Window of opportunity closed on you",
+      "fail": "You made a powerful enemy",
       "critSuccess": "Their word goes very far",
       "critFail": "Burned that bridge forever",
       "traitSuccess": {
@@ -333,10 +333,10 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.015 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.03, "growthDelta": -0.005 },
     "outcomes": {
       "success": "Fame finds you",
-      "fail": "Your 15 minutes of fame end early",
+      "fail": "Famous for the wrong reasons",
       "critSuccess": "Overnight sensation",
       "critFail": "Viral for wrong reasons",
       "traitSuccess": {
@@ -477,7 +477,7 @@
     "icon": "Gem",
     "rarity": "jackpot",
     "rollRequired": true,
-    "DC": 19,
+    "DC": 17,
     "checkTraits": { "NEPO": 0.5, "CHAR": 0.5, "WORK": 0.5, "INT": 0.5 },
     "riskGated": true,
     "riskGateDC": 16,
@@ -536,17 +536,17 @@
     "name": "Money Appears From Nowhere",
     "icon": "Banknote",
     "rarity": "jackpot",
-    "rollRequired": false,
-    "DC": null,
+    "rollRequired": true,
+    "DC": 11,
     "checkTraits": {},
     "riskGated": false,
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.3, "growthDelta": 0.0 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.15, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Windfall arrives",
-      "fail": "Turns out it was nothing",
+      "fail": "It was a scam",
       "critSuccess": "Jackpot beyond your dreams!",
       "critFail": "Turned out to be a scam",
       "traitSuccess": {}
@@ -564,7 +564,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.0 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.02, "growthDelta": 0.0 },
     "outcomes": {
       "success": "Right place, right time—bonus lands in your lap",
       "fail": "The opportunity slipped through your fingers",
@@ -708,7 +708,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.0, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": 0.0, "growthDelta": -0.003 },
     "outcomes": {
       "success": "You flourish with the support of your partner",
       "fail": "Relationship eventually fell apart",
@@ -736,7 +736,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.0, "growthDelta": 0.007 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": 0.0, "growthDelta": -0.002 },
     "outcomes": {
       "success": "They teach you the shortcuts to success",
       "fail": "They were too busy to invest in you",
@@ -764,7 +764,7 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.05, "growthDelta": 0.006 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.02, "growthDelta": -0.003 },
     "outcomes": {
       "success": "Prestige unlocked",
       "fail": "Didn't make the cut",
@@ -794,10 +794,10 @@
     "riskGateDC": null,
     "riskGateWeight": 1.0,
     "success": { "jumpPct": 0.03, "growthDelta": 0.005 },
-    "fail": { "jumpPct": 0.0, "growthDelta": 0.0 },
+    "fail": { "jumpPct": -0.02, "growthDelta": -0.003 },
     "outcomes": {
       "success": "Momentum building",
-      "fail": "Wind died down",
+      "fail": "You missed the wave",
       "critSuccess": "Perfect timing",
       "critFail": "It was a bubble",
       "traitSuccess": {

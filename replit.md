@@ -72,4 +72,5 @@ client/src/
   - Investment events use asymmetric risk: Risky Investment +0.6%/-0.3%, Smart Investments +0.5%/-0.3%
   - Renamed "Side Hustle Takes Off" to "Start a Business"
 - Added -1% minimum growth floor to prevent death spirals (growth can't go below -1%)
+  - Applied globally: simulation, EV calculations, education/career lifetime projections
 - Growth constraints now: 1.5% decay threshold (upper), -1% floor (lower)

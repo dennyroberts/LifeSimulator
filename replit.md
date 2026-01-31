@@ -61,3 +61,6 @@ client/src/
 - Removed growth rate caps (-10%/+40% limits eliminated)
 - Added growth rate reset to 0% when hitting income floor with negative growth
 - Updated EV calculations to use annual compounding
+- Removed 2x effect multiplier (effectMultiplier now 1.0) - criticals still get 1.5x
+- Added growth decay: growth above 5% decays by 0.5% per year (prevents perpetual compounding)
+- Updated all EV calculations to account for growth decay

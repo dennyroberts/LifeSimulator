@@ -179,6 +179,9 @@ export function clamp(value: number, min: number, max: number): number {
 
 export const YEARS_PER_STAGE = 6;
 
+const GROWTH_DECAY_THRESHOLD = 0.05; // 5%
+const GROWTH_DECAY_RATE = 0.005; // 0.5% per year
+
 export function compoundIncome(startingIncome: number, growthRate: number, years: number = YEARS_PER_STAGE): { income: number; growth: number } {
   let income = startingIncome;
   let growth = growthRate;
@@ -188,6 +191,10 @@ export function compoundIncome(startingIncome: number, growthRate: number, years
     if (income <= config.incomeFloor) {
       income = config.incomeFloor;
       if (growth < 0) growth = 0;
+    }
+    // Decay growth above 5% by 0.5% per year
+    if (growth > GROWTH_DECAY_THRESHOLD) {
+      growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
     }
   }
   return { income, growth };
@@ -204,6 +211,10 @@ export function computeStageEarnings(startingIncome: number, growthRate: number,
     if (income <= config.incomeFloor) {
       income = config.incomeFloor;
       if (growth < 0) growth = 0;
+    }
+    // Decay growth above 5% by 0.5% per year
+    if (growth > GROWTH_DECAY_THRESHOLD) {
+      growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
     }
   }
   return total;
@@ -403,19 +414,29 @@ export function computeEvBaselineHand(): number {
   return total;
 }
 
+// Helper to compute total income over years with growth decay
+function computeLifetimeIncomeWithDecay(startingIncome: number, startingGrowth: number, years: number): number {
+  let total = 0;
+  let income = startingIncome;
+  let growth = startingGrowth;
+  for (let y = 0; y < years; y++) {
+    total += income;
+    income *= (1 + growth);
+    // Apply growth decay above 5%
+    if (growth > GROWTH_DECAY_THRESHOLD) {
+      growth = Math.max(GROWTH_DECAY_THRESHOLD, growth - GROWTH_DECAY_RATE);
+    }
+  }
+  return total;
+}
+
 // Compute EV for education outcome (growth delta affects all remaining years)
 export function computeEducationEV(growthDelta: number): number {
   const g0 = config.baseGrowthEV;
-  const remainingStages = 8; // stages 2-9
-  const remainingYears = remainingStages * YEARS_PER_STAGE;
+  const remainingYears = 8 * YEARS_PER_STAGE; // stages 2-9
   
-  let baseline = 0;
-  let withEducation = 0;
-  
-  for (let year = 0; year < remainingYears; year++) {
-    baseline += Math.pow(1 + g0, year);
-    withEducation += Math.pow(1 + g0 + growthDelta, year);
-  }
+  const baseline = computeLifetimeIncomeWithDecay(1, g0, remainingYears);
+  const withEducation = computeLifetimeIncomeWithDecay(1, g0 + growthDelta, remainingYears);
   
   return withEducation - baseline;
 }
@@ -450,8 +471,7 @@ export function computeEducationExpectedEV(traits: Traits, worldMode: WorldMode)
 // Compute EV for career outcome (salary and growth affect all remaining years with annual compounding)
 // Returns raw delta in the same units as education/event EV
 export function computeCareerEV(salary: number, growth: number, isNat20: boolean): number {
-  const remainingStages = 8; // stages 2-9
-  const remainingYears = remainingStages * YEARS_PER_STAGE;
+  const remainingYears = 8 * YEARS_PER_STAGE; // stages 2-9
   const nat20Multiplier = isNat20 ? 1.2 : 1.0;
   
   // Compute baseline (what you'd get with average career)
@@ -459,13 +479,8 @@ export function computeCareerEV(salary: number, growth: number, isNat20: boolean
   const avgSalary = 52000;
   const avgGrowth = 0.03;
   
-  let baseline = 0;
-  let withCareer = 0;
-  
-  for (let year = 0; year < remainingYears; year++) {
-    baseline += avgSalary * Math.pow(1 + avgGrowth, year);
-    withCareer += salary * nat20Multiplier * Math.pow(1 + growth, year);
-  }
+  const baseline = computeLifetimeIncomeWithDecay(avgSalary, avgGrowth, remainingYears);
+  const withCareer = computeLifetimeIncomeWithDecay(salary * nat20Multiplier, growth, remainingYears);
   
   // Normalize to EV scale (same as education: relative growth impact)
   // Divide by baseline to get a unitless ratio comparable to other EV measures

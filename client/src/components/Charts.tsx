@@ -27,7 +27,7 @@ export function IncomeChart({ stages, onHoverStage }: IncomeChartProps) {
     let worstIncome = worstCareerSalary;
     const growthMin = -0.10;
     const growthMax = 0.40;
-    const effectMultiplier = 2.0;
+    const effectMultiplier = 1.0;
     let bestGrowth = bestCareerGrowth;
     let worstGrowth = worstCareerGrowth;
     

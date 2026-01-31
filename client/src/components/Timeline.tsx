@@ -38,8 +38,8 @@ export function Timeline({ stages }: TimelineProps) {
         ))}
       </div>
       
-      {/* Mobile: Vertical scrollable layout with continuous line */}
-      <div className="md:hidden relative max-h-[70vh] overflow-y-auto pr-1">
+      {/* Mobile: Vertical layout with continuous line */}
+      <div className="md:hidden relative">
         {/* Continuous vertical line */}
         <div className="absolute left-[18px] top-4 bottom-4 w-0.5 bg-border" />
         

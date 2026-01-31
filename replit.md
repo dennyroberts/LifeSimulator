@@ -64,3 +64,4 @@ client/src/
 - Removed 2x effect multiplier (effectMultiplier now 1.0) - criticals still get 1.5x
 - Added growth decay: growth above 5% decays by 0.5% per year (prevents perpetual compounding)
 - Updated all EV calculations to account for growth decay
+- Fixed opportunity luck z-score: now uses computed std from actual deck variance (computeOpportunityLuckStd)

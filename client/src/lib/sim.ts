@@ -425,6 +425,33 @@ export function computeEvBaselineHand(): number {
   return total;
 }
 
+// Compute the true standard deviation of opportunity luck
+// This is the std of (evHand - evBaselineHand) across all possible event draws
+// Since each stage draw is independent, total variance = sum of per-stage variances
+export function computeOpportunityLuckStd(): number {
+  const totalWeight = getTotalDeckWeight();
+  let totalVariance = 0;
+  
+  for (const stage of config.eventStages) {
+    // Compute mean and E[X²] for this stage
+    let mean = 0;
+    let meanSquared = 0;
+    
+    for (const event of events) {
+      const weight = getRarityWeight(event.rarity) / totalWeight;
+      const ev = intrinsicExpectedEV(event, stage);
+      mean += weight * ev;
+      meanSquared += weight * ev * ev;
+    }
+    
+    // Variance = E[X²] - E[X]²
+    const stageVariance = meanSquared - mean * mean;
+    totalVariance += stageVariance;
+  }
+  
+  return Math.sqrt(totalVariance);
+}
+
 // Helper to compute total income over years with growth decay
 function computeLifetimeIncomeWithDecay(startingIncome: number, startingGrowth: number, years: number): number {
   let total = 0;
@@ -1114,14 +1141,11 @@ export function simulateLife(
   // Z-score normalization using calibration constants
   // Roll deviation: d20 variance = (20^2-1)/12 = 33.25, std = 5.77
   // With ~10 rolls (edu + career + ~8 events), total std ≈ 5.77 * sqrt(10) ≈ 18.2
-  // Opportunity luck: based on event EV variance across the deck
-  // Recalibrated for growth decay (>5% decays 0.5%/year) and 1x effect multiplier
-  // EV is in units of "years of normalized income", ~7 events with varying magnitudes
-  // std ≈ 2.0 accounts for occasional jackpot/sinkhole combinations
-  const OPPORTUNITY_LUCK_STD = 2.0;
+  // Opportunity luck: computed from actual deck variance (sum of per-stage EV variances)
+  const opportunityLuckStd = computeOpportunityLuckStd();
   const ROLL_DEVIATION_STD = 18.2;
   
-  const opportunityLuckZ = opportunityLuck / OPPORTUNITY_LUCK_STD;
+  const opportunityLuckZ = opportunityLuck / opportunityLuckStd;
   const rollLuckZ = rawRollDeviation / ROLL_DEVIATION_STD;
   // Average the two z-scores (both have zero mean by construction)
   const totalLuckZ = (opportunityLuckZ + rollLuckZ) / 2;

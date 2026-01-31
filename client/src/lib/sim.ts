@@ -111,6 +111,7 @@ export interface StageResult {
   career?: CareerOutcome;
   eventOutcome?: EventOutcome;
   incomeAfter: number;
+  growthAfter: number;
 }
 
 export interface LuckAnalysis {
@@ -961,7 +962,8 @@ export function simulateLife(
     stage: 1,
     isEducation: true,
     education: educationOutcome,
-    incomeAfter: 0
+    incomeAfter: 0,
+    growthAfter: 0
   });
   
   const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration, forcedRoll);
@@ -976,7 +978,8 @@ export function simulateLife(
     isEducation: false,
     isCareer: true,
     career: careerOutcome,
-    incomeAfter: income
+    incomeAfter: income,
+    growthAfter: growth
   });
   // Career stage (ages 24-30): income compounds annually for 6 years
   lifetimeEarnings += computeStageEarnings(income, growth);
@@ -1022,7 +1025,8 @@ export function simulateLife(
       stage: stageNum,
       isEducation: false,
       eventOutcome: result.outcome,
-      incomeAfter: result.newIncome
+      incomeAfter: result.newIncome,
+      growthAfter: result.newGrowth
     });
   }
   

@@ -221,8 +221,9 @@ function MobileCareerCard({ stage }: { stage: StageResult }) {
           {career.isNat20 && (
             <span className="text-chart-4 text-[10px] font-bold">+20% salary</span>
           )}
-          <div className="ml-auto font-mono font-bold text-chart-1 shrink-0">
-            {formatCurrency(career.finalSalary)}
+          <div className="ml-auto flex items-center gap-2 font-mono shrink-0">
+            <span className="text-chart-2 text-[10px]">{formatPercent(stage.growthAfter)}</span>
+            <span className="font-bold text-chart-1">{formatCurrency(career.finalSalary)}</span>
           </div>
         </div>
       </CardContent>
@@ -303,8 +304,9 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
               })})
             </div>
           )}
-          <div className="ml-auto font-mono font-bold text-chart-1 shrink-0">
-            {formatCurrency(outcome.incomeAfter)}
+          <div className="ml-auto flex items-center gap-2 font-mono shrink-0">
+            <span className={`text-[10px] ${stage.growthAfter >= 0 ? 'text-chart-2' : 'text-destructive'}`}>{formatPercent(stage.growthAfter)}</span>
+            <span className="font-bold text-chart-1">{formatCurrency(outcome.incomeAfter)}</span>
           </div>
         </div>
       </CardContent>
@@ -449,9 +451,19 @@ function CompactCareerCard({ stage }: { stage: StageResult }) {
         </div>
         
         <div className="mt-auto p-2 rounded bg-chart-1/10 border border-chart-1/20">
-          <div className="text-[10px] text-muted-foreground">Starting Salary</div>
-          <div className="font-mono text-sm font-bold text-chart-1" data-testid="career-salary">
-            {formatCurrency(career.finalSalary)}
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-[10px] text-muted-foreground">Starting Salary</div>
+              <div className="font-mono text-sm font-bold text-chart-1" data-testid="career-salary">
+                {formatCurrency(career.finalSalary)}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-muted-foreground">Growth</div>
+              <div className="font-mono text-sm font-semibold text-chart-2">
+                {formatPercent(stage.growthAfter)}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -623,9 +635,19 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
         </div>
         
         <div className="mt-auto p-2 rounded bg-chart-1/10 border border-chart-1/20">
-          <div className="text-[10px] text-muted-foreground">Income</div>
-          <div className="font-mono text-sm font-bold text-chart-1" data-testid={`event-income-${stage.stage}`}>
-            {formatCurrency(stage.incomeAfter)}
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-[10px] text-muted-foreground">Income</div>
+              <div className="font-mono text-sm font-bold text-chart-1" data-testid={`event-income-${stage.stage}`}>
+                {formatCurrency(stage.incomeAfter)}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-muted-foreground">Growth</div>
+              <div className={`font-mono text-sm font-semibold ${stage.growthAfter >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+                {formatPercent(stage.growthAfter)}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>

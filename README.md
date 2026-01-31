@@ -115,7 +115,7 @@ Critical rolls add an additional **1.5× multiplier**.
 Events modify your trajectory through two mechanisms:
 
 - **Jump%**: Immediate percentage change to income (one-time boost or penalty)
-- **Growth Delta**: Permanent change to your annual growth rate (compounds over remaining stages)
+- **Growth Delta**: Permanent change to your annual growth rate (compounds over subsequent stages). Growth decays over time (by 0.5% per year) so that a sim can't get an early win and then coast on their laurels indefinitely
 
 ### Example Events
 

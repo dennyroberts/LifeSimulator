@@ -113,8 +113,15 @@ function App() {
           <footer className="border-t mt-12">
             <div className="container max-w-7xl mx-auto px-4 py-6">
               <p className="text-center text-sm text-muted-foreground">
-                A simulation exploring how traits and luck influence life outcomes.
-                Built with D&D-style d20 mechanics.
+                A hobby project to explore life trajectories, by{' '}
+                <a 
+                  href="https://dennisroberts.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-foreground hover:underline"
+                >
+                  Dennis Roberts
+                </a>
               </p>
             </div>
           </footer>

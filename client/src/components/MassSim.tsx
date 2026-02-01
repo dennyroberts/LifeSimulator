@@ -1073,8 +1073,8 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
             >
               <div className="flex items-center gap-0.5 mb-0.5">
                 <EventIcon className="h-3 w-3 text-muted-foreground" />
-                {isCritSuccess && <Sparkles className="h-2.5 w-2.5 text-chart-4" />}
-                {isCritFail && <Skull className="h-2.5 w-2.5 text-destructive" />}
+                {isCritSuccess && <Sparkles className="h-2.5 w-2.5 text-yellow-400" />}
+                {isCritFail && <Skull className="h-2.5 w-2.5 text-red-500" />}
                 <span className={`${rarityColors[event.rarity]} uppercase font-bold`}>
                   {event.rarity.charAt(0)}
                 </span>
@@ -1394,6 +1394,8 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
     const Icon = getEventIcon(event?.icon);
     const success = outcome.success;
     const gateFailed = outcome.gateFailed;
+    const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
+    const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
     // Jackpot: jackpot rarity event that succeeded
     // Life changer: success with >= 1.0% growth (but not jackpot rarity)
     const isJackpot = success && event?.rarity === 'jackpot';
@@ -1434,6 +1436,8 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
           >
             <div className="flex items-center gap-1 mb-0.5">
               <Icon className={`h-3 w-3 shrink-0 ${getIconTextColor()}`} />
+              {isCritSuccess && <Sparkles className="h-2.5 w-2.5 text-yellow-400" />}
+              {isCritFail && <Skull className="h-2.5 w-2.5 text-red-500" />}
               <span className={`font-medium ${getIconTextColor()}`}>
                 {getStatusText()}
               </span>

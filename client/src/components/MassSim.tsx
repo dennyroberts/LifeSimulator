@@ -1050,7 +1050,6 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     const getOutcomeText = () => {
       if (outcome.gateFailed) return "Didn't Risk";
       if (isJackpot) return 'Jackpot!';
-      if (isLifeChanger) return 'Life Changer!';
       if (outcome.success) return 'Pass';
       return 'Fail';
     };
@@ -1422,7 +1421,6 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
     const getStatusText = () => {
       if (gateFailed) return "Didn't Risk";
       if (isJackpot) return 'Jackpot!';
-      if (isLifeChanger) return 'Life Changer!';
       if (success) return 'Pass';
       return 'Fail';
     };

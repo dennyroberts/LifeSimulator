@@ -1017,11 +1017,16 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     const event = outcome.event;
     const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
     const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
+    // Game changer: growth delta >= 1.0% (0.01 in decimal)
+    const isJackpot = outcome.success && outcome.growthDelta >= 0.01;
+    const isDisaster = !outcome.success && !outcome.gateFailed && outcome.growthDelta <= -0.01;
     
     const EventIcon = getEventIcon(event.icon);
     
     const getBorderClass = () => {
       if (outcome.gateFailed) return 'border-muted';
+      if (isJackpot) return 'border-yellow-500 border-2';
+      if (isDisaster) return 'border-red-500 border-2';
       if (isCritSuccess) return 'border-chart-4/30';
       if (isCritFail) return 'border-destructive/30';
       if (outcome.success) return 'border-chart-2/30';
@@ -1030,6 +1035,8 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     
     const getBgClass = () => {
       if (outcome.gateFailed) return 'bg-muted/30';
+      if (isJackpot) return 'bg-yellow-400/25';
+      if (isDisaster) return 'bg-red-500/25';
       if (isCritSuccess) return 'bg-chart-4/10';
       if (isCritFail) return 'bg-destructive/10';
       if (outcome.success) return 'bg-chart-2/10';
@@ -1038,12 +1045,15 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     
     const getOutcomeText = () => {
       if (outcome.gateFailed) return "Didn't Risk";
+      if (isJackpot) return 'Jackpot!';
       if (outcome.success) return 'Pass';
       return 'Fail';
     };
     
     const getOutcomeColor = () => {
       if (outcome.gateFailed) return 'text-muted-foreground';
+      if (isJackpot) return 'text-yellow-500';
+      if (isDisaster) return 'text-red-500';
       if (outcome.success) return 'text-chart-2';
       return 'text-destructive';
     };
@@ -1053,7 +1063,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
         <Popover>
           <PopoverTrigger asChild>
             <div 
-              className={`p-1.5 rounded text-[10px] border cursor-pointer hover:brightness-110 transition-all ${getBgClass()} ${getBorderClass()}`}
+              className={`p-1.5 rounded text-[10px] cursor-pointer hover:brightness-110 transition-all ${getBgClass()} ${getBorderClass()}`}
               data-testid={`mini-event-${stage.stage}`}
             >
               <div className="flex items-center gap-0.5 mb-0.5">
@@ -1379,21 +1389,30 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
     const Icon = getEventIcon(event?.icon);
     const success = outcome.success;
     const gateFailed = outcome.gateFailed;
+    // Game changer: growth delta >= 1.0% (0.01 in decimal)
+    const isGameChanger = Math.abs(outcome.growthDelta) >= 0.01;
+    const isJackpot = success && outcome.growthDelta >= 0.01;
+    const isDisaster = !success && !gateFailed && outcome.growthDelta <= -0.01;
     
     const getBgBorderClass = () => {
       if (gateFailed) return 'bg-muted/30 border-muted';
+      if (isJackpot) return 'bg-yellow-400/25 border-yellow-500 border-2';
+      if (isDisaster) return 'bg-red-500/25 border-red-500 border-2';
       if (success) return 'bg-chart-2/10 border-chart-2/20';
       return 'bg-destructive/10 border-destructive/20';
     };
     
     const getIconTextColor = () => {
       if (gateFailed) return 'text-muted-foreground';
+      if (isJackpot) return 'text-yellow-500';
+      if (isDisaster) return 'text-red-500';
       if (success) return 'text-chart-2';
       return 'text-destructive';
     };
     
     const getStatusText = () => {
       if (gateFailed) return "Didn't Risk";
+      if (isJackpot) return 'Jackpot!';
       if (success) return 'Pass';
       return 'Fail';
     };
@@ -1402,7 +1421,7 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
       <Popover>
         <PopoverTrigger asChild>
           <div 
-            className={`flex-1 p-1.5 rounded text-[10px] border cursor-pointer min-w-0 ${getBgBorderClass()}`}
+            className={`flex-1 p-1.5 rounded text-[10px] cursor-pointer min-w-0 ${getBgBorderClass()}`}
             data-testid={`mini-named-${stage.stage}`}
           >
             <div className="flex items-center gap-1 mb-0.5">

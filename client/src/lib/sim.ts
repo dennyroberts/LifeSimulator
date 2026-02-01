@@ -180,7 +180,7 @@ export function clamp(value: number, min: number, max: number): number {
 export const YEARS_PER_STAGE = 6;
 
 const GROWTH_DECAY_THRESHOLD = 0.015; // 1.5%
-const GROWTH_DECAY_RATE = 0.0005; // 0.05% per year (20 years to erase 1%)
+const GROWTH_DECAY_RATE = 0.001; // 0.1% per year (10 years to erase 1%)
 const GROWTH_FLOOR = -0.01; // -1% minimum growth rate
 
 export function compoundIncome(startingIncome: number, growthRate: number, years: number = YEARS_PER_STAGE): { income: number; growth: number } {

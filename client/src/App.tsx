@@ -17,7 +17,7 @@ function App() {
       <TooltipProvider>
         <div className="min-h-screen bg-background">
           {/* Mobile disclaimer */}
-          <div className="sm:hidden bg-amber-400 border-b border-amber-500 px-4 py-2.5 text-center text-sm text-white font-medium">
+          <div className="sm:hidden bg-fuchsia-500 border-b border-fuchsia-600 px-4 py-2.5 text-center text-sm text-white font-medium">
             <span className="font-bold">Mobile users:</span> There's a lot of info here! For the best experience, check this site out on desktop.
           </div>
           <header className="border-b bg-background">

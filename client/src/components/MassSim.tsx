@@ -1017,10 +1017,10 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
     const event = outcome.event;
     const isCritSuccess = outcome.isCritical && outcome.criticalType === 'success';
     const isCritFail = outcome.isCritical && outcome.criticalType === 'failure';
-    // Jackpot: >= 1.5% growth (Startup, Invention, Fame, Business)
-    // Life changer: >= 1.0% but < 1.5% growth (Revolutionary Idea, Risky Investment, Career Pivot)
-    const isJackpot = outcome.success && outcome.growthDelta >= 0.015;
-    const isLifeChanger = outcome.success && outcome.growthDelta >= 0.01 && outcome.growthDelta < 0.015;
+    // Jackpot: legendary rarity event that succeeded
+    // Life changer: success with >= 1.0% growth (but not legendary)
+    const isJackpot = outcome.success && event.rarity === 'legendary';
+    const isLifeChanger = outcome.success && outcome.growthDelta >= 0.01 && event.rarity !== 'legendary';
     const isDisaster = !outcome.success && !outcome.gateFailed && outcome.growthDelta <= -0.01;
     
     const EventIcon = getEventIcon(event.icon);
@@ -1395,9 +1395,10 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
     const Icon = getEventIcon(event?.icon);
     const success = outcome.success;
     const gateFailed = outcome.gateFailed;
-    // Jackpot: >= 1.5% growth, Life changer: >= 1.0% but < 1.5%
-    const isJackpot = success && outcome.growthDelta >= 0.015;
-    const isLifeChanger = success && outcome.growthDelta >= 0.01 && outcome.growthDelta < 0.015;
+    // Jackpot: legendary rarity event that succeeded
+    // Life changer: success with >= 1.0% growth (but not legendary)
+    const isJackpot = success && event?.rarity === 'legendary';
+    const isLifeChanger = success && outcome.growthDelta >= 0.01 && event?.rarity !== 'legendary';
     const isDisaster = !success && !gateFailed && outcome.growthDelta <= -0.01;
     
     const getBgBorderClass = () => {

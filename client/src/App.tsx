@@ -40,15 +40,15 @@ function App() {
                 <p className="text-foreground font-medium mb-1">
                   Welcome to Life Simulator!
                 </p>
-                <p className="text-muted-foreground text-sm mb-2">
+                <p className="text-pink-400 text-sm italic mb-2">
                   Read the full writeup with analysis on{' '}
                   <a
                     href="https://dennyroberts.substack.com/p/i-simulated-millions-of-lives-to"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-foreground hover:underline"
+                    className="text-pink-300 hover:underline"
                   >
-                    Substack
+                    Substack!
                   </a>
                 </p>
                 <p className="text-muted-foreground mb-3">Simulate life trajectories using D&D-style d20 mechanics. Each life consists of 8 major events — some good, some bad. Sims have five traits that influence outcomes:</p>

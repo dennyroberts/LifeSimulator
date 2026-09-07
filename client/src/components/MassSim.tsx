@@ -44,7 +44,7 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star, DollarSign, Heart } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star, DollarSign, Heart, Circle } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import eventsData from '@/data/events.json';
@@ -802,8 +802,13 @@ function AgentCard({ agentData, rank, isTop = false }: {
           </div>
           {/* Luck section - hidden on mobile, show inline on desktop */}
           <div className="hidden sm:block text-right shrink-0 space-y-1">
-            <div className={`text-[10px] ${actual.manifestationEnabled ? 'text-chart-4' : 'text-muted-foreground'}`}>
-              {actual.manifestationEnabled ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}
+            <div className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium ${
+              actual.manifestationEnabled
+                ? 'border-chart-4/50 bg-chart-4/10 text-chart-4'
+                : 'border-muted-foreground/25 bg-muted/60 text-muted-foreground'
+            }`}>
+              {actual.manifestationEnabled ? <Sparkles className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+              <span>{actual.manifestationEnabled ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <Clover className="h-3 w-3 text-chart-2" />
@@ -838,8 +843,13 @@ function AgentCard({ agentData, rank, isTop = false }: {
           </div>
         </div>
         {/* Mobile luck row - compact horizontal */}
-        <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2">
-          <span className={actual.manifestationEnabled ? 'text-chart-4' : 'text-muted-foreground'}>
+        <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2 flex-wrap">
+          <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-medium ${
+            actual.manifestationEnabled
+              ? 'border-chart-4/50 bg-chart-4/10 text-chart-4'
+              : 'border-muted-foreground/25 bg-muted/60 text-muted-foreground'
+          }`}>
+            {actual.manifestationEnabled ? <Sparkles className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
             {actual.manifestationEnabled
               ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})`
               : 'Not manifesting'}
@@ -2267,6 +2277,46 @@ function CohortPanel({
   );
 }
 
+type ComparisonRow = {
+  label: string;
+  left: string;
+  right: string;
+  leftValue: number;
+  rightValue: number;
+  lowerIsBetter?: boolean;
+};
+
+function SideBySideComparison({
+  leftLabel,
+  rightLabel,
+  rows,
+}: {
+  leftLabel: string;
+  rightLabel: string;
+  rows: ComparisonRow[];
+}) {
+  return (
+    <div className="overflow-hidden rounded-md border">
+      <div className="grid grid-cols-[minmax(7rem,1.25fr)_minmax(0,1fr)_minmax(0,1fr)] bg-muted/50 text-[10px] font-semibold uppercase tracking-wide">
+        <div className="px-3 py-2 text-muted-foreground">Metric</div>
+        <div className="border-l px-3 py-2 text-center text-chart-4">{leftLabel}</div>
+        <div className="border-l px-3 py-2 text-center text-muted-foreground">{rightLabel}</div>
+      </div>
+      {rows.map(row => {
+        const leftWins = row.lowerIsBetter ? row.leftValue < row.rightValue : row.leftValue > row.rightValue;
+        const rightWins = row.lowerIsBetter ? row.rightValue < row.leftValue : row.rightValue > row.leftValue;
+        return (
+          <div key={row.label} className="grid grid-cols-[minmax(7rem,1.25fr)_minmax(0,1fr)_minmax(0,1fr)] border-t text-xs">
+            <div className="px-3 py-2 text-muted-foreground">{row.label}</div>
+            <div className={`border-l px-3 py-2 text-center font-mono font-semibold ${leftWins ? 'text-chart-2' : ''}`}>{row.left}</div>
+            <div className={`border-l px-3 py-2 text-center font-mono font-semibold ${rightWins ? 'text-chart-2' : ''}`}>{row.right}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
   const manifesters = results.filter(r => r.manifestationEnabled);
   const nonManifesters = results.filter(r => !r.manifestationEnabled);
@@ -2360,8 +2410,6 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
   const loveStats = relationshipStats(loveManifesters);
   const controlLoveStats = relationshipStats(nonManifesters);
   const formatRate = (rate: number) => `${(rate * 100).toFixed(1)}%`;
-  const comparisonClass = (value: number, control: number) =>
-    value >= control ? 'text-chart-2' : 'text-destructive';
   return (
     <Card data-testid="manifestation-analysis">
       <CardHeader className="pb-2">
@@ -2369,33 +2417,54 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
         <p className="text-xs text-muted-foreground">A simulation comparison, not proof of causation. Each cohort is ranked independently.</p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-          <div><div className="text-[10px] text-muted-foreground uppercase">Counts</div><div className="font-mono">{m.count.toLocaleString()} / {n.count.toLocaleString()}</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">Mean</div><div className="font-mono">{formatCurrency(m.mean)} / {formatCurrency(n.mean)}</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">Median</div><div className="font-mono">{formatCurrency(m.median)} / {formatCurrency(n.median)}</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">Min – Max</div><div className="font-mono text-xs">{formatCurrency(m.min)}–{formatCurrency(m.max)} / {formatCurrency(n.min)}–{formatCurrency(n.max)}</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">P25–P75</div><div className="font-mono text-xs">{formatCurrency(m.p25)}–{formatCurrency(m.p75)} / {formatCurrency(n.p25)}–{formatCurrency(n.p75)}</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">Median uplift</div><div className="font-mono text-chart-2">{formatCurrency(uplift)}</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">Relative uplift</div><div className="font-mono text-chart-2">{pct >= 0 ? '+' : ''}{pct.toFixed(1)}%</div></div>
-          <div><div className="text-[10px] text-muted-foreground uppercase">Top 10 share</div><div className="font-mono">{topManifesters}/10 manifesters</div></div>
+        <SideBySideComparison
+          leftLabel="Manifesters"
+          rightLabel="Non-manifesters"
+          rows={[
+            { label: 'Lives', left: m.count.toLocaleString(), right: n.count.toLocaleString(), leftValue: m.count, rightValue: n.count },
+            { label: 'Mean earnings', left: formatCurrency(m.mean), right: formatCurrency(n.mean), leftValue: m.mean, rightValue: n.mean },
+            { label: 'Median earnings', left: formatCurrency(m.median), right: formatCurrency(n.median), leftValue: m.median, rightValue: n.median },
+            { label: 'Minimum', left: formatCurrency(m.min), right: formatCurrency(n.min), leftValue: m.min, rightValue: n.min },
+            { label: 'Maximum', left: formatCurrency(m.max), right: formatCurrency(n.max), leftValue: m.max, rightValue: n.max },
+            { label: '25th percentile', left: formatCurrency(m.p25), right: formatCurrency(n.p25), leftValue: m.p25, rightValue: n.p25 },
+            { label: '75th percentile', left: formatCurrency(m.p75), right: formatCurrency(n.p75), leftValue: m.p75, rightValue: n.p75 },
+          ]}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="rounded-md bg-muted/40 p-2 text-xs"><span className="text-muted-foreground">Median uplift </span><span className="font-mono font-semibold text-chart-2">{formatCurrency(uplift)}</span></div>
+          <div className="rounded-md bg-muted/40 p-2 text-xs"><span className="text-muted-foreground">Relative uplift </span><span className="font-mono font-semibold text-chart-2">{pct >= 0 ? '+' : ''}{pct.toFixed(1)}%</span></div>
+          <div className="rounded-md bg-muted/40 p-2 text-xs"><span className="text-muted-foreground">Top 10 share </span><span className="font-mono font-semibold">{topManifesters}/10 manifesters</span></div>
         </div>
         <div className="rounded-md border p-3">
-          <div className="text-xs font-semibold mb-2">45th–55th percentile trait slice</div>
-          <div className="text-[10px] text-muted-foreground mb-2">Manifesters: {ms.length.toLocaleString()} · Non-manifesters: {ns.length.toLocaleString()}</div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {traits.map(trait => {
-              const a = avgTrait(ms, trait), b = avgTrait(ns, trait);
-              return <div key={trait} className="font-mono text-xs"><div className="text-muted-foreground">{trait}</div><div>{a.toFixed(2)} / {b.toFixed(2)}</div><div className={a - b >= 0 ? 'text-chart-2' : 'text-destructive'}>{a - b >= 0 ? '+' : ''}{(a - b).toFixed(2)}</div></div>;
-            })}
-          </div>
-          <div className="mt-3 text-xs text-muted-foreground">Average traits shown as manifesters / non-manifesters; total trait-point gap: <span className="font-mono text-foreground">{(traits.reduce((sum, t) => sum + avgTrait(ms, t) - avgTrait(ns, t), 0)).toFixed(2)}</span></div>
+          <div className="text-xs font-semibold mb-1">45th–55th percentile trait slice</div>
+          <div className="text-[10px] text-muted-foreground mb-3">Each cohort is ranked independently by lifetime earnings.</div>
+          <SideBySideComparison
+            leftLabel={`Manifesters (${ms.length.toLocaleString()})`}
+            rightLabel={`Non-manifesters (${ns.length.toLocaleString()})`}
+            rows={[
+              ...traits.map(trait => ({
+                label: trait,
+                left: avgTrait(ms, trait).toFixed(2),
+                right: avgTrait(ns, trait).toFixed(2),
+                leftValue: avgTrait(ms, trait),
+                rightValue: avgTrait(ns, trait),
+              })),
+              {
+                label: 'Total traits',
+                left: traits.reduce((sum, trait) => sum + avgTrait(ms, trait), 0).toFixed(2),
+                right: traits.reduce((sum, trait) => sum + avgTrait(ns, trait), 0).toFixed(2),
+                leftValue: traits.reduce((sum, trait) => sum + avgTrait(ms, trait), 0),
+                rightValue: traits.reduce((sum, trait) => sum + avgTrait(ns, trait), 0),
+              },
+            ]}
+          />
         </div>
         <div className="space-y-3">
           <div>
             <div className="text-sm font-semibold">Results by manifestation goal</div>
             <p className="text-[10px] text-muted-foreground">Each goal cohort is compared with the full non-manifesting control group. Opportunity rates include only events tagged for that goal.</p>
           </div>
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="rounded-md border border-chart-2/30 bg-chart-2/5 p-3" data-testid="manifestation-money-analysis">
               <div className="flex items-center gap-2 mb-3">
                 <DollarSign className="h-4 w-4 text-chart-2" />
@@ -2404,28 +2473,12 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
                   <div className="text-[10px] text-muted-foreground">{moneyManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <div className="text-muted-foreground">Median lifetime earnings</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(medianMetric(moneyManifesters, r => r.lifetimeEarnings), n.median)}`}>{formatCurrency(medianMetric(moneyManifesters, r => r.lifetimeEarnings))}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(n.median)}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Mean final income</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(meanMetric(moneyManifesters, r => r.finalIncome), meanMetric(nonManifesters, r => r.finalIncome))}`}>{formatCurrency(meanMetric(moneyManifesters, r => r.finalIncome))}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(meanMetric(nonManifesters, r => r.finalIncome))}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Money-opportunity pass rate</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(moneyEvents.successRate, controlMoneyEvents.successRate)}`}>{formatRate(moneyEvents.successRate)}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatRate(controlMoneyEvents.successRate)}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Successful money events / life</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(moneyEvents.successesPerLife, controlMoneyEvents.successesPerLife)}`}>{moneyEvents.successesPerLife.toFixed(2)}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {controlMoneyEvents.successesPerLife.toFixed(2)}</div>
-                </div>
-              </div>
+              <SideBySideComparison leftLabel="Wealth manifesters" rightLabel="Non-manifesters" rows={[
+                { label: 'Median lifetime earnings', left: formatCurrency(medianMetric(moneyManifesters, r => r.lifetimeEarnings)), right: formatCurrency(n.median), leftValue: medianMetric(moneyManifesters, r => r.lifetimeEarnings), rightValue: n.median },
+                { label: 'Mean final income', left: formatCurrency(meanMetric(moneyManifesters, r => r.finalIncome)), right: formatCurrency(meanMetric(nonManifesters, r => r.finalIncome)), leftValue: meanMetric(moneyManifesters, r => r.finalIncome), rightValue: meanMetric(nonManifesters, r => r.finalIncome) },
+                { label: 'Opportunity pass rate', left: formatRate(moneyEvents.successRate), right: formatRate(controlMoneyEvents.successRate), leftValue: moneyEvents.successRate, rightValue: controlMoneyEvents.successRate },
+                { label: 'Successful events / life', left: moneyEvents.successesPerLife.toFixed(2), right: controlMoneyEvents.successesPerLife.toFixed(2), leftValue: moneyEvents.successesPerLife, rightValue: controlMoneyEvents.successesPerLife },
+              ]} />
             </div>
 
             <div className="rounded-md border border-chart-3/30 bg-chart-3/5 p-3" data-testid="manifestation-career-analysis">
@@ -2436,28 +2489,12 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
                   <div className="text-[10px] text-muted-foreground">{careerManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <div className="text-muted-foreground">Mean final income</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(meanMetric(careerManifesters, r => r.finalIncome), meanMetric(nonManifesters, r => r.finalIncome))}`}>{formatCurrency(meanMetric(careerManifesters, r => r.finalIncome))}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(meanMetric(nonManifesters, r => r.finalIncome))}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Mean peak income</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(meanMetric(careerManifesters, r => r.peakIncome), meanMetric(nonManifesters, r => r.peakIncome))}`}>{formatCurrency(meanMetric(careerManifesters, r => r.peakIncome))}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(meanMetric(nonManifesters, r => r.peakIncome))}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Career-opportunity pass rate</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(careerEvents.successRate, controlCareerEvents.successRate)}`}>{formatRate(careerEvents.successRate)}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatRate(controlCareerEvents.successRate)}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Successful career events / life</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(careerEvents.successesPerLife, controlCareerEvents.successesPerLife)}`}>{careerEvents.successesPerLife.toFixed(2)}</div>
-                  <div className="text-[10px] text-muted-foreground">Control {controlCareerEvents.successesPerLife.toFixed(2)}</div>
-                </div>
-              </div>
+              <SideBySideComparison leftLabel="Career manifesters" rightLabel="Non-manifesters" rows={[
+                { label: 'Mean final income', left: formatCurrency(meanMetric(careerManifesters, r => r.finalIncome)), right: formatCurrency(meanMetric(nonManifesters, r => r.finalIncome)), leftValue: meanMetric(careerManifesters, r => r.finalIncome), rightValue: meanMetric(nonManifesters, r => r.finalIncome) },
+                { label: 'Mean peak income', left: formatCurrency(meanMetric(careerManifesters, r => r.peakIncome)), right: formatCurrency(meanMetric(nonManifesters, r => r.peakIncome)), leftValue: meanMetric(careerManifesters, r => r.peakIncome), rightValue: meanMetric(nonManifesters, r => r.peakIncome) },
+                { label: 'Opportunity pass rate', left: formatRate(careerEvents.successRate), right: formatRate(controlCareerEvents.successRate), leftValue: careerEvents.successRate, rightValue: controlCareerEvents.successRate },
+                { label: 'Successful events / life', left: careerEvents.successesPerLife.toFixed(2), right: controlCareerEvents.successesPerLife.toFixed(2), leftValue: careerEvents.successesPerLife, rightValue: controlCareerEvents.successesPerLife },
+              ]} />
             </div>
 
             <div className="rounded-md border border-pink-400/30 bg-pink-400/5 p-3" data-testid="manifestation-love-analysis">
@@ -2468,28 +2505,12 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
                   <div className="text-[10px] text-muted-foreground">{loveManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <div className="text-muted-foreground">Partnered at end of sim</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(loveStats.partneredRate, controlLoveStats.partneredRate)}`}>{loveStats.partnered.toLocaleString()} ({formatRate(loveStats.partneredRate)})</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatRate(controlLoveStats.partneredRate)}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Unmarried at end</div>
-                  <div className="font-mono font-semibold">{loveStats.unmarried.toLocaleString()} ({formatRate(1 - loveStats.partneredRate)})</div>
-                  <div className="text-[10px] text-muted-foreground">Control {formatRate(1 - controlLoveStats.partneredRate)}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Find-your-person pass rate</div>
-                  <div className={`font-mono font-semibold ${comparisonClass(loveStats.foundPartnerRate, controlLoveStats.foundPartnerRate)}`}>{formatRate(loveStats.foundPartnerRate)}</div>
-                  <div className="text-[10px] text-muted-foreground">{loveStats.foundPartnerAttempts.toLocaleString()} encounters · control {formatRate(controlLoveStats.foundPartnerRate)}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Divorces per 1,000 lives</div>
-                  <div className={`font-mono font-semibold ${loveStats.divorcesPerThousand <= controlLoveStats.divorcesPerThousand ? 'text-chart-2' : 'text-destructive'}`}>{loveStats.divorcesPerThousand.toFixed(1)}</div>
-                  <div className="text-[10px] text-muted-foreground">{loveStats.divorces.toLocaleString()} total · control {controlLoveStats.divorcesPerThousand.toFixed(1)}</div>
-                </div>
-              </div>
+              <SideBySideComparison leftLabel="Love manifesters" rightLabel="Non-manifesters" rows={[
+                { label: 'Partnered at end', left: `${loveStats.partnered.toLocaleString()} (${formatRate(loveStats.partneredRate)})`, right: `${controlLoveStats.partnered.toLocaleString()} (${formatRate(controlLoveStats.partneredRate)})`, leftValue: loveStats.partneredRate, rightValue: controlLoveStats.partneredRate },
+                { label: 'Unmarried at end', left: `${loveStats.unmarried.toLocaleString()} (${formatRate(1 - loveStats.partneredRate)})`, right: `${controlLoveStats.unmarried.toLocaleString()} (${formatRate(1 - controlLoveStats.partneredRate)})`, leftValue: 1 - loveStats.partneredRate, rightValue: 1 - controlLoveStats.partneredRate, lowerIsBetter: true },
+                { label: 'Find-your-person pass rate', left: formatRate(loveStats.foundPartnerRate), right: formatRate(controlLoveStats.foundPartnerRate), leftValue: loveStats.foundPartnerRate, rightValue: controlLoveStats.foundPartnerRate },
+                { label: 'Divorces / 1,000 lives', left: loveStats.divorcesPerThousand.toFixed(1), right: controlLoveStats.divorcesPerThousand.toFixed(1), leftValue: loveStats.divorcesPerThousand, rightValue: controlLoveStats.divorcesPerThousand, lowerIsBetter: true },
+              ]} />
               <p className="mt-3 text-[10px] text-muted-foreground">“Partnered” means the last relationship-changing event was a successful Find Your Person; any later Divorce returns the life to unmarried.</p>
             </div>
           </div>

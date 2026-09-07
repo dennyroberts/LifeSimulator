@@ -164,13 +164,26 @@ ${lifeEventsDescription}`;
         return res.send(avatarCache.get(id));
       }
 
-      const response = await fetch("https://thispersondoesnotexist.com");
+      const avatarUrl = `https://i.pravatar.cc/512?u=${encodeURIComponent(`life-simulator-${id}`)}`;
+      const response = await fetch(avatarUrl, {
+        headers: {
+          Accept: "image/jpeg,image/*",
+          "User-Agent": "LifeSimulator/1.0",
+        },
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch avatar");
+        throw new Error(`Avatar provider returned ${response.status}`);
+      }
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.startsWith("image/")) {
+        throw new Error(`Avatar provider returned invalid content type: ${contentType ?? "unknown"}`);
       }
       
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) {
+        throw new Error("Avatar provider returned invalid JPEG data");
+      }
       
       avatarCache.set(id, buffer);
       

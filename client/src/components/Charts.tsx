@@ -1,5 +1,33 @@
 import { useState } from 'react';
 import { type StageResult, type SimulationResult, type LuckAnalysis, formatCurrency } from '@/lib/sim';
+import { type StageIncomeSeries } from '@/lib/manifestationAnalysis';
+
+export function CohortIncomeTrajectory({ series }: { series: StageIncomeSeries[] }) {
+  const points = series.filter(point => point.manifesters !== null || point.controls !== null);
+  if (!points.length) return null;
+  const width = 720, height = 260;
+  const pad = { top: 28, right: 22, bottom: 42, left: 72 };
+  const values = points.flatMap(point => [point.manifesters, point.controls].filter((value): value is number => value !== null));
+  const min = Math.min(...values), max = Math.max(...values), range = max - min || 1;
+  const x = (index: number) => pad.left + (points.length === 1 ? 0 : index / (points.length - 1)) * (width - pad.left - pad.right);
+  const y = (value: number) => pad.top + (height - pad.top - pad.bottom) - ((value - min) / range) * (height - pad.top - pad.bottom);
+  const path = (key: 'manifesters' | 'controls') => points.map((point, index) => {
+    const value = point[key];
+    return value === null ? '' : `${index ? 'L' : 'M'} ${x(index)} ${y(value)}`;
+  }).filter(Boolean).join(' ');
+  const stageLabel = (stage: number) => stage === 1 ? 'Education' : stage === 2 ? 'Career' : `Event ${stage - 2}`;
+  return (
+    <div className="overflow-x-auto" data-testid="cohort-income-trajectory">
+      <svg viewBox={`0 0 ${width} ${height}`} className="min-w-[560px] w-full" role="img" aria-label="Average income by life stage">
+        {[0, .5, 1].map(fraction => <g key={fraction}><line x1={pad.left} x2={width - pad.right} y1={pad.top + fraction * (height - pad.top - pad.bottom)} y2={pad.top + fraction * (height - pad.top - pad.bottom)} stroke="hsl(var(--border))" strokeDasharray="3 4" /><text x={pad.left - 8} y={pad.top + fraction * (height - pad.top - pad.bottom)} textAnchor="end" dominantBaseline="middle" className="fill-muted-foreground text-[10px] font-mono">{formatCurrency(max - fraction * range)}</text></g>)}
+        <path d={path('manifesters')} fill="none" stroke="hsl(var(--chart-4))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={path('controls')} fill="none" stroke="hsl(var(--chart-1))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((point, index) => <g key={point.stage}><text x={x(index)} y={height - 20} textAnchor="middle" className="fill-muted-foreground text-[10px] font-mono">{stageLabel(point.stage)}</text>{point.manifesters !== null && <circle cx={x(index)} cy={y(point.manifesters)} r="3.5" fill="hsl(var(--chart-4))" />}{point.controls !== null && <circle cx={x(index)} cy={y(point.controls)} r="3.5" fill="hsl(var(--chart-1))" />}</g>)}
+        <g transform={`translate(${pad.left}, 8)`}><line x1="0" x2="18" y1="6" y2="6" stroke="hsl(var(--chart-4))" strokeWidth="3" /><text x="24" y="10" className="fill-muted-foreground text-[10px]">Manifesters</text><line x1="112" x2="130" y1="6" y2="6" stroke="hsl(var(--chart-1))" strokeWidth="3" /><text x="136" y="10" className="fill-muted-foreground text-[10px]">Non-manifesters</text></g>
+      </svg>
+    </div>
+  );
+}
 
 interface IncomeChartProps {
   stages: StageResult[];

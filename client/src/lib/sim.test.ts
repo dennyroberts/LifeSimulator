@@ -10,7 +10,7 @@ import {
   type Event,
   type Traits,
 } from './sim';
-import { assistedChecks, independentAllTensCohorts, narrowIncomeBands, pairedIdenticalLives, startingPointStrata } from './manifestationAnalysis';
+import { assistedChecks, independentAllTensCohorts, narrowIncomeBands, pairedIdenticalLives, startingPointStrata, averageIncomeByStage, manifestationChangedOutcome } from './manifestationAnalysis';
 
 const averageTraits: Traits = { INT: 10, WORK: 10, NEPO: 10, CHAR: 10, RISK: 10 };
 const events = eventsData as Event[];
@@ -180,4 +180,24 @@ test('independent all-10 cohorts and adequate starting strata are constructed', 
   assert.notDeepEqual(experiment.manifesters.map(life => life.lifetimeEarnings), experiment.controls.map(life => life.lifetimeEarnings));
   const lives = runMassSimulation(100, 'normal', 'strata', false, true, undefined, { manifestationEnabled: true, manifestationBonus: 2, totalRunSize: 100, baseManifestationSeed: 'strata' });
   startingPointStrata(lives, 1).forEach(stratum => assert.ok(stratum.manifesters.length && stratum.controls.length));
+});
+
+test('manifestation marker requires a changed outcome, not merely an applied bonus', () => {
+  const appliedOnly = { education: { manifestationApplied: true, manifestationUpgraded: false } } as any;
+  const changed = { education: { manifestationApplied: true, manifestationUpgraded: true } } as any;
+  const gateChanged = { eventOutcome: { gateSucceededOnlyBecauseOfManifestation: true } } as any;
+  assert.equal(manifestationChangedOutcome(appliedOnly), false);
+  assert.equal(manifestationChangedOutcome(changed), true);
+  assert.equal(manifestationChangedOutcome(gateChanged), true);
+});
+
+test('average income by stage is deterministic and preserves cohort gaps', () => {
+  const lives = runMassSimulation(20, 'normal', 'trajectory', false, true, undefined, { manifestationEnabled: true, manifestationBonus: 2, totalRunSize: 20, baseManifestationSeed: 'trajectory' });
+  const manifesters = lives.filter(life => life.manifestationEnabled);
+  const controls = lives.filter(life => !life.manifestationEnabled);
+  const first = averageIncomeByStage(manifesters, controls);
+  const second = averageIncomeByStage(manifesters, controls);
+  assert.deepEqual(first, second);
+  assert.equal(first.length, lives[0].stages.length);
+  assert.equal(first[0].manifesters, manifesters.reduce((sum, life) => sum + life.stages[0].incomeAfter, 0) / manifesters.length);
 });

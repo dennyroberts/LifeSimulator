@@ -20,6 +20,44 @@ export interface IncomeBandAnalysis {
   representatives: SimulationResult[];
 }
 
+/** True only when manifestation changed the realized education, career, gate, or check outcome. */
+export function manifestationChangedOutcome(stage: SimulationResult['stages'][number]): boolean {
+  if (stage.education?.manifestationUpgraded || stage.career?.manifestationUpgraded) return true;
+  const outcome = stage.eventOutcome;
+  return Boolean(outcome && (outcome.gateSucceededOnlyBecauseOfManifestation || outcome.mainSucceededOnlyBecauseOfManifestation));
+}
+
+export interface StageIncomeSeries {
+  stage: number;
+  manifesters: number | null;
+  controls: number | null;
+}
+
+/** Deterministic cohort averages, retaining null for stages absent from a cohort. */
+export function averageIncomeByStage(manifesters: SimulationResult[], controls: SimulationResult[]): StageIncomeSeries[] {
+  let maxStages = 0;
+  for (const result of manifesters) maxStages = Math.max(maxStages, result.stages.length);
+  for (const result of controls) maxStages = Math.max(maxStages, result.stages.length);
+  const accumulate = (items: SimulationResult[]) => {
+    const sums = Array(maxStages).fill(0) as number[];
+    const counts = Array(maxStages).fill(0) as number[];
+    for (const result of items) {
+      for (let index = 0; index < result.stages.length; index++) {
+        sums[index] += result.stages[index].incomeAfter;
+        counts[index]++;
+      }
+    }
+    return sums.map((sum, index) => counts[index] ? sum / counts[index] : null);
+  };
+  const manifesterAverages = accumulate(manifesters);
+  const controlAverages = accumulate(controls);
+  return Array.from({ length: maxStages }, (_, index) => ({
+    stage: index + 1,
+    manifesters: manifesterAverages[index],
+    controls: controlAverages[index],
+  }));
+}
+
 function quantile(sorted: number[], percentile: number) {
   return sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor((sorted.length - 1) * percentile)))];
 }
@@ -88,25 +126,8 @@ export function startingPointStrata(results: SimulationResult[], minimumPerCohor
     return { key, manifesters, controls,
       meanLifetime: average(manifesters, r => r.lifetimeEarnings),
       controlMeanLifetime: average(controls, r => r.lifetimeEarnings),
-      meanFinalIncome: average(manifesters, r => r.finalIncome),
-      controlMeanFinalIncome: average(controls, r => r.finalIncome),
-      meanPeakIncome: average(manifesters, r => r.peakIncome),
-      controlMeanPeakIncome: average(controls, r => r.peakIncome),
-      laterEventSuccess: laterSuccessRate(manifesters),
-      controlLaterEventSuccess: laterSuccessRate(controls),
     };
   }).filter(row => row.manifesters.length >= minimumPerCohort && row.controls.length >= minimumPerCohort);
-}
-
-function laterSuccessRate(items: SimulationResult[]) {
-  let attempts = 0, successes = 0;
-  items.forEach(result => result.stages.forEach(stage => {
-    if (stage.stage > 2 && stage.eventOutcome?.event.manifestationEligible) {
-      attempts++;
-      if (stage.eventOutcome.success) successes++;
-    }
-  }));
-  return attempts ? successes / attempts : 0;
 }
 
 export interface PairedExperiment {

@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { TraitDisplay } from './TraitInput';
 import { CompactEventList } from './Timeline';
-import { IncomeHistogram, ScatterGrid, ControlledTraitGrid, ControlledLuckGrid } from './Charts';
+import { IncomeHistogram, ScatterGrid, ControlledTraitGrid, ControlledLuckGrid, CohortIncomeTrajectory } from './Charts';
 import {
   type WorldMode,
   type SimulationResult,
@@ -47,7 +47,7 @@ import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, 
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import eventsData from '@/data/events.json';
-import { narrowIncomeBands, startingPointStrata, pairedIdenticalLives, independentAllTensCohorts } from '@/lib/manifestationAnalysis';
+import { narrowIncomeBands, startingPointStrata, pairedIdenticalLives, independentAllTensCohorts, averageIncomeByStage, manifestationChangedOutcome } from '@/lib/manifestationAnalysis';
 
 type AgentCount = 1000 | 10000 | 50000 | 100000;
 
@@ -952,6 +952,14 @@ function MiniTimeline({ stages }: { stages: SimulationResult['stages'] }) {
   );
 }
 
+function MiniManifestedMarker({ stage }: { stage: SimulationResult['stages'][number] }) {
+  return manifestationChangedOutcome(stage) ? (
+    <div className="mt-1 rounded-md border border-amber-400/50 bg-amber-400/10 px-1 py-0.5 text-center text-[8px] font-semibold text-amber-600 dark:text-amber-300">
+      Manifested it!
+    </div>
+  ) : null;
+}
+
 const getEventIcon = (iconName?: string) => {
   if (!iconName) return Briefcase;
   const Icon = (LucideIcons as Record<string, any>)[iconName];
@@ -1002,6 +1010,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
             <DetailedCard stage={stage} />
           </PopoverContent>
         </Popover>
+        <MiniManifestedMarker stage={stage} />
       </div>
     );
   }
@@ -1050,6 +1059,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
             <DetailedCard stage={stage} />
           </PopoverContent>
         </Popover>
+        <MiniManifestedMarker stage={stage} />
       </div>
     );
   }
@@ -1147,6 +1157,7 @@ function MiniEventCard({ stage }: { stage: SimulationResult['stages'][0] }) {
             <DetailedCard stage={stage} />
           </PopoverContent>
         </Popover>
+        <MiniManifestedMarker stage={stage} />
       </div>
     );
   }
@@ -1161,6 +1172,7 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
   if (stage.isEducation && stage.education) {
     const edu = stage.education;
     return (
+      <div className="min-w-0">
       <Popover>
         <PopoverTrigger asChild>
           <div 
@@ -1176,12 +1188,15 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
           <DetailedCard stage={stage} />
         </PopoverContent>
       </Popover>
+      <MiniManifestedMarker stage={stage} />
+      </div>
     );
   }
   
   if (stage.isCareer && stage.career) {
     const career = stage.career;
     return (
+      <div className="min-w-0">
       <Popover>
         <PopoverTrigger asChild>
           <div 
@@ -1197,6 +1212,8 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
           <DetailedCard stage={stage} />
         </PopoverContent>
       </Popover>
+      <MiniManifestedMarker stage={stage} />
+      </div>
     );
   }
   
@@ -1207,6 +1224,7 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
     const success = outcome.success;
     
     return (
+      <div className="min-w-0">
       <Popover>
         <PopoverTrigger asChild>
           <div 
@@ -1226,6 +1244,8 @@ function MiniEventCardCompact({ stage }: { stage: SimulationResult['stages'][0] 
           <DetailedCard stage={stage} />
         </PopoverContent>
       </Popover>
+      <MiniManifestedMarker stage={stage} />
+      </div>
     );
   }
   
@@ -1387,6 +1407,7 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
   if (stage.isEducation && stage.education) {
     const edu = stage.education;
     return (
+      <div className="min-w-0 flex-1">
       <Popover>
         <PopoverTrigger asChild>
           <div 
@@ -1404,12 +1425,15 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
           <DetailedCard stage={stage} />
         </PopoverContent>
       </Popover>
+      <MiniManifestedMarker stage={stage} />
+      </div>
     );
   }
   
   if (stage.isCareer && stage.career) {
     const career = stage.career;
     return (
+      <div className="min-w-0 flex-1">
       <Popover>
         <PopoverTrigger asChild>
           <div 
@@ -1427,6 +1451,8 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
           <DetailedCard stage={stage} />
         </PopoverContent>
       </Popover>
+      <MiniManifestedMarker stage={stage} />
+      </div>
     );
   }
   
@@ -1470,6 +1496,7 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
     };
     
     return (
+      <div className="min-w-0 flex-1">
       <Popover>
         <PopoverTrigger asChild>
           <div 
@@ -1491,6 +1518,8 @@ function MiniEventCardWithName({ stage }: { stage: SimulationResult['stages'][0]
           <DetailedCard stage={stage} />
         </PopoverContent>
       </Popover>
+      <MiniManifestedMarker stage={stage} />
+      </div>
     );
   }
   
@@ -2328,8 +2357,8 @@ function ManifestationAnalysis({
   worldMode: WorldMode;
   seed: string;
 }) {
-  const manifesters = results.filter(r => r.manifestationEnabled);
-  const nonManifesters = results.filter(r => !r.manifestationEnabled);
+  const manifesters = useMemo(() => results.filter(r => r.manifestationEnabled), [results]);
+  const nonManifesters = useMemo(() => results.filter(r => !r.manifestationEnabled), [results]);
   const analysisSeed = `${seed}|manifestation-analysis`;
   const analysisBonus = manifesters[0]?.manifestationBonus ?? 0;
   const paired = useMemo(
@@ -2347,9 +2376,15 @@ function ManifestationAnalysis({
     const v = values(items);
     return { count: items.length, mean: v.reduce((a, b) => a + b, 0) / v.length, median: percentile(v, .5), min: v[0], max: v[v.length - 1], p25: percentile(v, .25), p75: percentile(v, .75) };
   };
-  const m = summary(manifesters), n = summary(nonManifesters);
-  const incomeBands = narrowIncomeBands(results);
-  const strata = startingPointStrata(results);
+  const m = useMemo(() => summary(manifesters), [manifesters]);
+  const n = useMemo(() => summary(nonManifesters), [nonManifesters]);
+  const incomeBands = useMemo(() => narrowIncomeBands(results), [results]);
+  const strata = useMemo(() => startingPointStrata(results), [results]);
+  const displayedStrata = useMemo(() => strata.slice(0, 12), [strata]);
+  const trajectory = useMemo(() => averageIncomeByStage(
+    displayedStrata.flatMap(row => row.manifesters),
+    displayedStrata.flatMap(row => row.controls),
+  ), [displayedStrata]);
   const allTensManifesters = summary(allTens.manifesters);
   const allTensControls = summary(allTens.controls);
   const stageLabelCounts = (items: SimulationResult[], kind: 'education' | 'career') => {
@@ -2379,7 +2414,7 @@ function ManifestationAnalysis({
   };
   const uplift = m.median - n.median;
   const pct = n.median ? (uplift / Math.abs(n.median)) * 100 : 0;
-  const top10 = getTopN(results, 10, r => r.lifetimeEarnings);
+  const top10 = useMemo(() => getTopN(results, 10, r => r.lifetimeEarnings), [results]);
   const topManifesters = top10.filter(r => r.manifestationEnabled).length;
   return (
     <Card data-testid="manifestation-analysis">
@@ -2391,11 +2426,26 @@ function ManifestationAnalysis({
         <div className="rounded-md border p-3" data-testid="effective-trait-bonus">
           <div className="text-sm font-semibold mb-1">Effective Trait Bonus</div>
           <p className="text-[10px] text-muted-foreground mb-2">Controls are selected from the exact lifetime-earnings dollar bounds defined by each manifester ±1 percentile-point band. Positive offsets mean fewer trait points among manifesters.</p>
-          <div className="overflow-x-auto">
-             <Table><TableHeader><TableRow><TableHead>Percentile / bounds</TableHead><TableHead>M / C</TableHead><TableHead>INT</TableHead><TableHead>WORK</TableHead><TableHead>NEPO</TableHead><TableHead>CHAR</TableHead><TableHead>RISK</TableHead><TableHead>Total</TableHead><TableHead>Events / checks / flips</TableHead></TableRow></TableHeader>
-              <TableBody>{incomeBands.map(band => <TableRow key={band.percentile}><TableCell>{band.percentile}th {band.lowN && <span className="text-destructive">(low N)</span>}<br/><span className="text-xs">{formatCurrency(band.lower)}–{formatCurrency(band.upper)}</span></TableCell><TableCell>{band.manifesters.length} / {band.controls.length}</TableCell>{(['INT','WORK','NEPO','CHAR','RISK'] as const).map(trait => <TableCell key={trait}>{band.traitOffsets[trait] === null ? 'N/A' : band.traitOffsets[trait]!.toFixed(2)}</TableCell>)}<TableCell>{band.totalTraitOffset === null ? 'N/A' : band.totalTraitOffset.toFixed(2)}</TableCell><TableCell>{band.averageEligibleEvents.toFixed(2)} / {band.averageEligibleChecks.toFixed(2)} / {band.averageFlips.toFixed(2)} ({band.totalFlips} total)</TableCell></TableRow>)}</TableBody>
-            </Table>
-          </div>
+           <div className="grid gap-3 md:grid-cols-2">
+             {incomeBands.map(band => (
+               <div key={band.percentile} className="rounded-md border bg-muted/10 p-3" data-testid={`percentile-panel-${band.percentile}`}>
+                 <div className="flex items-baseline justify-between gap-2">
+                   <span className="text-sm font-semibold">{band.percentile}th percentile</span>
+                   {band.lowN && <span className="text-[10px] font-medium text-destructive">Low sample</span>}
+                 </div>
+                 <div className="mt-1 text-[10px] text-muted-foreground">Income band {formatCurrency(band.lower)} – {formatCurrency(band.upper)}</div>
+                 <div className="mt-2 text-[10px] text-muted-foreground">Manifesters: {band.manifesters.length.toLocaleString()} / Non-manifesters: {band.controls.length.toLocaleString()}</div>
+                 <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                   {(['INT','WORK','NEPO','CHAR','RISK'] as const).map(trait => {
+                     const value = band.traitOffsets[trait];
+                     return <div key={trait}><div className="text-[9px] uppercase tracking-wide text-muted-foreground">{trait}</div><div className={`font-mono text-lg font-semibold ${value === null ? 'text-muted-foreground' : value > 0 ? 'text-chart-2' : 'text-foreground'}`}>{value === null ? 'N/A' : `${value > 0 ? '+' : ''}${value.toFixed(2)}`}</div></div>;
+                   })}
+                   <div><div className="text-[9px] uppercase tracking-wide text-muted-foreground">Total</div><div className={`font-mono text-lg font-semibold ${band.totalTraitOffset === null ? 'text-muted-foreground' : band.totalTraitOffset > 0 ? 'text-chart-2' : 'text-foreground'}`}>{band.totalTraitOffset === null ? 'N/A' : `${band.totalTraitOffset > 0 ? '+' : ''}${band.totalTraitOffset.toFixed(2)}`}</div></div>
+                 </div>
+                 <div className="mt-3 border-t pt-2 text-[10px] text-muted-foreground">Eligible events avg {band.averageEligibleEvents.toFixed(2)} · checks affected {band.averageEligibleChecks.toFixed(2)} · flips avg {band.averageFlips.toFixed(2)} · {band.totalFlips} total flips</div>
+               </div>
+             ))}
+           </div>
           <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-3">
             {incomeBands.map(band => (
               <div key={`examples-${band.percentile}`} className="rounded-md border bg-muted/10 p-3">
@@ -2416,7 +2466,7 @@ function ManifestationAnalysis({
             ))}
           </div>
         </div>
-        {strata.length > 0 && <div className="rounded-md border p-3" data-testid="starting-point-strata"><div className="text-sm font-semibold">Same education &amp; career starting point</div><p className="text-[10px] text-muted-foreground">Observational comparison: conditioning on starting outcomes can itself condition on manifestation effects. Values are manifester / control.</p>{strata.slice(0, 12).map(row => <div className="text-xs mt-1" key={row.key}>{row.key}: {row.manifesters.length} / {row.controls.length} · lifetime {formatCurrency(row.meanLifetime)} / {formatCurrency(row.controlMeanLifetime)} · final {formatCurrency(row.meanFinalIncome)} / {formatCurrency(row.controlMeanFinalIncome)} · peak {formatCurrency(row.meanPeakIncome)} / {formatCurrency(row.controlMeanPeakIncome)} · later eligible success {(row.laterEventSuccess * 100).toFixed(1)}% / {(row.controlLaterEventSuccess * 100).toFixed(1)}%</div>)}</div>}
+          {displayedStrata.length > 0 && <div className="rounded-md border p-3" data-testid="starting-point-strata"><div className="text-sm font-semibold">Same education &amp; career</div><p className="mb-3 text-[10px] text-muted-foreground">Observational comparison: matching on education and career can itself condition on manifestation-affected outcomes.</p>{trajectory.length > 0 && <CohortIncomeTrajectory series={trajectory} />}<div className="mt-3 grid gap-2 sm:grid-cols-2">{displayedStrata.map(row => { const manifesterWins = row.meanLifetime > row.controlMeanLifetime; return <div className="rounded-md border bg-muted/10 p-3" key={row.key}><div className="text-xs font-semibold">{row.key.replace(' | ', ' / ')}</div><div className="mt-1 text-[10px] text-muted-foreground">Manifesters: {row.manifesters.length.toLocaleString()} · Non-manifesters: {row.controls.length.toLocaleString()}</div><div className="mt-2 grid grid-cols-2 gap-2 text-xs"><div><div className="text-[10px] text-muted-foreground">Manifesters</div><div className={`font-mono font-semibold ${manifesterWins ? 'text-chart-2' : ''}`}>{formatCurrency(row.meanLifetime)}</div></div><div><div className="text-[10px] text-muted-foreground">Non-manifesters</div><div className={`font-mono font-semibold ${!manifesterWins ? 'text-chart-2' : ''}`}>{formatCurrency(row.controlMeanLifetime)}</div></div></div></div>;})}</div></div>}
         <SideBySideComparison
           leftLabel="Manifesters"
           rightLabel="Non-manifesters"

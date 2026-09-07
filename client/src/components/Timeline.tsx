@@ -9,6 +9,15 @@ import {
 } from '@/lib/sim';
 import * as LucideIcons from 'lucide-react';
 import { GraduationCap, Briefcase, Check, X, AlertTriangle, Sparkles, Skull, Baby, Cross, Star } from 'lucide-react';
+import { manifestationChangedOutcome } from '@/lib/manifestationAnalysis';
+
+function ManifestedMarker({ stage }: { stage: StageResult }) {
+  return manifestationChangedOutcome(stage) ? (
+    <div className="mt-1 inline-flex items-center rounded-md border border-amber-400/50 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-amber-600 dark:text-amber-300">
+      Manifested it!
+    </div>
+  ) : null;
+}
 
 const getEventIcon = (iconName?: string) => {
   if (!iconName) return Briefcase;
@@ -183,6 +192,7 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
             {formatCurrency(stage.incomeAfter)}
           </div>
         </div>
+        <ManifestedMarker stage={stage} />
       </CardContent>
     </Card>
   );
@@ -228,6 +238,7 @@ function MobileCareerCard({ stage }: { stage: StageResult }) {
             <div className="text-chart-2 text-[10px]">{formatPercent(stage.growthAfter)}</div>
           </div>
         </div>
+        <ManifestedMarker stage={stage} />
       </CardContent>
     </Card>
   );
@@ -279,6 +290,7 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
             "{outcome.outcomeMessage}"
           </div>
         )}
+        <ManifestedMarker stage={stage} />
         <div className="flex items-center gap-2 text-xs flex-wrap">
           {!outcome.gateFailed && event.rollRequired && (
             <div className="font-mono">
@@ -349,6 +361,7 @@ function CompactEducationCard({ stage }: { stage: StageResult }) {
             "{edu.outcomeMessage}"
           </div>
         )}
+        <ManifestedMarker stage={stage} />
         
         <div className="p-2 rounded bg-muted mb-2">
           <div className="text-[10px] text-muted-foreground">Roll</div>
@@ -418,6 +431,7 @@ function CompactCareerCard({ stage }: { stage: StageResult }) {
             "{career.outcomeMessage}"
           </div>
         )}
+        <ManifestedMarker stage={stage} />
         
         <div className={`p-2 rounded mb-2 ${career.isNat20 ? 'bg-chart-4/20 border border-chart-4/40' : 'bg-muted'}`}>
           <div className="flex items-center gap-1">
@@ -550,6 +564,7 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
             "{outcome.outcomeMessage}"
           </div>
         )}
+        <ManifestedMarker stage={stage} />
         
         {event.riskGated && outcome.gateRoll !== undefined && (
           <div className={`p-2 rounded mb-2 ${outcome.gateFailed ? 'bg-muted' : 'bg-chart-2/10 border border-chart-2/20'}`}>
@@ -674,6 +689,7 @@ export function CompactEventList({ stages }: CompactEventListProps) {
               <X className="h-3 w-3 text-destructive shrink-0" />
             )}
             <span className="truncate">{outcome.event.name}</span>
+            {manifestationChangedOutcome(stage) && <span className="shrink-0 rounded-md border border-amber-400/50 bg-amber-400/10 px-1 py-0.5 text-[9px] font-semibold text-amber-600 dark:text-amber-300">Manifested it!</span>}
           </div>
         );
       })}

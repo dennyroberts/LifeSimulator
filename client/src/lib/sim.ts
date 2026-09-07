@@ -8,7 +8,6 @@ import careersData from '../data/careers.json';
 export type TraitName = 'INT' | 'WORK' | 'NEPO' | 'CHAR' | 'RISK';
 export type WorldMode = 'normal' | 'nepo' | 'meritocracy';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'jackpot' | 'sinkhole';
-export type ManifestationGoal = 'money' | 'career' | 'love';
 
 export interface Traits {
   INT: number;
@@ -40,7 +39,8 @@ export interface Event {
   riskGateWeight: number;
   success: { jumpPct: number; growthDelta: number };
   fail: { jumpPct: number; growthDelta: number };
-  manifestationGoals?: ManifestationGoal[];
+  /** Success/wealth checks which can receive the unified manifestation bonus. */
+  manifestationEligible?: boolean;
   outcomes?: EventOutcomes;
 }
 
@@ -52,6 +52,11 @@ export interface EducationOutcome {
   growthDelta: number;
   outcomeMessage?: string;
   traitContributions: TraitContribution[];
+  manifestationApplied: boolean;
+  manifestationBonus: number;
+  counterfactualTotal: number;
+  counterfactualLabel: string;
+  manifestationUpgraded: boolean;
 }
 
 export interface CareerDefinition {
@@ -75,6 +80,11 @@ export interface CareerOutcome {
   finalGrowth: number;
   traitContributions: TraitContribution[];
   outcomeMessage?: string;
+  manifestationApplied: boolean;
+  manifestationBonus: number;
+  counterfactualTotal: number;
+  counterfactualCareer: CareerDefinition;
+  manifestationUpgraded: boolean;
 }
 
 export interface TraitContribution {
@@ -105,6 +115,10 @@ export interface EventOutcome {
   decidingTrait?: TraitName; // The trait that made the difference (if any)
   manifestationApplied: boolean;
   manifestationBonus: number;
+  gateManifestationApplied?: boolean;
+  mainManifestationApplied?: boolean;
+  gateSucceededOnlyBecauseOfManifestation?: boolean;
+  mainSucceededOnlyBecauseOfManifestation?: boolean;
 }
 
 export interface StageResult {
@@ -142,7 +156,6 @@ export interface SimulationResult {
   aspiration: CareerAspiration;
   agentIndex: number;
   manifestationEnabled: boolean;
-  manifestationGoal: ManifestationGoal | null;
   manifestationBonus: number;
   stages: StageResult[];
   finalIncome: number;
@@ -158,7 +171,6 @@ export interface Agent {
   traits: Traits;
   index: number;
   aspiration?: CareerAspiration;
-  manifestationGoal?: ManifestationGoal | null;
   manifestationBonus?: number;
 }
 
@@ -646,12 +658,16 @@ export function resolveEducation(
   traits: Traits,
   worldMode: WorldMode,
   rng: () => number,
-  forcedRoll?: number
+  forcedRoll?: number,
+  manifestationEnabled = false,
+  manifestationBonus = 0,
 ): EducationOutcome {
   const roll = forcedRoll ?? roll2d10(rng);
   const checkTraits = config.education.checkTraits as Partial<Record<TraitName, number>>;
   const totalMod = computeTotalMod(traits, checkTraits, worldMode);
-  const total = roll + totalMod;
+  const effectiveBonus = manifestationEnabled ? Math.max(0, manifestationBonus) : 0;
+  const total = roll + totalMod + effectiveBonus;
+  const counterfactualTotal = roll + totalMod;
   const traitContributions = computeTraitContributions(traits, checkTraits, worldMode);
   
   const isGoodOutcome = total >= 15;
@@ -667,7 +683,8 @@ export function resolveEducation(
         outcomeMessage = selectTraitMessage(traitContributions, educationTraitSuccess, educationTraitFail, false, outcomeMessage);
       }
       
-      return {
+        const counterfactual = config.education.thresholds.find(candidate => counterfactualTotal >= candidate.minTotal);
+        return {
         roll,
         totalMod,
         total,
@@ -675,6 +692,11 @@ export function resolveEducation(
         growthDelta: threshold.growthDelta,
         outcomeMessage,
         traitContributions
+          , manifestationApplied: manifestationEnabled,
+          manifestationBonus: effectiveBonus,
+          counterfactualTotal,
+          counterfactualLabel: counterfactual?.label ?? 'Straight to workforce',
+          manifestationUpgraded: (counterfactual?.label ?? 'Straight to workforce') !== threshold.label
       };
     }
   }
@@ -688,7 +710,12 @@ export function resolveEducation(
     label: 'Straight to workforce',
     growthDelta: 0,
     outcomeMessage,
-    traitContributions
+    traitContributions,
+    manifestationApplied: manifestationEnabled,
+    manifestationBonus: effectiveBonus,
+    counterfactualTotal,
+    counterfactualLabel: 'Straight to workforce',
+    manifestationUpgraded: false
   };
 }
 
@@ -759,14 +786,19 @@ export function resolveCareer(
   rng: () => number,
   educationLabel: string,
   aspiration?: CareerAspiration,
-  forcedRoll?: number
+  forcedRoll?: number,
+  manifestationEnabled = false,
+  manifestationBonus = 0,
+  counterfactualEducationLabel = educationLabel,
 ): CareerOutcome {
   const roll = forcedRoll ?? roll2d10(rng);
   const isMaxRoll = roll === 20; // Max roll on 2d10
   
   const traitMod = computeTotalMod(traits, careerCheckTraits, worldMode);
   const educationBonus = educationBonusMap[educationLabel] ?? 0;
-  const totalMod = traitMod + educationBonus;
+  const counterfactualEducationBonus = educationBonusMap[counterfactualEducationLabel] ?? 0;
+  const effectiveBonus = manifestationEnabled ? Math.max(0, manifestationBonus) : 0;
+  const totalMod = traitMod + educationBonus + effectiveBonus;
   
   const total = Math.max(0, roll + totalMod);
   
@@ -784,6 +816,18 @@ export function resolveCareer(
     if (aspirationCareer && total >= aspirationCareer.minRoll) {
       selectedCareer = aspirationCareer;
     }
+  }
+  const counterfactualTotal = Math.max(0, roll + traitMod + counterfactualEducationBonus);
+  let counterfactualCareer = careers[0];
+  for (const career of careers) {
+    if (counterfactualTotal >= career.minRoll && counterfactualTotal <= career.maxRoll) {
+      counterfactualCareer = career;
+      break;
+    }
+  }
+  if (aspiration) {
+    const aspirationCareer = careers.find(c => c.name === aspiration);
+    if (aspirationCareer && counterfactualTotal >= aspirationCareer.minRoll) counterfactualCareer = aspirationCareer;
   }
   
   const salaryMultiplier = isMaxRoll ? 1.2 : 1.0;
@@ -816,7 +860,12 @@ export function resolveCareer(
     finalSalary,
     finalGrowth,
     traitContributions,
-    outcomeMessage
+    outcomeMessage,
+    manifestationApplied: manifestationEnabled,
+    manifestationBonus: effectiveBonus,
+    counterfactualTotal,
+    counterfactualCareer,
+    manifestationUpgraded: counterfactualCareer.name !== selectedCareer.name
   };
 }
 
@@ -829,23 +878,34 @@ export function resolveEvent(
   currentIncome: number,
   currentGrowth: number,
   forcedRoll?: number,
-  manifestationGoal: ManifestationGoal | null = null,
+  manifestationEnabled: boolean = false,
   manifestationBonus: number = 0,
 ): { outcome: EventOutcome; newIncome: number; newGrowth: number } {
-  const manifestationApplied = manifestationGoal !== null
-    && event.manifestationGoals?.includes(manifestationGoal) === true;
+  const manifestationApplied = manifestationEnabled && event.manifestationEligible === true;
   const effectiveManifestationBonus = manifestationApplied ? manifestationBonus : 0;
   let gateFailed = false;
+  let gateSucceededOnlyBecauseOfManifestation = false;
+  let mainSucceededOnlyBecauseOfManifestation = false;
   let gateRoll: number | undefined;
   let gateMod: number | undefined;
   let gateDC: number | undefined;
   let gatePass: boolean | undefined;
+  // Draw both dice up front. A gate may prevent resolving the main check, but
+  // it must not decide whether that raw die exists (counterfactual replay).
+  const precomputedGateRoll = event.riskGated && event.riskGateDC
+    ? (forcedRoll ?? rollD20(rng))
+    : undefined;
+  const precomputedMainRoll = event.rollRequired && event.DC
+    ? (forcedRoll ?? rollD20(rng))
+    : undefined;
   
   if (event.riskGated && event.riskGateDC) {
-    gateRoll = forcedRoll ?? rollD20(rng);
-    gateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode) + effectiveManifestationBonus;
+    gateRoll = precomputedGateRoll;
+    const ordinaryGateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode);
+    gateMod = ordinaryGateMod + effectiveManifestationBonus;
     gateDC = event.riskGateDC;
-    gatePass = gateRoll + gateMod >= gateDC;
+    gatePass = gateRoll! + gateMod >= gateDC;
+    gateSucceededOnlyBecauseOfManifestation = gatePass && gateRoll! + ordinaryGateMod < gateDC;
     gateFailed = !gatePass;
   }
   
@@ -857,11 +917,14 @@ export function resolveEvent(
   let criticalType: 'success' | 'failure' | undefined;
   
   let traitContributions: TraitContribution[] = [];
+  // Retain the predetermined die even if the gate later blocks resolution.
+  mainRoll = precomputedMainRoll;
   
   if (!gateFailed) {
     if (event.rollRequired && event.DC) {
-      mainRoll = forcedRoll ?? rollD20(rng);
-      mainMod = computeTotalMod(traits, event.checkTraits, worldMode) + effectiveManifestationBonus;
+      mainRoll = precomputedMainRoll;
+      const ordinaryMainMod = computeTotalMod(traits, event.checkTraits, worldMode);
+      mainMod = ordinaryMainMod + effectiveManifestationBonus;
       traitContributions = computeTraitContributions(traits, event.checkTraits, worldMode);
       mainDC = event.DC;
       
@@ -879,7 +942,8 @@ export function resolveEvent(
         isCritical = true;
         criticalType = 'failure';
       } else {
-        success = mainRoll + mainMod >= mainDC;
+        success = mainRoll! + mainMod >= mainDC;
+        mainSucceededOnlyBecauseOfManifestation = success && mainRoll! + ordinaryMainMod < mainDC;
       }
     }
   }
@@ -1022,7 +1086,11 @@ export function resolveEvent(
     outcomeMessage,
     decidingTrait,
     manifestationApplied,
-    manifestationBonus: effectiveManifestationBonus
+    manifestationBonus: effectiveManifestationBonus,
+    gateManifestationApplied: manifestationApplied && gateRoll !== undefined,
+    mainManifestationApplied: manifestationApplied && !gateFailed && mainMod !== undefined,
+    gateSucceededOnlyBecauseOfManifestation,
+    mainSucceededOnlyBecauseOfManifestation
   };
   
   return { outcome, newIncome, newGrowth };
@@ -1037,10 +1105,7 @@ export function simulateLife(
   forcedRoll?: number,
   manifestationOptions: ManifestationOptions = {}
 ): SimulationResult {
-  const manifestationGoal = manifestationOptions.manifestationEnabled === true
-    ? (agent.manifestationGoal ?? null)
-    : null;
-  const manifestationEnabled = manifestationGoal !== null;
+  const manifestationEnabled = manifestationOptions.manifestationEnabled === true;
   const manifestationBonus = manifestationEnabled
     ? (manifestationOptions.manifestationBonus ?? agent.manifestationBonus ?? 0)
     : 0;
@@ -1051,7 +1116,7 @@ export function simulateLife(
   const stages: StageResult[] = [];
   const drawnEvents: { event: Event; stage: number }[] = [];
   
-  const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng, forcedRoll);
+  const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng, forcedRoll, manifestationEnabled, manifestationBonus);
   
   stages.push({
     stage: 1,
@@ -1061,7 +1126,17 @@ export function simulateLife(
     growthAfter: 0
   });
   
-  const careerOutcome = resolveCareer(agent.traits, worldMode, agentRng, educationOutcome.label, agent.aspiration, forcedRoll);
+  const careerOutcome = resolveCareer(
+    agent.traits,
+    worldMode,
+    agentRng,
+    educationOutcome.label,
+    agent.aspiration,
+    forcedRoll,
+    manifestationEnabled,
+    manifestationBonus,
+    educationOutcome.counterfactualLabel,
+  );
   
   let income = careerOutcome.finalSalary;
   let growth = Math.max(GROWTH_FLOOR, careerOutcome.finalGrowth + educationOutcome.growthDelta);
@@ -1094,7 +1169,10 @@ export function simulateLife(
       const stageRng = createRng(`${seed}|stage${stageNum}`);
       event = drawEvent(stageRng);
     } else {
-      event = drawEvent(agentRng);
+      // Keep opportunity draws independent from checks. This makes an on/off
+      // counterfactual replay the identical life history rather than shifting
+      // later draws when an earlier gate changes.
+      event = drawEvent(createRng(`${seed}|agent${agent.index}|event${stageNum}|draw`));
     }
     
     drawnEvents.push({ event, stage: stageNum });
@@ -1105,11 +1183,11 @@ export function simulateLife(
       stageNum,
       agent.traits,
       worldMode,
-      agentRng,
+      createRng(`${seed}|agent${agent.index}|event${stageNum}|checks`),
       income,
       growth,
       forcedRoll,
-      manifestationGoal,
+      manifestationEnabled,
       manifestationBonus
     );
     
@@ -1209,7 +1287,6 @@ export function simulateLife(
     aspiration: agent.aspiration ?? null,
     agentIndex: agent.index,
     manifestationEnabled,
-    manifestationGoal,
     manifestationBonus,
     stages,
     finalIncome: income,
@@ -1274,14 +1351,12 @@ export function generateSharedEvents(seed: string): Map<number, Event> {
 export function createManifestationAssignments(
   total: number,
   seed: string
-): Array<ManifestationGoal | null> {
+): boolean[] {
   const safeTotal = Math.max(0, Math.floor(total));
-  const assignments: Array<ManifestationGoal | null> = Array(safeTotal).fill(null);
-  const goals: ManifestationGoal[] = ['money', 'career', 'love'];
-  const goalRng = createRng(`${seed}|manifestation-goals`);
+  const assignments: boolean[] = Array(safeTotal).fill(false);
 
   for (let i = 0; i < Math.floor(safeTotal / 2); i++) {
-    assignments[i] = goals[Math.floor(goalRng() * goals.length)];
+    assignments[i] = true;
   }
 
   const shuffleRng = createRng(`${seed}|manifestation-shuffle`);
@@ -1341,17 +1416,16 @@ export function runMassSimulation(
     const name = generateRandomName(agentSeedRng);
     const aspiration = aspirationsEnabled ? generateRandomAspiration(agentSeedRng) : null;
     
-    const manifestationGoal = manifestationAssignments[agentIndex] ?? null;
+    const agentManifesting = manifestationAssignments[agentIndex] === true;
     const agent: Agent = {
       name,
       traits,
       index: agentIndex,
       aspiration,
-      manifestationGoal,
-      manifestationBonus: isManifestationEnabled && manifestationGoal ? effectiveManifestationBonus : 0
+      manifestationBonus: isManifestationEnabled && agentManifesting ? effectiveManifestationBonus : 0
     };
     const result = simulateLife(agent, worldMode, seed, sameDeck, sharedEvents, undefined, {
-      manifestationEnabled: isManifestationEnabled,
+      manifestationEnabled: isManifestationEnabled && agentManifesting,
       manifestationBonus: effectiveManifestationBonus
     });
     results.push(result);

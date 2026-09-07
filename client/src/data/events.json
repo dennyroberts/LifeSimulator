@@ -2,7 +2,7 @@
   {
     "id": "you_get_the_nod",
     "name": "You Get Promoted",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "ThumbsUp",
     "rarity": "common",
     "rollRequired": true,
@@ -33,7 +33,7 @@
   {
     "id": "thrown_into_the_spotlight",
     "name": "Thrown Into the Spotlight",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Spotlight",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -64,7 +64,7 @@
   {
     "id": "a_really_good_boss",
     "name": "A Really Good Boss",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "UserCheck",
     "rarity": "common",
     "rollRequired": true,
@@ -93,7 +93,7 @@
   {
     "id": "a_really_bad_boss",
     "name": "A Toxic Workplace",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "UserX",
     "rarity": "common",
     "rollRequired": true,
@@ -122,7 +122,7 @@
   {
     "id": "a_strategic_sidestep",
     "name": "A Strategic Sidestep",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "ArrowRightLeft",
     "rarity": "common",
     "rollRequired": true,
@@ -153,7 +153,7 @@
   {
     "id": "they_put_you_in_charge",
     "name": "They Put You in Charge",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Crown",
     "rarity": "common",
     "rollRequired": true,
@@ -186,7 +186,7 @@
   {
     "id": "we_need_to_talk",
     "name": "Put on a PIP",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "MessageSquareWarning",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -215,7 +215,7 @@
   {
     "id": "you_reinvent_yourself",
     "name": "A New Skillset",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "RefreshCcw",
     "rarity": "common",
     "rollRequired": true,
@@ -244,7 +244,7 @@
   {
     "id": "new_career",
     "name": "Career Pivot",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "RefreshCcw",
     "rarity": "common",
     "rollRequired": true,
@@ -277,7 +277,7 @@
   {
     "id": "your_name_starts_circulating",
     "name": "Known In Your Field",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Megaphone",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -306,7 +306,7 @@
   {
     "id": "someone_powerful_opens_a_door",
     "name": "Someone Powerful Opens a Door",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "DoorOpen",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -335,7 +335,7 @@
   {
     "id": "youre_suddenly_known",
     "name": "You're Suddenly Famous",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Star",
     "rarity": "rare",
     "rollRequired": true,
@@ -366,7 +366,7 @@
   {
     "id": "a_bigger_offer_comes_in",
     "name": "A Bigger Offer Comes In",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "HandCoins",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -397,7 +397,7 @@
   {
     "id": "you_start_something_on_the_side",
     "name": "Start a Business",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Rocket",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -428,7 +428,7 @@
   {
     "id": "you_pack_up_and_move",
     "name": "Move to a New City",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Truck",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -457,7 +457,7 @@
   {
     "id": "you_go_all_in",
     "name": "A Risky Investment",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Flame",
     "rarity": "rare",
     "rollRequired": true,
@@ -490,7 +490,7 @@
   {
     "id": "the_exit_everyone_dreams_about",
     "name": "You Found a Startup",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Gem",
     "rarity": "jackpot",
     "rollRequired": true,
@@ -523,7 +523,7 @@
   {
     "id": "positioned_when_the_wave_hit",
     "name": "A Series of Smart Investments",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Waves",
     "rarity": "jackpot",
     "rollRequired": true,
@@ -573,7 +573,7 @@
   {
     "id": "a_lucky_break_pays_off",
     "name": "A Lucky Break",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Clover",
     "rarity": "rare",
     "rollRequired": true,
@@ -600,7 +600,7 @@
   {
     "id": "the_industry_turns",
     "name": "Your Industry Tanks",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "TrendingDown",
     "rarity": "sinkhole",
     "rollRequired": true,
@@ -689,7 +689,7 @@
   {
     "id": "you_get_sued",
     "name": "You Get Sued",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Scale",
     "rarity": "rare",
     "rollRequired": true,
@@ -720,7 +720,6 @@
   {
     "id": "you_find_your_person",
     "name": "You Find Your Person",
-    "manifestationGoals": ["love"],
     "icon": "Heart",
     "rarity": "common",
     "rollRequired": true,
@@ -749,7 +748,7 @@
   {
     "id": "under_their_wing",
     "name": "A New Mentor",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Handshake",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -778,7 +777,7 @@
   {
     "id": "a_big_name_on_your_resume",
     "name": "A Big Name on Your Resume",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "FileText",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -809,7 +808,7 @@
   {
     "id": "you_catch_a_small_tailwind",
     "name": "Your Field Has a Tailwind",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Wind",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -840,7 +839,7 @@
   {
     "id": "you_invent_something_huge",
     "name": "You Invent Something Huge",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Lightbulb",
     "rarity": "jackpot",
     "rollRequired": true,
@@ -897,7 +896,7 @@
   {
     "id": "you_get_laid_off",
     "name": "You Get Laid Off",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Briefcase",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -930,7 +929,7 @@
   {
     "id": "you_go_to_grad_school",
     "name": "You Go to Grad School",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "GraduationCap",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -959,7 +958,6 @@
   {
     "id": "divorce",
     "name": "Divorce",
-    "manifestationGoals": ["love"],
     "icon": "HeartCrack",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -988,7 +986,7 @@
   {
     "id": "crushing_debt",
     "name": "Crushing Debt",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "CreditCard",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -1017,7 +1015,7 @@
   {
     "id": "crack_a_hard_problem",
     "name": "You Crack a Hard Problem",
-    "manifestationGoals": ["career"],
+    "manifestationEligible": true,
     "icon": "Puzzle",
     "rarity": "common",
     "rollRequired": true,
@@ -1046,7 +1044,7 @@
   {
     "id": "a_revolutionary_idea",
     "name": "A Revolutionary Idea",
-    "manifestationGoals": ["money"],
+    "manifestationEligible": true,
     "icon": "Lightbulb",
     "rarity": "rare",
     "rollRequired": true,

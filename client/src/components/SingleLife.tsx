@@ -23,7 +23,6 @@ import {
   type WorldMode,
   type SimulationResult,
   type CareerAspiration,
-  type ManifestationGoal,
   simulateLife,
   generateRandomTraits,
   generateRandomName,
@@ -54,7 +53,6 @@ export function SingleLife() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [aspiration, setAspiration] = useState<CareerAspiration>(null);
   const [manifestationEnabled, setManifestationEnabled] = useState(false);
-  const [manifestationGoal, setManifestationGoal] = useState<ManifestationGoal>('money');
   const [manifestationBonus, setManifestationBonus] = useState(2);
   const [sameDeck, setSameDeck] = useState(false);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
@@ -179,7 +177,6 @@ export function SingleLife() {
     const urlName = params.get('name');
     const urlTraits = params.get('traits');
     const urlManifestation = params.get('manifestation');
-    const urlManifestationGoal = params.get('manifestationGoal');
     const urlManifestationBonus = params.get('manifestationBonus');
     
     if (urlSeed) setSeed(urlSeed);
@@ -195,7 +192,6 @@ export function SingleLife() {
       } catch { }
     }
     if (urlManifestation) setManifestationEnabled(urlManifestation === 'true');
-    if (urlManifestationGoal && ['money', 'career', 'love'].includes(urlManifestationGoal.toLowerCase())) setManifestationGoal(urlManifestationGoal.toLowerCase() as ManifestationGoal);
     if (urlManifestationBonus !== null) {
       const parsedBonus = Number(urlManifestationBonus);
       if (Number.isFinite(parsedBonus)) setManifestationBonus(Math.max(0, Math.round(parsedBonus)));
@@ -210,12 +206,11 @@ export function SingleLife() {
     if (name) params.set('name', name);
     params.set('traits', JSON.stringify(traits));
     params.set('manifestation', String(manifestationEnabled));
-    params.set('manifestationGoal', manifestationGoal);
     params.set('manifestationBonus', String(manifestationBonus));
     
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
-  }, [seed, worldMode, sameDeck, name, traits, manifestationEnabled, manifestationGoal, manifestationBonus]);
+  }, [seed, worldMode, sameDeck, name, traits, manifestationEnabled, manifestationBonus]);
   
   const handleRandomTraits = () => {
     const rng = createRng(Date.now());
@@ -240,7 +235,7 @@ export function SingleLife() {
       setSeed(currentSeed);
     }
     const agentName = name || 'Anonymous';
-    const agent = { name: agentName, traits, index: 0, aspiration, manifestationGoal, manifestationBonus };
+    const agent = { name: agentName, traits, index: 0, aspiration, manifestationBonus };
     
     const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck, undefined, undefined, { manifestationEnabled, manifestationBonus });
     setResult(simResult);
@@ -493,19 +488,8 @@ export function SingleLife() {
                 <Switch id="manifestation" checked={manifestationEnabled} onCheckedChange={setManifestationEnabled} />
               </div>
               {manifestationEnabled && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-[10px]">Goal</Label>
-                    <Select value={manifestationGoal} onValueChange={(v) => setManifestationGoal(v as ManifestationGoal)}>
-                      <SelectTrigger className="h-8 mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="money">Wealth &amp; Ownership</SelectItem>
-                        <SelectItem value="career">Career Success</SelectItem>
-                        <SelectItem value="love">Love &amp; Relationships</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
+                <div>
+                   <div>
                     <Label htmlFor="manifestation-bonus" className="text-[10px]">Bonus</Label>
                     <Input id="manifestation-bonus" type="number" min={0} step={1} value={manifestationBonus} onChange={(e) => setManifestationBonus(Math.max(0, Math.round(Number(e.target.value)) || 0))} className="h-8 mt-1 font-mono" />
                   </div>
@@ -616,7 +600,7 @@ export function SingleLife() {
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 flex flex-col">
                    <Badge variant="outline" className={`mb-2 ${result.manifestationEnabled ? 'border-chart-4/50 text-chart-4' : 'text-muted-foreground'}`}>
-                     {result.manifestationEnabled ? <>Manifesting: {result.manifestationGoal === 'money' ? 'Wealth & Ownership' : result.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+{result.manifestationBonus})</> : 'Not manifesting'}
+                     {result.manifestationEnabled ? <>Manifesting (+{result.manifestationBonus})</> : 'Not manifesting'}
                    </Badge>
                    <div className="mb-2">
                     <LuckAnalysis luck={result.luck} embedded compact />

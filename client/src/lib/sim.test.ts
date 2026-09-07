@@ -5,9 +5,12 @@ import {
   createManifestationAssignments,
   resolveEvent,
   runMassSimulation,
+  resolveEducation,
+  resolveCareer,
   type Event,
   type Traits,
 } from './sim';
+import { assistedChecks, independentAllTensCohorts, narrowIncomeBands, pairedIdenticalLives, startingPointStrata } from './manifestationAnalysis';
 
 const averageTraits: Traits = { INT: 10, WORK: 10, NEPO: 10, CHAR: 10, RISK: 10 };
 const events = eventsData as Event[];
@@ -17,64 +20,22 @@ test('manifestation assignments are balanced and deterministic', () => {
   const second = createManifestationAssignments(100, 'balanced-seed');
   assert.deepEqual(first, second);
   assert.equal(first.filter(Boolean).length, 50);
-  assert.ok(first.some(goal => goal === 'money'));
-  assert.ok(first.some(goal => goal === 'career'));
-  assert.ok(first.some(goal => goal === 'love'));
+  assert.ok(first.every(value => typeof value === 'boolean'));
 });
 
-test('event eligibility follows the mutually exclusive goal taxonomy', () => {
-  const idsFor = (goal: 'money' | 'career' | 'love') => events
-    .filter(event => event.manifestationGoals?.includes(goal))
-    .map(event => event.id)
-    .sort();
+test('event eligibility includes success and wealth checks but excludes love-only checks', () => {
+  const eligible = events
+    .filter(event => event.manifestationEligible)
+    .map(event => event.id).sort();
   const neverEligible = events
-    .filter(event => !event.manifestationGoals?.length)
+    .filter(event => !event.manifestationEligible)
     .map(event => event.id)
     .sort();
 
-  assert.deepEqual(idsFor('career'), [
-    'a_big_name_on_your_resume',
-    'a_bigger_offer_comes_in',
-    'a_lucky_break_pays_off',
-    'a_really_bad_boss',
-    'a_really_good_boss',
-    'a_strategic_sidestep',
-    'crack_a_hard_problem',
-    'new_career',
-    'someone_powerful_opens_a_door',
-    'the_industry_turns',
-    'they_put_you_in_charge',
-    'thrown_into_the_spotlight',
-    'under_their_wing',
-    'we_need_to_talk',
-    'you_catch_a_small_tailwind',
-    'you_get_laid_off',
-    'you_get_the_nod',
-    'you_go_to_grad_school',
-    'you_pack_up_and_move',
-    'you_reinvent_yourself',
-    'your_name_starts_circulating',
-    'youre_suddenly_known',
-  ]);
-  assert.deepEqual(idsFor('money'), [
-    'a_revolutionary_idea',
-    'crushing_debt',
-    'positioned_when_the_wave_hit',
-    'the_exit_everyone_dreams_about',
-    'you_get_sued',
-    'you_go_all_in',
-    'you_invent_something_huge',
-    'you_start_something_on_the_side',
-  ]);
-  assert.deepEqual(idsFor('love'), ['divorce', 'you_find_your_person']);
-  assert.deepEqual(neverEligible, [
-    'addiction_takes_hold',
-    'family_member_sick',
-    'money_appears_from_nowhere',
-    'you_get_arrested',
-    'you_get_hit_by_a_bus',
-  ]);
-  assert.ok(events.every(event => (event.manifestationGoals?.length ?? 0) <= 1));
+  assert.ok(eligible.includes('you_get_the_nod'));
+  assert.ok(eligible.includes('the_exit_everyone_dreams_about'));
+  assert.ok(!eligible.includes('you_find_your_person'));
+  assert.ok(neverEligible.includes('money_appears_from_nowhere'));
 });
 
 test('eligible matching goals receive the bonus without changing the raw roll', () => {
@@ -82,7 +43,7 @@ test('eligible matching goals receive the bonus without changing the raw roll', 
   assert.ok(promotion);
 
   const baseline = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10);
-  const manifested = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10, 'career', 2);
+  const manifested = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10, true, 2);
 
   assert.equal(baseline.outcome.mainRoll, manifested.outcome.mainRoll);
   assert.equal(manifested.outcome.mainMod, (baseline.outcome.mainMod ?? 0) + 2);
@@ -96,8 +57,8 @@ test('non-matching and truly random events do not receive manifestation bonuses'
   assert.ok(promotion);
   assert.ok(randomMoney);
 
-  const wrongGoal = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10, 'love', 4);
-  const randomEvent = resolveEvent(randomMoney, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10, 'money', 4);
+  const wrongGoal = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10, false, 4);
+  const randomEvent = resolveEvent(randomMoney, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 10, true, 4);
 
   assert.equal(wrongGoal.outcome.manifestationApplied, false);
   assert.equal(wrongGoal.outcome.manifestationBonus, 0);
@@ -109,8 +70,8 @@ test('natural 1 and natural 20 remain critical regardless of manifestation bonus
   const promotion = events.find(event => event.id === 'you_get_the_nod');
   assert.ok(promotion);
 
-  const criticalFail = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 1, 'career', 20);
-  const criticalSuccess = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 20, 'career', 0);
+  const criticalFail = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 1, true, 20);
+  const criticalSuccess = resolveEvent(promotion, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 20, true, 0);
 
   assert.equal(criticalFail.outcome.success, false);
   assert.equal(criticalFail.outcome.criticalType, 'failure');
@@ -123,7 +84,7 @@ test('matching manifestation bonuses apply to risk gates as well as main checks'
   assert.ok(startup);
 
   const baseline = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 13);
-  const manifested = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 13, 'money', 3);
+  const manifested = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 13, true, 3);
 
   assert.equal(baseline.outcome.gateFailed, true);
   assert.equal(manifested.outcome.gateFailed, false);
@@ -154,8 +115,69 @@ test('batched mass runs preserve exact cohorts and deterministic outcomes', () =
 
   assert.equal(combined.filter(result => result.manifestationEnabled).length, 10);
   assert.deepEqual(
-    combined.map(result => [result.agentIndex, result.manifestationGoal, result.lifetimeEarnings]),
-    rerun.map(result => [result.agentIndex, result.manifestationGoal, result.lifetimeEarnings]),
+    combined.map(result => [result.agentIndex, result.manifestationEnabled, result.lifetimeEarnings]),
+    rerun.map(result => [result.agentIndex, result.manifestationEnabled, result.lifetimeEarnings]),
   );
-  assert.ok(combined.filter(result => !result.manifestationEnabled).every(result => result.manifestationGoal === null));
+  assert.ok(combined.filter(result => !result.manifestationEnabled).every(result => result.manifestationBonus === 0));
+});
+
+test('education and career retain manifestation counterfactual placement', () => {
+  const education = resolveEducation(averageTraits, 'normal', () => 0.5, 12, true, 2);
+  const career = resolveCareer(averageTraits, 'normal', () => 0.5, education.label, null, 12, true, 2, education.counterfactualLabel);
+  assert.equal(education.total - education.counterfactualTotal, 2);
+  const realizedEducationBonus = career.educationBonus;
+  const counterfactualEducationBonus = career.counterfactualTotal - career.roll;
+  assert.equal(career.total - career.counterfactualTotal, 2 + realizedEducationBonus - counterfactualEducationBonus);
+  assert.equal(education.manifestationApplied, true);
+  assert.equal(career.manifestationApplied, true);
+});
+
+test('career counterfactual removes both direct manifestation and an upgraded education tier', () => {
+  const career = resolveCareer(averageTraits, 'normal', () => 0.5, 'Elite institution', null, 12, true, 2, 'Straight to workforce');
+  assert.equal(career.total, 17);
+  assert.equal(career.counterfactualTotal, 10);
+  assert.notEqual(career.career.name, career.counterfactualCareer.name);
+  assert.equal(career.manifestationUpgraded, true);
+});
+
+test('narrow income bands and assisted counts are deterministic', () => {
+  const lives = runMassSimulation(40, 'normal', 'bands', false, true, undefined, { manifestationEnabled: true, manifestationBonus: 2, totalRunSize: 40, baseManifestationSeed: 'bands' });
+  const bands = narrowIncomeBands(lives);
+  assert.deepEqual(bands.map(b => [b.lower, b.upper, b.manifesters.length, b.controls.length]), narrowIncomeBands(lives).map(b => [b.lower, b.upper, b.manifesters.length, b.controls.length]));
+  assert.equal(bands.length, 4);
+  bands.forEach(band => band.representatives.forEach(life => assert.ok(life.lifetimeEarnings >= band.lower && life.lifetimeEarnings <= band.upper)));
+  const count = assistedChecks(lives.find(life => life.manifestationEnabled)!);
+  assert.ok(count.applied >= count.flipped);
+});
+
+test('controlled paired lives share raw history and are deterministic', () => {
+  const one = pairedIdenticalLives('paired', 'normal', 2, 12);
+  const two = pairedIdenticalLives('paired', 'normal', 2, 12);
+  assert.deepEqual(one.pairs.map(p => p.uplift), two.pairs.map(p => p.uplift));
+  one.pairs.forEach(pair => {
+    assert.equal(pair.manifested.stages[0].education?.roll, pair.control.stages[0].education?.roll);
+    assert.equal(pair.manifested.stages[1].career?.roll, pair.control.stages[1].career?.roll);
+    assert.deepEqual(pair.manifested.stages.slice(2).map(s => s.eventOutcome?.event.id), pair.control.stages.slice(2).map(s => s.eventOutcome?.event.id));
+    assert.deepEqual(pair.manifested.stages.slice(2).map(s => [s.eventOutcome?.gateRoll, s.eventOutcome?.mainRoll]), pair.control.stages.slice(2).map(s => [s.eventOutcome?.gateRoll, s.eventOutcome?.mainRoll]));
+    assert.equal(pair.manifested.luck.rawRollDeviation, pair.control.luck.rawRollDeviation);
+    assert.equal(pair.manifested.luck.eventRollLuck, pair.control.luck.eventRollLuck);
+  });
+});
+
+test('empty income-matched controls report unavailable offsets rather than zero', () => {
+  const manifested = runMassSimulation(10, 'normal', 'empty-band', false, true, undefined, { manifestationEnabled: true, manifestationBonus: 2, totalRunSize: 10, baseManifestationSeed: 'empty-band' })
+    .filter(life => life.manifestationEnabled);
+  narrowIncomeBands(manifested).forEach(band => {
+    assert.equal(band.totalTraitOffset, null);
+    assert.ok(Object.values(band.traitOffsets).every(offset => offset === null));
+  });
+});
+
+test('independent all-10 cohorts and adequate starting strata are constructed', () => {
+  const experiment = independentAllTensCohorts('all-ten', 'normal', 2, 10);
+  assert.equal(experiment.manifesters.length, 10);
+  assert.ok(experiment.manifesters.every(life => Object.values(life.traits).every(value => value === 10)));
+  assert.notDeepEqual(experiment.manifesters.map(life => life.lifetimeEarnings), experiment.controls.map(life => life.lifetimeEarnings));
+  const lives = runMassSimulation(100, 'normal', 'strata', false, true, undefined, { manifestationEnabled: true, manifestationBonus: 2, totalRunSize: 100, baseManifestationSeed: 'strata' });
+  startingPointStrata(lives, 1).forEach(stratum => assert.ok(stratum.manifesters.length && stratum.controls.length));
 });

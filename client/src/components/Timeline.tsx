@@ -143,6 +143,7 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
           <Badge variant="secondary" className="text-[9px] px-1 py-0">
             {edu.label}
           </Badge>
+          {edu.manifestationApplied && <Badge variant="outline" className="text-[9px] px-1 py-0 border-chart-4/50 text-chart-4">{edu.manifestationUpgraded ? 'Manifestation upgraded' : `Manifestation +${edu.manifestationBonus}`}</Badge>}
         </div>
         {edu.outcomeMessage && (
           <div className="text-[10px] italic mb-1 text-chart-1" data-testid="mobile-edu-outcome">
@@ -201,6 +202,7 @@ function MobileCareerCard({ stage }: { stage: StageResult }) {
           <Badge variant="secondary" className="text-[9px] px-1 py-0">
             {career.career.name}
           </Badge>
+          {career.manifestationApplied && <Badge variant="outline" className="text-[9px] px-1 py-0 border-chart-4/50 text-chart-4">{career.manifestationUpgraded ? 'Manifestation upgraded' : `Manifestation +${career.manifestationBonus}`}</Badge>}
         </div>
         {career.outcomeMessage && (
           <div className={`text-[10px] italic mb-1 ${career.isNat20 ? 'text-chart-4' : 'text-chart-3'}`} data-testid="mobile-career-outcome">
@@ -267,9 +269,9 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
             {getStatusText()}
           </span>
         </div>
-        {outcome.manifestationApplied && (
+          {outcome.manifestationApplied && (
           <Badge variant="outline" className="mb-1 w-fit text-[9px] border-chart-4/50 text-chart-4">
-            Manifestation +{outcome.manifestationBonus ?? 0}
+             {outcome.gateSucceededOnlyBecauseOfManifestation || outcome.mainSucceededOnlyBecauseOfManifestation ? 'Manifestation flipped check' : `Manifestation +${outcome.manifestationBonus ?? 0}`}
           </Badge>
         )}
         {outcome.outcomeMessage && (
@@ -340,6 +342,7 @@ function CompactEducationCard({ stage }: { stage: StageResult }) {
         <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 mb-2 self-start" data-testid="education-result">
           {edu.label}
         </Badge>
+        {edu.manifestationApplied && <Badge variant="outline" className="text-[9px] px-1.5 py-0 mb-2 self-start border-chart-4/50 text-chart-4">{edu.manifestationUpgraded ? 'Manifestation upgraded' : `Manifestation +${edu.manifestationBonus}`}</Badge>}
         
         {edu.outcomeMessage && (
           <div className="text-[11px] italic mb-2 px-2 py-1 rounded bg-chart-1/10" data-testid="edu-outcome">
@@ -408,6 +411,7 @@ function CompactCareerCard({ stage }: { stage: StageResult }) {
         <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 mb-2 self-start" data-testid="career-result">
           {career.career.name}
         </Badge>
+        {career.manifestationApplied && <Badge variant="outline" className="text-[9px] px-1.5 py-0 mb-2 self-start border-chart-4/50 text-chart-4">{career.manifestationUpgraded ? 'Manifestation upgraded' : `Manifestation +${career.manifestationBonus}`}</Badge>}
         
         {career.outcomeMessage && (
           <div className={`text-[11px] italic mb-2 px-2 py-1 rounded ${career.isNat20 ? 'bg-chart-4/10' : 'bg-chart-3/10'}`} data-testid="career-outcome">
@@ -536,7 +540,7 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
           </div>
           {outcome.manifestationApplied && (
             <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-chart-4/50 text-chart-4" data-testid={`manifestation-${stage.stage}`}>
-              Manifesting +{outcome.manifestationBonus ?? 0}
+               {outcome.gateSucceededOnlyBecauseOfManifestation || outcome.mainSucceededOnlyBecauseOfManifestation ? 'Manifestation flipped check' : `Manifesting +${outcome.manifestationBonus ?? 0}`}
             </Badge>
           )}
         </div>

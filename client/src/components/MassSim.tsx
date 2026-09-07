@@ -36,7 +36,6 @@ import {
   type StageResult,
   type Event,
   type CareerAspiration,
-  type ManifestationGoal,
   runMassSimulation,
   generateSharedEvents,
   formatCurrency,
@@ -48,6 +47,7 @@ import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, 
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import eventsData from '@/data/events.json';
+import { narrowIncomeBands, startingPointStrata, pairedIdenticalLives, independentAllTensCohorts } from '@/lib/manifestationAnalysis';
 
 type AgentCount = 1000 | 10000 | 50000 | 100000;
 
@@ -478,7 +478,9 @@ export function MassSim() {
           </div>
           
           <CompareCohorts results={results} worldMode={worldMode} seed={seed} />
-          {results.some(result => result.manifestationEnabled) && <ManifestationAnalysis results={results} />}
+          {results.some(result => result.manifestationEnabled) && (
+            <ManifestationAnalysis results={results} worldMode={worldMode} seed={seed} />
+          )}
           
           <CollapsiblePanel 
             title="Lifetime Earnings Distribution" 
@@ -567,7 +569,7 @@ function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: s
     }
   });
   
-  const agentData = { name: agent.name, traits: agent.traits, index: agent.agentIndex, aspiration: agent.aspiration, manifestationGoal: agent.manifestationGoal, manifestationBonus: agent.manifestationBonus };
+  const agentData = { name: agent.name, traits: agent.traits, index: agent.agentIndex, aspiration: agent.aspiration, manifestationBonus: agent.manifestationBonus };
   const options = { manifestationEnabled: agent.manifestationEnabled, manifestationBonus: agent.manifestationBonus };
   const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 19, options);
   const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 2, options);
@@ -808,7 +810,7 @@ function AgentCard({ agentData, rank, isTop = false }: {
                 : 'border-muted-foreground/25 bg-muted/60 text-muted-foreground'
             }`}>
               {actual.manifestationEnabled ? <Sparkles className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
-              <span>{actual.manifestationEnabled ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}</span>
+              <span>{actual.manifestationEnabled ? `Manifesting (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <Clover className="h-3 w-3 text-chart-2" />
@@ -851,7 +853,7 @@ function AgentCard({ agentData, rank, isTop = false }: {
           }`}>
             {actual.manifestationEnabled ? <Sparkles className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
             {actual.manifestationEnabled
-              ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})`
+              ? `Manifesting (+${actual.manifestationBonus ?? 0})`
               : 'Not manifesting'}
           </span>
           <Clover className="h-3 w-3 text-chart-2 shrink-0" />
@@ -2317,9 +2319,27 @@ function SideBySideComparison({
   );
 }
 
-function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
+function ManifestationAnalysis({
+  results,
+  worldMode,
+  seed,
+}: {
+  results: SimulationResult[];
+  worldMode: WorldMode;
+  seed: string;
+}) {
   const manifesters = results.filter(r => r.manifestationEnabled);
   const nonManifesters = results.filter(r => !r.manifestationEnabled);
+  const analysisSeed = `${seed}|manifestation-analysis`;
+  const analysisBonus = manifesters[0]?.manifestationBonus ?? 0;
+  const paired = useMemo(
+    () => pairedIdenticalLives(analysisSeed, worldMode, analysisBonus, 200),
+    [analysisSeed, worldMode, analysisBonus],
+  );
+  const allTens = useMemo(
+    () => independentAllTensCohorts(analysisSeed, worldMode, analysisBonus, 200),
+    [analysisSeed, worldMode, analysisBonus],
+  );
   if (!manifesters.length || !nonManifesters.length) return null;
   const values = (items: SimulationResult[]) => items.map(r => r.lifetimeEarnings).sort((a, b) => a - b);
   const percentile = (sorted: number[], p: number) => sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))] ?? 0;
@@ -2328,91 +2348,39 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
     return { count: items.length, mean: v.reduce((a, b) => a + b, 0) / v.length, median: percentile(v, .5), min: v[0], max: v[v.length - 1], p25: percentile(v, .25), p75: percentile(v, .75) };
   };
   const m = summary(manifesters), n = summary(nonManifesters);
-  const uplift = m.median - n.median;
-  const pct = n.median ? (uplift / Math.abs(n.median)) * 100 : 0;
-  const top10 = getTopN(results, 10, r => r.lifetimeEarnings);
-  const topManifesters = top10.filter(r => r.manifestationEnabled).length;
-  const manifesterEarnings = values(manifesters);
-  const matchedIncomeFloor = percentile(manifesterEarnings, .45);
-  const matchedIncomeCeiling = percentile(manifesterEarnings, .55);
-  const inMatchedIncomeBand = (result: SimulationResult) =>
-    result.lifetimeEarnings >= matchedIncomeFloor
-    && result.lifetimeEarnings <= matchedIncomeCeiling;
-  const ms = manifesters.filter(inMatchedIncomeBand);
-  const ns = nonManifesters.filter(inMatchedIncomeBand);
-  const traits = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'] as const;
-  const avgTrait = (items: SimulationResult[], trait: typeof traits[number]) =>
-    items.length ? items.reduce((sum, r) => sum + r.traits[trait], 0) / items.length : 0;
-  const goalCohort = (goal: ManifestationGoal) => manifesters.filter(result => result.manifestationGoal === goal);
-  const meanMetric = (items: SimulationResult[], metric: (result: SimulationResult) => number) =>
-    items.length ? items.reduce((sum, result) => sum + metric(result), 0) / items.length : 0;
-  const medianMetric = (items: SimulationResult[], metric: (result: SimulationResult) => number) => {
-    if (!items.length) return 0;
-    const sorted = items.map(metric).sort((a, b) => a - b);
-    return percentile(sorted, .5);
+  const incomeBands = narrowIncomeBands(results);
+  const strata = startingPointStrata(results);
+  const allTensManifesters = summary(allTens.manifesters);
+  const allTensControls = summary(allTens.controls);
+  const stageLabelCounts = (items: SimulationResult[], kind: 'education' | 'career') => {
+    const counts = new Map<string, number>();
+    for (const result of items) {
+      const stage = result.stages.find(candidate => kind === 'education' ? candidate.education : candidate.career);
+      const label = kind === 'education'
+        ? stage?.education?.label
+        : stage?.career?.career.name;
+      if (label) counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   };
-  const alignedEventStats = (items: SimulationResult[], goal: ManifestationGoal) => {
+  const formatTopOutcomes = (items: SimulationResult[], kind: 'education' | 'career') =>
+    stageLabelCounts(items, kind).slice(0, 3).map(([label, count]) => `${label} ${((count / items.length) * 100).toFixed(0)}%`).join(' · ');
+  const allTensEventSuccess = (items: SimulationResult[]) => {
     let attempts = 0;
     let successes = 0;
     for (const result of items) {
       for (const stage of result.stages) {
-        const outcome = stage.eventOutcome;
-        if (!outcome?.event.manifestationGoals?.includes(goal)) continue;
+        if (!stage.eventOutcome?.event.manifestationEligible) continue;
         attempts++;
-        if (outcome.success) successes++;
+        if (stage.eventOutcome.success) successes++;
       }
     }
-    return {
-      attempts,
-      successes,
-      successRate: attempts ? successes / attempts : 0,
-      successesPerLife: items.length ? successes / items.length : 0,
-    };
+    return attempts ? successes / attempts : 0;
   };
-  const relationshipStats = (items: SimulationResult[]) => {
-    let partnered = 0;
-    let foundPartnerAttempts = 0;
-    let foundPartnerSuccesses = 0;
-    let divorces = 0;
-    for (const result of items) {
-      let isPartnered = false;
-      const eventStages = result.stages
-        .filter(stage => stage.eventOutcome)
-        .sort((a, b) => a.stage - b.stage);
-      for (const stage of eventStages) {
-        const outcome = stage.eventOutcome!;
-        if (outcome.event.id === 'you_find_your_person') {
-          foundPartnerAttempts++;
-          isPartnered = outcome.success;
-          if (outcome.success) foundPartnerSuccesses++;
-        } else if (outcome.event.id === 'divorce') {
-          divorces++;
-          isPartnered = false;
-        }
-      }
-      if (isPartnered) partnered++;
-    }
-    return {
-      partnered,
-      unmarried: items.length - partnered,
-      partneredRate: items.length ? partnered / items.length : 0,
-      foundPartnerAttempts,
-      foundPartnerSuccesses,
-      foundPartnerRate: foundPartnerAttempts ? foundPartnerSuccesses / foundPartnerAttempts : 0,
-      divorces,
-      divorcesPerThousand: items.length ? (divorces / items.length) * 1000 : 0,
-    };
-  };
-  const moneyManifesters = goalCohort('money');
-  const careerManifesters = goalCohort('career');
-  const loveManifesters = goalCohort('love');
-  const moneyEvents = alignedEventStats(moneyManifesters, 'money');
-  const controlMoneyEvents = alignedEventStats(nonManifesters, 'money');
-  const careerEvents = alignedEventStats(careerManifesters, 'career');
-  const controlCareerEvents = alignedEventStats(nonManifesters, 'career');
-  const loveStats = relationshipStats(loveManifesters);
-  const controlLoveStats = relationshipStats(nonManifesters);
-  const formatRate = (rate: number) => `${(rate * 100).toFixed(1)}%`;
+  const uplift = m.median - n.median;
+  const pct = n.median ? (uplift / Math.abs(n.median)) * 100 : 0;
+  const top10 = getTopN(results, 10, r => r.lifetimeEarnings);
+  const topManifesters = top10.filter(r => r.manifestationEnabled).length;
   return (
     <Card data-testid="manifestation-analysis">
       <CardHeader className="pb-2">
@@ -2420,6 +2388,35 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
         <p className="text-xs text-muted-foreground">A simulation comparison, not proof of causation. Each cohort is ranked independently.</p>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="rounded-md border p-3" data-testid="effective-trait-bonus">
+          <div className="text-sm font-semibold mb-1">Effective Trait Bonus</div>
+          <p className="text-[10px] text-muted-foreground mb-2">Controls are selected from the exact lifetime-earnings dollar bounds defined by each manifester ±1 percentile-point band. Positive offsets mean fewer trait points among manifesters.</p>
+          <div className="overflow-x-auto">
+             <Table><TableHeader><TableRow><TableHead>Percentile / bounds</TableHead><TableHead>M / C</TableHead><TableHead>INT</TableHead><TableHead>WORK</TableHead><TableHead>NEPO</TableHead><TableHead>CHAR</TableHead><TableHead>RISK</TableHead><TableHead>Total</TableHead><TableHead>Events / checks / flips</TableHead></TableRow></TableHeader>
+              <TableBody>{incomeBands.map(band => <TableRow key={band.percentile}><TableCell>{band.percentile}th {band.lowN && <span className="text-destructive">(low N)</span>}<br/><span className="text-xs">{formatCurrency(band.lower)}–{formatCurrency(band.upper)}</span></TableCell><TableCell>{band.manifesters.length} / {band.controls.length}</TableCell>{(['INT','WORK','NEPO','CHAR','RISK'] as const).map(trait => <TableCell key={trait}>{band.traitOffsets[trait] === null ? 'N/A' : band.traitOffsets[trait]!.toFixed(2)}</TableCell>)}<TableCell>{band.totalTraitOffset === null ? 'N/A' : band.totalTraitOffset.toFixed(2)}</TableCell><TableCell>{band.averageEligibleEvents.toFixed(2)} / {band.averageEligibleChecks.toFixed(2)} / {band.averageFlips.toFixed(2)} ({band.totalFlips} total)</TableCell></TableRow>)}</TableBody>
+            </Table>
+          </div>
+          <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-3">
+            {incomeBands.map(band => (
+              <div key={`examples-${band.percentile}`} className="rounded-md border bg-muted/10 p-3">
+                <div className="mb-2 text-xs font-semibold">{band.percentile}th percentile representative lives</div>
+                <div className="space-y-3">
+                  {band.representatives.map(result => (
+                    <div key={result.agentIndex} className="rounded border bg-background p-2">
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="font-semibold">{result.name}</span>
+                        <span className="font-mono text-chart-2">{formatCurrency(result.lifetimeEarnings)}</span>
+                      </div>
+                      <TraitDisplay traits={result.traits} compact />
+                      <div className="mt-2 overflow-x-auto"><MiniTimeline stages={result.stages} /></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {strata.length > 0 && <div className="rounded-md border p-3" data-testid="starting-point-strata"><div className="text-sm font-semibold">Same education &amp; career starting point</div><p className="text-[10px] text-muted-foreground">Observational comparison: conditioning on starting outcomes can itself condition on manifestation effects. Values are manifester / control.</p>{strata.slice(0, 12).map(row => <div className="text-xs mt-1" key={row.key}>{row.key}: {row.manifesters.length} / {row.controls.length} · lifetime {formatCurrency(row.meanLifetime)} / {formatCurrency(row.controlMeanLifetime)} · final {formatCurrency(row.meanFinalIncome)} / {formatCurrency(row.controlMeanFinalIncome)} · peak {formatCurrency(row.meanPeakIncome)} / {formatCurrency(row.controlMeanPeakIncome)} · later eligible success {(row.laterEventSuccess * 100).toFixed(1)}% / {(row.controlLaterEventSuccess * 100).toFixed(1)}%</div>)}</div>}
         <SideBySideComparison
           leftLabel="Manifesters"
           rightLabel="Non-manifesters"
@@ -2438,85 +2435,45 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
           <div className="rounded-md bg-muted/40 p-2 text-xs"><span className="text-muted-foreground">Relative uplift </span><span className="font-mono font-semibold text-chart-2">{pct >= 0 ? '+' : ''}{pct.toFixed(1)}%</span></div>
           <div className="rounded-md bg-muted/40 p-2 text-xs"><span className="text-muted-foreground">Top 10 share </span><span className="font-mono font-semibold">{topManifesters}/10 manifesters</span></div>
         </div>
-        <div className="rounded-md border p-3">
-          <div className="text-xs font-semibold mb-1">Income-matched trait comparison</div>
-          <div className="text-[10px] text-muted-foreground mb-3">
-            The shared earnings band is set by manifesters’ 45th–55th percentile: {formatCurrency(matchedIncomeFloor)}–{formatCurrency(matchedIncomeCeiling)}. Both cohorts below earned within that same range.
-          </div>
-          <SideBySideComparison
-            leftLabel={`Manifesters (${ms.length.toLocaleString()})`}
-            rightLabel={`Non-manifesters (${ns.length.toLocaleString()})`}
-            rows={[
-              ...traits.map(trait => ({
-                label: trait,
-                left: avgTrait(ms, trait).toFixed(2),
-                right: avgTrait(ns, trait).toFixed(2),
-                leftValue: avgTrait(ms, trait),
-                rightValue: avgTrait(ns, trait),
-              })),
-              {
-                label: 'Total traits',
-                left: traits.reduce((sum, trait) => sum + avgTrait(ms, trait), 0).toFixed(2),
-                right: traits.reduce((sum, trait) => sum + avgTrait(ns, trait), 0).toFixed(2),
-                leftValue: traits.reduce((sum, trait) => sum + avgTrait(ms, trait), 0),
-                rightValue: traits.reduce((sum, trait) => sum + avgTrait(ns, trait), 0),
-              },
-            ]}
-          />
-        </div>
-        <div className="space-y-3">
-          <div>
-            <div className="text-sm font-semibold">Results by manifestation goal</div>
-            <p className="text-[10px] text-muted-foreground">Each goal cohort is compared with the full non-manifesting control group. Opportunity rates include only events tagged for that goal.</p>
-          </div>
-          <div className="grid grid-cols-1 gap-3">
-            <div className="rounded-md border border-chart-2/30 bg-chart-2/5 p-3" data-testid="manifestation-money-analysis">
-              <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="h-4 w-4 text-chart-2" />
-                <div>
-                  <div className="text-sm font-semibold">Wealth &amp; Ownership</div>
-                  <div className="text-[10px] text-muted-foreground">{moneyManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
-                </div>
+        <div className="rounded-md border p-3" data-testid="controlled-experiments">
+          <div className="text-sm font-semibold">Controlled Experiments</div>
+          <p className="text-[10px] text-muted-foreground">Each study is deterministic and capped at {paired.pairs.length} lives per condition; neither is included in the mass-run cohort.</p>
+          <div className="grid md:grid-cols-2 gap-3 mt-2 text-xs">
+            <div className="rounded border p-3">
+              <b>Paired identical lives</b>
+              <p className="mt-1">Mean uplift {formatCurrency(paired.meanUplift)} · helped/tied/harmed {paired.helped}/{paired.tied}/{paired.harmed} ({(paired.helped / paired.pairs.length * 100).toFixed(1)}% / {(paired.tied / paired.pairs.length * 100).toFixed(1)}% / {(paired.harmed / paired.pairs.length * 100).toFixed(1)}%)</p>
+              <p>Education/career upgrades {paired.educationUpgrades}/{paired.careerUpgrades} · eligible checks affected/flipped {paired.checksAffected}/{paired.checksFlipped}</p>
+              <p>Same education + career stratum: {paired.sameStartingStratum.count} pairs; mean uplift {formatCurrency(paired.sameStartingStratum.meanUplift)}; helped/tied/harmed {paired.sameStartingStratum.helped}/{paired.sameStartingStratum.tied}/{paired.sameStartingStratum.harmed}</p>
+              <div className="mt-3 space-y-3">
+                {paired.pairs.filter(pair => pair.uplift !== 0).sort((a, b) => Math.abs(b.uplift) - Math.abs(a.uplift)).slice(0, 3).map(pair => (
+                  <div key={pair.manifested.agentIndex} className="rounded border bg-muted/10 p-2">
+                    <div className="font-semibold">Pair #{pair.manifested.agentIndex} · uplift {formatCurrency(pair.uplift)}</div>
+                    <div className="mt-2 grid grid-cols-1 gap-2">
+                      <div><span className="text-chart-4">Manifesting</span><div className="overflow-x-auto"><MiniTimeline stages={pair.manifested.stages} /></div></div>
+                      <div><span className="text-muted-foreground">Control</span><div className="overflow-x-auto"><MiniTimeline stages={pair.control.stages} /></div></div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <SideBySideComparison leftLabel="Wealth manifesters" rightLabel="Non-manifesters" rows={[
-                { label: 'Median lifetime earnings', left: formatCurrency(medianMetric(moneyManifesters, r => r.lifetimeEarnings)), right: formatCurrency(n.median), leftValue: medianMetric(moneyManifesters, r => r.lifetimeEarnings), rightValue: n.median },
-                { label: 'Mean final income', left: formatCurrency(meanMetric(moneyManifesters, r => r.finalIncome)), right: formatCurrency(meanMetric(nonManifesters, r => r.finalIncome)), leftValue: meanMetric(moneyManifesters, r => r.finalIncome), rightValue: meanMetric(nonManifesters, r => r.finalIncome) },
-                { label: 'Opportunity pass rate', left: formatRate(moneyEvents.successRate), right: formatRate(controlMoneyEvents.successRate), leftValue: moneyEvents.successRate, rightValue: controlMoneyEvents.successRate },
-                { label: 'Successful events / life', left: moneyEvents.successesPerLife.toFixed(2), right: controlMoneyEvents.successesPerLife.toFixed(2), leftValue: moneyEvents.successesPerLife, rightValue: controlMoneyEvents.successesPerLife },
-              ]} />
             </div>
-
-            <div className="rounded-md border border-chart-3/30 bg-chart-3/5 p-3" data-testid="manifestation-career-analysis">
-              <div className="flex items-center gap-2 mb-3">
-                <Briefcase className="h-4 w-4 text-chart-3" />
-                <div>
-                  <div className="text-sm font-semibold">Career Success</div>
-                  <div className="text-[10px] text-muted-foreground">{careerManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
-                </div>
+            <div className="rounded border p-3">
+              <b>Independent all-10s cohorts</b>
+              <p className="mt-1 text-muted-foreground">{allTens.size} manifesters vs {allTens.size} controls with independently randomized lives.</p>
+              <div className="mt-3">
+                <SideBySideComparison leftLabel="Manifesters" rightLabel="Controls" rows={[
+                  { label: 'Mean earnings', left: formatCurrency(allTensManifesters.mean), right: formatCurrency(allTensControls.mean), leftValue: allTensManifesters.mean, rightValue: allTensControls.mean },
+                  { label: 'Median earnings', left: formatCurrency(allTensManifesters.median), right: formatCurrency(allTensControls.median), leftValue: allTensManifesters.median, rightValue: allTensControls.median },
+                  { label: '25th percentile', left: formatCurrency(allTensManifesters.p25), right: formatCurrency(allTensControls.p25), leftValue: allTensManifesters.p25, rightValue: allTensControls.p25 },
+                  { label: '75th percentile', left: formatCurrency(allTensManifesters.p75), right: formatCurrency(allTensControls.p75), leftValue: allTensManifesters.p75, rightValue: allTensControls.p75 },
+                  { label: 'Eligible event success', left: `${(allTensEventSuccess(allTens.manifesters) * 100).toFixed(1)}%`, right: `${(allTensEventSuccess(allTens.controls) * 100).toFixed(1)}%`, leftValue: allTensEventSuccess(allTens.manifesters), rightValue: allTensEventSuccess(allTens.controls) },
+                ]} />
               </div>
-              <SideBySideComparison leftLabel="Career manifesters" rightLabel="Non-manifesters" rows={[
-                { label: 'Mean final income', left: formatCurrency(meanMetric(careerManifesters, r => r.finalIncome)), right: formatCurrency(meanMetric(nonManifesters, r => r.finalIncome)), leftValue: meanMetric(careerManifesters, r => r.finalIncome), rightValue: meanMetric(nonManifesters, r => r.finalIncome) },
-                { label: 'Mean peak income', left: formatCurrency(meanMetric(careerManifesters, r => r.peakIncome)), right: formatCurrency(meanMetric(nonManifesters, r => r.peakIncome)), leftValue: meanMetric(careerManifesters, r => r.peakIncome), rightValue: meanMetric(nonManifesters, r => r.peakIncome) },
-                { label: 'Opportunity pass rate', left: formatRate(careerEvents.successRate), right: formatRate(controlCareerEvents.successRate), leftValue: careerEvents.successRate, rightValue: controlCareerEvents.successRate },
-                { label: 'Successful events / life', left: careerEvents.successesPerLife.toFixed(2), right: controlCareerEvents.successesPerLife.toFixed(2), leftValue: careerEvents.successesPerLife, rightValue: controlCareerEvents.successesPerLife },
-              ]} />
-            </div>
-
-            <div className="rounded-md border border-pink-400/30 bg-pink-400/5 p-3" data-testid="manifestation-love-analysis">
-              <div className="flex items-center gap-2 mb-3">
-                <Heart className="h-4 w-4 text-pink-400" />
-                <div>
-                  <div className="text-sm font-semibold">Love &amp; Relationships</div>
-                  <div className="text-[10px] text-muted-foreground">{loveManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
-                </div>
+              <div className="mt-3 space-y-1 text-[10px] text-muted-foreground">
+                <p><b className="text-foreground">Top education outcomes:</b> {formatTopOutcomes(allTens.manifesters, 'education')} / {formatTopOutcomes(allTens.controls, 'education')}</p>
+                <p><b className="text-foreground">Top starting careers:</b> {formatTopOutcomes(allTens.manifesters, 'career')} / {formatTopOutcomes(allTens.controls, 'career')}</p>
+                <p><b className="text-foreground">Manifestation checks affected/flipped:</b> {allTens.manifestedChecks.applied}/{allTens.manifestedChecks.flipped}</p>
+                <p>This sample shows ordinary life-history variation and is not injected into the primary run.</p>
               </div>
-              <SideBySideComparison leftLabel="Love manifesters" rightLabel="Non-manifesters" rows={[
-                { label: 'Partnered at end', left: `${loveStats.partnered.toLocaleString()} (${formatRate(loveStats.partneredRate)})`, right: `${controlLoveStats.partnered.toLocaleString()} (${formatRate(controlLoveStats.partneredRate)})`, leftValue: loveStats.partneredRate, rightValue: controlLoveStats.partneredRate },
-                { label: 'Unmarried at end', left: `${loveStats.unmarried.toLocaleString()} (${formatRate(1 - loveStats.partneredRate)})`, right: `${controlLoveStats.unmarried.toLocaleString()} (${formatRate(1 - controlLoveStats.partneredRate)})`, leftValue: 1 - loveStats.partneredRate, rightValue: 1 - controlLoveStats.partneredRate, lowerIsBetter: true },
-                { label: 'Find-your-person pass rate', left: formatRate(loveStats.foundPartnerRate), right: formatRate(controlLoveStats.foundPartnerRate), leftValue: loveStats.foundPartnerRate, rightValue: controlLoveStats.foundPartnerRate },
-                { label: 'Divorces / 1,000 lives', left: loveStats.divorcesPerThousand.toFixed(1), right: controlLoveStats.divorcesPerThousand.toFixed(1), leftValue: loveStats.divorcesPerThousand, rightValue: controlLoveStats.divorcesPerThousand, lowerIsBetter: true },
-              ]} />
-              <p className="mt-3 text-[10px] text-muted-foreground">“Partnered” means the last relationship-changing event was a successful Find Your Person; any later Divorce returns the life to unmarried.</p>
             </div>
           </div>
         </div>

@@ -93,6 +93,7 @@
   {
     "id": "a_really_bad_boss",
     "name": "A Toxic Workplace",
+    "manifestationGoals": ["career"],
     "icon": "UserX",
     "rarity": "common",
     "rollRequired": true,
@@ -185,6 +186,7 @@
   {
     "id": "we_need_to_talk",
     "name": "Put on a PIP",
+    "manifestationGoals": ["career"],
     "icon": "MessageSquareWarning",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -571,6 +573,7 @@
   {
     "id": "a_lucky_break_pays_off",
     "name": "A Lucky Break",
+    "manifestationGoals": ["career"],
     "icon": "Clover",
     "rarity": "rare",
     "rollRequired": true,
@@ -597,6 +600,7 @@
   {
     "id": "the_industry_turns",
     "name": "Your Industry Tanks",
+    "manifestationGoals": ["career"],
     "icon": "TrendingDown",
     "rarity": "sinkhole",
     "rollRequired": true,
@@ -685,6 +689,7 @@
   {
     "id": "you_get_sued",
     "name": "You Get Sued",
+    "manifestationGoals": ["money"],
     "icon": "Scale",
     "rarity": "rare",
     "rollRequired": true,
@@ -804,6 +809,7 @@
   {
     "id": "you_catch_a_small_tailwind",
     "name": "Your Field Has a Tailwind",
+    "manifestationGoals": ["career"],
     "icon": "Wind",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -891,6 +897,7 @@
   {
     "id": "you_get_laid_off",
     "name": "You Get Laid Off",
+    "manifestationGoals": ["career"],
     "icon": "Briefcase",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -952,6 +959,7 @@
   {
     "id": "divorce",
     "name": "Divorce",
+    "manifestationGoals": ["love"],
     "icon": "HeartCrack",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -980,6 +988,7 @@
   {
     "id": "crushing_debt",
     "name": "Crushing Debt",
+    "manifestationGoals": ["money"],
     "icon": "CreditCard",
     "rarity": "uncommon",
     "rollRequired": true,
@@ -1008,7 +1017,7 @@
   {
     "id": "crack_a_hard_problem",
     "name": "You Crack a Hard Problem",
-    "manifestationGoals": ["career", "money"],
+    "manifestationGoals": ["career"],
     "icon": "Puzzle",
     "rarity": "common",
     "rollRequired": true,
@@ -1037,7 +1046,7 @@
   {
     "id": "a_revolutionary_idea",
     "name": "A Revolutionary Idea",
-    "manifestationGoals": ["career", "money"],
+    "manifestationGoals": ["money"],
     "icon": "Lightbulb",
     "rarity": "rare",
     "rollRequired": true,

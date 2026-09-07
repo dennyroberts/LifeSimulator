@@ -803,7 +803,7 @@ function AgentCard({ agentData, rank, isTop = false }: {
           {/* Luck section - hidden on mobile, show inline on desktop */}
           <div className="hidden sm:block text-right shrink-0 space-y-1">
             <div className={`text-[10px] ${actual.manifestationEnabled ? 'text-chart-4' : 'text-muted-foreground'}`}>
-              {actual.manifestationEnabled ? `Manifesting: ${actual.manifestationGoal} (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}
+              {actual.manifestationEnabled ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <Clover className="h-3 w-3 text-chart-2" />
@@ -841,7 +841,7 @@ function AgentCard({ agentData, rank, isTop = false }: {
         <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2">
           <span className={actual.manifestationEnabled ? 'text-chart-4' : 'text-muted-foreground'}>
             {actual.manifestationEnabled
-              ? `Manifesting: ${actual.manifestationGoal} (+${actual.manifestationBonus ?? 0})`
+              ? `Manifesting: ${actual.manifestationGoal === 'money' ? 'Wealth & Ownership' : actual.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+${actual.manifestationBonus ?? 0})`
               : 'Not manifesting'}
           </span>
           <Clover className="h-3 w-3 text-chart-2 shrink-0" />
@@ -2400,7 +2400,7 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
               <div className="flex items-center gap-2 mb-3">
                 <DollarSign className="h-4 w-4 text-chart-2" />
                 <div>
-                  <div className="text-sm font-semibold">Manifesting Money</div>
+                  <div className="text-sm font-semibold">Wealth &amp; Ownership</div>
                   <div className="text-[10px] text-muted-foreground">{moneyManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
                 </div>
               </div>
@@ -2432,7 +2432,7 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
               <div className="flex items-center gap-2 mb-3">
                 <Briefcase className="h-4 w-4 text-chart-3" />
                 <div>
-                  <div className="text-sm font-semibold">Manifesting Career</div>
+                  <div className="text-sm font-semibold">Career Success</div>
                   <div className="text-[10px] text-muted-foreground">{careerManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
                 </div>
               </div>
@@ -2464,7 +2464,7 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="h-4 w-4 text-pink-400" />
                 <div>
-                  <div className="text-sm font-semibold">Manifesting Love</div>
+                  <div className="text-sm font-semibold">Love &amp; Relationships</div>
                   <div className="text-[10px] text-muted-foreground">{loveManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
                 </div>
               </div>

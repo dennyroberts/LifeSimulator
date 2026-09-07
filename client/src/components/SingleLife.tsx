@@ -499,9 +499,9 @@ export function SingleLife() {
                     <Select value={manifestationGoal} onValueChange={(v) => setManifestationGoal(v as ManifestationGoal)}>
                       <SelectTrigger className="h-8 mt-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="money">Money</SelectItem>
-                        <SelectItem value="career">Career</SelectItem>
-                        <SelectItem value="love">Love</SelectItem>
+                        <SelectItem value="money">Wealth &amp; Ownership</SelectItem>
+                        <SelectItem value="career">Career Success</SelectItem>
+                        <SelectItem value="love">Love &amp; Relationships</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -616,7 +616,7 @@ export function SingleLife() {
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 flex flex-col">
                    <Badge variant="outline" className={`mb-2 ${result.manifestationEnabled ? 'border-chart-4/50 text-chart-4' : 'text-muted-foreground'}`}>
-                     {result.manifestationEnabled ? <><span>Manifesting: </span><span className="capitalize">{result.manifestationGoal}</span> (+{result.manifestationBonus})</> : 'Not manifesting'}
+                     {result.manifestationEnabled ? <>Manifesting: {result.manifestationGoal === 'money' ? 'Wealth & Ownership' : result.manifestationGoal === 'career' ? 'Career Success' : 'Love & Relationships'} (+{result.manifestationBonus})</> : 'Not manifesting'}
                    </Badge>
                    <div className="mb-2">
                     <LuckAnalysis luck={result.luck} embedded compact />

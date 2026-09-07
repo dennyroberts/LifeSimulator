@@ -2332,14 +2332,17 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
   const pct = n.median ? (uplift / Math.abs(n.median)) * 100 : 0;
   const top10 = getTopN(results, 10, r => r.lifetimeEarnings);
   const topManifesters = top10.filter(r => r.manifestationEnabled).length;
-  const slice = (items: SimulationResult[]) => {
-    const ranked = [...items].sort((a, b) => a.lifetimeEarnings - b.lifetimeEarnings);
-    const lo = Math.floor(ranked.length * .45), hi = Math.max(lo + 1, Math.ceil(ranked.length * .55));
-    return ranked.slice(lo, hi);
-  };
-  const ms = slice(manifesters), ns = slice(nonManifesters);
+  const manifesterEarnings = values(manifesters);
+  const matchedIncomeFloor = percentile(manifesterEarnings, .45);
+  const matchedIncomeCeiling = percentile(manifesterEarnings, .55);
+  const inMatchedIncomeBand = (result: SimulationResult) =>
+    result.lifetimeEarnings >= matchedIncomeFloor
+    && result.lifetimeEarnings <= matchedIncomeCeiling;
+  const ms = manifesters.filter(inMatchedIncomeBand);
+  const ns = nonManifesters.filter(inMatchedIncomeBand);
   const traits = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'] as const;
-  const avgTrait = (items: SimulationResult[], trait: typeof traits[number]) => items.reduce((sum, r) => sum + r.traits[trait], 0) / items.length;
+  const avgTrait = (items: SimulationResult[], trait: typeof traits[number]) =>
+    items.length ? items.reduce((sum, r) => sum + r.traits[trait], 0) / items.length : 0;
   const goalCohort = (goal: ManifestationGoal) => manifesters.filter(result => result.manifestationGoal === goal);
   const meanMetric = (items: SimulationResult[], metric: (result: SimulationResult) => number) =>
     items.length ? items.reduce((sum, result) => sum + metric(result), 0) / items.length : 0;
@@ -2436,8 +2439,10 @@ function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
           <div className="rounded-md bg-muted/40 p-2 text-xs"><span className="text-muted-foreground">Top 10 share </span><span className="font-mono font-semibold">{topManifesters}/10 manifesters</span></div>
         </div>
         <div className="rounded-md border p-3">
-          <div className="text-xs font-semibold mb-1">45th–55th percentile trait slice</div>
-          <div className="text-[10px] text-muted-foreground mb-3">Each cohort is ranked independently by lifetime earnings.</div>
+          <div className="text-xs font-semibold mb-1">Income-matched trait comparison</div>
+          <div className="text-[10px] text-muted-foreground mb-3">
+            The shared earnings band is set by manifesters’ 45th–55th percentile: {formatCurrency(matchedIncomeFloor)}–{formatCurrency(matchedIncomeCeiling)}. Both cohorts below earned within that same range.
+          </div>
           <SideBySideComparison
             leftLabel={`Manifesters (${ms.length.toLocaleString()})`}
             rightLabel={`Non-manifesters (${ns.length.toLocaleString()})`}

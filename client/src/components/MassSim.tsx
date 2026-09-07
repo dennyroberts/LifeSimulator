@@ -2487,27 +2487,57 @@ function ManifestationAnalysis({
         </div>
         <div className="rounded-md border p-3" data-testid="controlled-experiments">
           <div className="text-sm font-semibold">Controlled Experiments</div>
-          <p className="text-[10px] text-muted-foreground">Each study is deterministic and capped at {paired.pairs.length} lives per condition; neither is included in the mass-run cohort.</p>
-          <div className="grid md:grid-cols-2 gap-3 mt-2 text-xs">
-            <div className="rounded border p-3">
-              <b>Paired identical lives</b>
-              <p className="mt-1">Mean uplift {formatCurrency(paired.meanUplift)} · helped/tied/harmed {paired.helped}/{paired.tied}/{paired.harmed} ({(paired.helped / paired.pairs.length * 100).toFixed(1)}% / {(paired.tied / paired.pairs.length * 100).toFixed(1)}% / {(paired.harmed / paired.pairs.length * 100).toFixed(1)}%)</p>
-              <p>Education/career upgrades {paired.educationUpgrades}/{paired.careerUpgrades} · eligible checks affected/flipped {paired.checksAffected}/{paired.checksFlipped}</p>
-              <p>Same education + career stratum: {paired.sameStartingStratum.count} pairs; mean uplift {formatCurrency(paired.sameStartingStratum.meanUplift)}; helped/tied/harmed {paired.sameStartingStratum.helped}/{paired.sameStartingStratum.tied}/{paired.sameStartingStratum.harmed}</p>
+          <p className="text-[10px] text-muted-foreground">Deterministic studies kept separate from the primary mass run.</p>
+          <div className="mt-3 space-y-3 text-xs">
+            <section className="rounded-md border bg-muted/5 p-3 sm:p-4" data-testid="paired-identical-lives">
+              <div>
+                <h4 className="font-semibold">Paired identical lives</h4>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  {paired.pairs.length} identical life histories per condition; manifestation is the only changed input.
+                </p>
+              </div>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div className="rounded-md bg-chart-2/10 p-3">
+                  <div className="text-[10px] text-muted-foreground">Average earnings impact</div>
+                  <div className={`mt-0.5 font-mono text-lg font-bold ${paired.meanUplift >= 0 ? 'text-chart-2' : 'text-destructive'}`}>{formatCurrency(paired.meanUplift)}</div>
+                </div>
+                <div className="rounded-md bg-muted/40 p-3">
+                  <div className="text-[10px] text-muted-foreground">Lives helped</div>
+                  <div className="mt-0.5 font-mono text-lg font-bold text-chart-2">{(paired.helped / paired.pairs.length * 100).toFixed(1)}%</div>
+                  <div className="text-[10px] text-muted-foreground">{paired.helped} of {paired.pairs.length} pairs</div>
+                </div>
+                <div className="rounded-md bg-muted/40 p-3">
+                  <div className="text-[10px] text-muted-foreground">Lives harmed</div>
+                  <div className={`mt-0.5 font-mono text-lg font-bold ${paired.harmed > 0 ? 'text-destructive' : 'text-foreground'}`}>{(paired.harmed / paired.pairs.length * 100).toFixed(1)}%</div>
+                  <div className="text-[10px] text-muted-foreground">{paired.harmed} of {paired.pairs.length} pairs</div>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-md border border-dashed px-3 py-2 text-[10px] text-muted-foreground">
+                <span><b className="font-mono text-foreground">{paired.checksFlipped}</b> checks flipped</span>
+                <span><b className="font-mono text-foreground">{paired.educationUpgrades}</b> education upgrades</span>
+                <span><b className="font-mono text-foreground">{paired.careerUpgrades}</b> career upgrades</span>
+              </div>
+              <div className="mt-4 border-t pt-3">
+                <div className="font-semibold">Largest earnings differences</div>
+                <p className="text-[10px] text-muted-foreground">The same raw life shown with and without manifestation.</p>
+              </div>
               <div className="mt-3 space-y-3">
                 {paired.pairs.filter(pair => pair.uplift !== 0).sort((a, b) => Math.abs(b.uplift) - Math.abs(a.uplift)).slice(0, 3).map(pair => (
-                  <div key={pair.manifested.agentIndex} className="rounded border bg-muted/10 p-2">
-                    <div className="font-semibold">Pair #{pair.manifested.agentIndex} · uplift {formatCurrency(pair.uplift)}</div>
-                    <div className="mt-2 grid grid-cols-1 gap-2">
-                      <div><span className="text-chart-4">Manifesting</span><div className="overflow-x-auto"><MiniTimeline stages={pair.manifested.stages} /></div></div>
-                      <div><span className="text-muted-foreground">Control</span><div className="overflow-x-auto"><MiniTimeline stages={pair.control.stages} /></div></div>
+                  <div key={pair.manifested.agentIndex} className="rounded-md border bg-background p-3">
+                    <div className="flex flex-wrap items-baseline justify-between gap-1">
+                      <span className="font-semibold">Pair #{pair.manifested.agentIndex}</span>
+                      <span className={`font-mono font-semibold ${pair.uplift >= 0 ? 'text-chart-2' : 'text-destructive'}`}>{formatCurrency(pair.uplift)} impact</span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-3">
+                      <div><span className="text-[10px] font-semibold uppercase tracking-wide text-chart-4">Manifesting</span><div className="mt-1 overflow-x-auto"><MiniTimeline stages={pair.manifested.stages} /></div></div>
+                      <div><span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Control</span><div className="mt-1 overflow-x-auto"><MiniTimeline stages={pair.control.stages} /></div></div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="rounded border p-3">
-              <b>Independent all-10s cohorts</b>
+            </section>
+            <section className="rounded-md border p-3 sm:p-4" data-testid="independent-all-tens">
+              <h4 className="font-semibold">Independent all-10s cohorts</h4>
               <p className="mt-1 text-muted-foreground">{allTens.size} manifesters vs {allTens.size} controls with independently randomized lives.</p>
               <div className="mt-3">
                 <SideBySideComparison leftLabel="Manifesters" rightLabel="Controls" rows={[
@@ -2524,7 +2554,7 @@ function ManifestationAnalysis({
                 <p><b className="text-foreground">Manifestation checks affected/flipped:</b> {allTens.manifestedChecks.applied}/{allTens.manifestedChecks.flipped}</p>
                 <p>This sample shows ordinary life-history variation and is not injected into the primary run.</p>
               </div>
-            </div>
+            </section>
           </div>
         </div>
       </CardContent>

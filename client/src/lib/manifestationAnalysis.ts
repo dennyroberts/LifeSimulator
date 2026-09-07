@@ -20,11 +20,11 @@ export interface IncomeBandAnalysis {
   representatives: SimulationResult[];
 }
 
-/** True only when manifestation changed the realized education, career, gate, or check outcome. */
+/** True only when manifestation changed the realized education, career, or event-check outcome. */
 export function manifestationChangedOutcome(stage: SimulationResult['stages'][number]): boolean {
   if (stage.education?.manifestationUpgraded || stage.career?.manifestationUpgraded) return true;
   const outcome = stage.eventOutcome;
-  return Boolean(outcome && (outcome.gateSucceededOnlyBecauseOfManifestation || outcome.mainSucceededOnlyBecauseOfManifestation));
+  return Boolean(outcome?.mainSucceededOnlyBecauseOfManifestation);
 }
 
 export interface StageIncomeSeries {
@@ -73,9 +73,7 @@ export function assistedChecks(result: SimulationResult) {
     if (stage.career?.manifestationUpgraded) flipped++;
     const event = stage.eventOutcome;
     if (!event) continue;
-    if (event.gateManifestationApplied) applied++;
     if (event.mainManifestationApplied) applied++;
-    if (event.gateSucceededOnlyBecauseOfManifestation) flipped++;
     if (event.mainSucceededOnlyBecauseOfManifestation) flipped++;
   }
   return { applied, flipped };

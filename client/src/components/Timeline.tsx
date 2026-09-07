@@ -280,9 +280,9 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
             {getStatusText()}
           </span>
         </div>
-          {outcome.manifestationApplied && (
+          {outcome.mainManifestationApplied && (
           <Badge variant="outline" className="mb-1 w-fit text-[9px] border-chart-4/50 text-chart-4">
-             {outcome.gateSucceededOnlyBecauseOfManifestation || outcome.mainSucceededOnlyBecauseOfManifestation ? 'Manifestation flipped check' : `Manifestation +${outcome.manifestationBonus ?? 0}`}
+             {outcome.mainSucceededOnlyBecauseOfManifestation ? 'Manifestation flipped check' : `Manifestation +${outcome.manifestationBonus ?? 0}`}
           </Badge>
         )}
         {outcome.outcomeMessage && (
@@ -552,9 +552,9 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
             {getStatusIcon()}
             {getStatusText()}
           </div>
-          {outcome.manifestationApplied && (
+          {outcome.mainManifestationApplied && (
             <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-chart-4/50 text-chart-4" data-testid={`manifestation-${stage.stage}`}>
-               {outcome.gateSucceededOnlyBecauseOfManifestation || outcome.mainSucceededOnlyBecauseOfManifestation ? 'Manifestation flipped check' : `Manifesting +${outcome.manifestationBonus ?? 0}`}
+               {outcome.mainSucceededOnlyBecauseOfManifestation ? 'Manifestation flipped check' : `Manifesting +${outcome.manifestationBonus ?? 0}`}
             </Badge>
           )}
         </div>

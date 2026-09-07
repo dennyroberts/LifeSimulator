@@ -960,6 +960,21 @@ function MiniManifestedMarker({ stage }: { stage: SimulationResult['stages'][num
   ) : null;
 }
 
+function SalaryProgression({ stages }: { stages: SimulationResult['stages'] }) {
+  return (
+    <div className="mt-2 overflow-x-auto">
+      <div className="grid min-w-[640px] grid-cols-10 gap-1">
+        {stages.map(stage => (
+          <div key={stage.stage} className="rounded bg-muted/40 px-1.5 py-1 text-center">
+            <div className="text-[8px] text-muted-foreground">Age {stageToAge(stage.stage)}</div>
+            <div className="font-mono text-[9px] font-semibold">{formatCurrency(stage.incomeAfter)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const getEventIcon = (iconName?: string) => {
   if (!iconName) return Briefcase;
   const Icon = (LucideIcons as Record<string, any>)[iconName];
@@ -2387,6 +2402,10 @@ function ManifestationAnalysis({
   ), [displayedStrata]);
   const allTensManifesters = summary(allTens.manifesters);
   const allTensControls = summary(allTens.controls);
+  const allTensMeanUplift = allTensManifesters.mean - allTensControls.mean;
+  const allTensMeanUpliftPct = allTensControls.mean
+    ? allTensMeanUplift / allTensControls.mean * 100
+    : 0;
   const stageLabelCounts = (items: SimulationResult[], kind: 'education' | 'career') => {
     const counts = new Map<string, number>();
     for (const result of items) {
@@ -2529,8 +2548,22 @@ function ManifestationAnalysis({
                       <span className={`font-mono font-semibold ${pair.uplift >= 0 ? 'text-chart-2' : 'text-destructive'}`}>{formatCurrency(pair.uplift)} impact</span>
                     </div>
                     <div className="mt-3 grid grid-cols-1 gap-3">
-                      <div><span className="text-[10px] font-semibold uppercase tracking-wide text-chart-4">Manifesting</span><div className="mt-1 overflow-x-auto"><MiniTimeline stages={pair.manifested.stages} /></div></div>
-                      <div><span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Control</span><div className="mt-1 overflow-x-auto"><MiniTimeline stages={pair.control.stages} /></div></div>
+                      <div>
+                        <div className="flex flex-wrap items-baseline justify-between gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-chart-4">Manifesting</span>
+                          <span className="font-mono text-xs font-bold">{formatCurrency(pair.manifested.lifetimeEarnings)} lifetime</span>
+                        </div>
+                        <div className="mt-1 overflow-x-auto"><MiniTimeline stages={pair.manifested.stages} /></div>
+                        <SalaryProgression stages={pair.manifested.stages} />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-baseline justify-between gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Control</span>
+                          <span className="font-mono text-xs font-bold">{formatCurrency(pair.control.lifetimeEarnings)} lifetime</span>
+                        </div>
+                        <div className="mt-1 overflow-x-auto"><MiniTimeline stages={pair.control.stages} /></div>
+                        <SalaryProgression stages={pair.control.stages} />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -2539,6 +2572,13 @@ function ManifestationAnalysis({
             <section className="rounded-md border p-3 sm:p-4" data-testid="independent-all-tens">
               <h4 className="font-semibold">Independent all-10s cohorts</h4>
               <p className="mt-1 text-muted-foreground">{allTens.size} manifesters vs {allTens.size} controls with independently randomized lives.</p>
+              <div className="mt-3 rounded-md bg-chart-2/10 p-3">
+                <div className="text-[10px] text-muted-foreground">Mean earnings uplift</div>
+                <div className={`mt-0.5 font-mono text-lg font-bold ${allTensMeanUplift >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+                  {allTensMeanUpliftPct >= 0 ? '+' : ''}{allTensMeanUpliftPct.toFixed(1)}%
+                </div>
+                <div className="text-[10px] text-muted-foreground">{formatCurrency(allTensMeanUplift)} per life</div>
+              </div>
               <div className="mt-3">
                 <SideBySideComparison leftLabel="Manifesters" rightLabel="Controls" rows={[
                   { label: 'Mean earnings', left: formatCurrency(allTensManifesters.mean), right: formatCurrency(allTensControls.mean), leftValue: allTensManifesters.mean, rightValue: allTensControls.mean },

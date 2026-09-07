@@ -79,17 +79,19 @@ test('natural 1 and natural 20 remain critical regardless of manifestation bonus
   assert.equal(criticalSuccess.outcome.criticalType, 'success');
 });
 
-test('matching manifestation bonuses apply to risk gates as well as main checks', () => {
+test('matching manifestation bonuses apply only to event checks, never risk gates', () => {
   const startup = events.find(event => event.id === 'the_exit_everyone_dreams_about');
   assert.ok(startup);
 
-  const baseline = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 13);
-  const manifested = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 13, true, 3);
+  const baseline = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 16);
+  const manifested = resolveEvent(startup, 3, averageTraits, 'normal', () => 0.5, 50_000, 0.02, 16, true, 3);
 
-  assert.equal(baseline.outcome.gateFailed, true);
+  assert.equal(baseline.outcome.gateFailed, false);
   assert.equal(manifested.outcome.gateFailed, false);
-  assert.equal(manifested.outcome.gateMod, (baseline.outcome.gateMod ?? 0) + 3);
-  assert.equal(manifested.outcome.mainRoll, 13);
+  assert.equal(manifested.outcome.gateMod, baseline.outcome.gateMod);
+  assert.equal(baseline.outcome.success, false);
+  assert.equal(manifested.outcome.success, true);
+  assert.equal(manifested.outcome.mainRoll, 16);
 });
 
 test('batched mass runs preserve exact cohorts and deterministic outcomes', () => {
@@ -159,6 +161,7 @@ test('controlled paired lives share raw history and are deterministic', () => {
     assert.equal(pair.manifested.stages[1].career?.roll, pair.control.stages[1].career?.roll);
     assert.deepEqual(pair.manifested.stages.slice(2).map(s => s.eventOutcome?.event.id), pair.control.stages.slice(2).map(s => s.eventOutcome?.event.id));
     assert.deepEqual(pair.manifested.stages.slice(2).map(s => [s.eventOutcome?.gateRoll, s.eventOutcome?.mainRoll]), pair.control.stages.slice(2).map(s => [s.eventOutcome?.gateRoll, s.eventOutcome?.mainRoll]));
+    assert.deepEqual(pair.manifested.stages.slice(2).map(s => [s.eventOutcome?.gateMod, s.eventOutcome?.gateFailed]), pair.control.stages.slice(2).map(s => [s.eventOutcome?.gateMod, s.eventOutcome?.gateFailed]));
     assert.equal(pair.manifested.luck.rawRollDeviation, pair.control.luck.rawRollDeviation);
     assert.equal(pair.manifested.luck.eventRollLuck, pair.control.luck.eventRollLuck);
   });
@@ -185,10 +188,10 @@ test('independent all-10 cohorts and adequate starting strata are constructed', 
 test('manifestation marker requires a changed outcome, not merely an applied bonus', () => {
   const appliedOnly = { education: { manifestationApplied: true, manifestationUpgraded: false } } as any;
   const changed = { education: { manifestationApplied: true, manifestationUpgraded: true } } as any;
-  const gateChanged = { eventOutcome: { gateSucceededOnlyBecauseOfManifestation: true } } as any;
+  const checkChanged = { eventOutcome: { mainSucceededOnlyBecauseOfManifestation: true } } as any;
   assert.equal(manifestationChangedOutcome(appliedOnly), false);
   assert.equal(manifestationChangedOutcome(changed), true);
-  assert.equal(manifestationChangedOutcome(gateChanged), true);
+  assert.equal(manifestationChangedOutcome(checkChanged), true);
 });
 
 test('average income by stage is deterministic and preserves cohort gaps', () => {

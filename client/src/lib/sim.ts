@@ -115,9 +115,7 @@ export interface EventOutcome {
   decidingTrait?: TraitName; // The trait that made the difference (if any)
   manifestationApplied: boolean;
   manifestationBonus: number;
-  gateManifestationApplied?: boolean;
   mainManifestationApplied?: boolean;
-  gateSucceededOnlyBecauseOfManifestation?: boolean;
   mainSucceededOnlyBecauseOfManifestation?: boolean;
 }
 
@@ -884,7 +882,6 @@ export function resolveEvent(
   const manifestationApplied = manifestationEnabled && event.manifestationEligible === true;
   const effectiveManifestationBonus = manifestationApplied ? manifestationBonus : 0;
   let gateFailed = false;
-  let gateSucceededOnlyBecauseOfManifestation = false;
   let mainSucceededOnlyBecauseOfManifestation = false;
   let gateRoll: number | undefined;
   let gateMod: number | undefined;
@@ -901,11 +898,9 @@ export function resolveEvent(
   
   if (event.riskGated && event.riskGateDC) {
     gateRoll = precomputedGateRoll;
-    const ordinaryGateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode);
-    gateMod = ordinaryGateMod + effectiveManifestationBonus;
+    gateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode);
     gateDC = event.riskGateDC;
     gatePass = gateRoll! + gateMod >= gateDC;
-    gateSucceededOnlyBecauseOfManifestation = gatePass && gateRoll! + ordinaryGateMod < gateDC;
     gateFailed = !gatePass;
   }
   
@@ -1087,9 +1082,7 @@ export function resolveEvent(
     decidingTrait,
     manifestationApplied,
     manifestationBonus: effectiveManifestationBonus,
-    gateManifestationApplied: manifestationApplied && gateRoll !== undefined,
     mainManifestationApplied: manifestationApplied && !gateFailed && mainMod !== undefined,
-    gateSucceededOnlyBecauseOfManifestation,
     mainSucceededOnlyBecauseOfManifestation
   };
   

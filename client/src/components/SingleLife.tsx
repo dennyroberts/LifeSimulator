@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -22,6 +23,7 @@ import {
   type WorldMode,
   type SimulationResult,
   type CareerAspiration,
+  type ManifestationGoal,
   simulateLife,
   generateRandomTraits,
   generateRandomName,
@@ -51,6 +53,9 @@ export function SingleLife() {
   });
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [aspiration, setAspiration] = useState<CareerAspiration>(null);
+  const [manifestationEnabled, setManifestationEnabled] = useState(false);
+  const [manifestationGoal, setManifestationGoal] = useState<ManifestationGoal>('money');
+  const [manifestationBonus, setManifestationBonus] = useState(2);
   const [sameDeck, setSameDeck] = useState(false);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
@@ -173,6 +178,9 @@ export function SingleLife() {
     const urlSameDeck = params.get('sameDeck');
     const urlName = params.get('name');
     const urlTraits = params.get('traits');
+    const urlManifestation = params.get('manifestation');
+    const urlManifestationGoal = params.get('manifestationGoal');
+    const urlManifestationBonus = params.get('manifestationBonus');
     
     if (urlSeed) setSeed(urlSeed);
     if (urlWorld && ['normal', 'nepo', 'meritocracy'].includes(urlWorld)) {
@@ -186,6 +194,12 @@ export function SingleLife() {
         if (parsed.INT !== undefined) setTraits(parsed);
       } catch { }
     }
+    if (urlManifestation) setManifestationEnabled(urlManifestation === 'true');
+    if (urlManifestationGoal && ['money', 'career', 'love'].includes(urlManifestationGoal.toLowerCase())) setManifestationGoal(urlManifestationGoal.toLowerCase() as ManifestationGoal);
+    if (urlManifestationBonus !== null) {
+      const parsedBonus = Number(urlManifestationBonus);
+      if (Number.isFinite(parsedBonus)) setManifestationBonus(Math.max(0, Math.round(parsedBonus)));
+    }
   }, []);
   
   const updateUrl = useCallback(() => {
@@ -195,10 +209,13 @@ export function SingleLife() {
     params.set('sameDeck', String(sameDeck));
     if (name) params.set('name', name);
     params.set('traits', JSON.stringify(traits));
+    params.set('manifestation', String(manifestationEnabled));
+    params.set('manifestationGoal', manifestationGoal);
+    params.set('manifestationBonus', String(manifestationBonus));
     
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
-  }, [seed, worldMode, sameDeck, name, traits]);
+  }, [seed, worldMode, sameDeck, name, traits, manifestationEnabled, manifestationGoal, manifestationBonus]);
   
   const handleRandomTraits = () => {
     const rng = createRng(Date.now());
@@ -223,9 +240,9 @@ export function SingleLife() {
       setSeed(currentSeed);
     }
     const agentName = name || 'Anonymous';
-    const agent = { name: agentName, traits, index: 0, aspiration };
+    const agent = { name: agentName, traits, index: 0, aspiration, manifestationGoal, manifestationBonus };
     
-    const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck);
+    const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck, undefined, undefined, { manifestationEnabled, manifestationBonus });
     setResult(simResult);
     
     const sharedEvents = new Map<number, any>();
@@ -235,10 +252,10 @@ export function SingleLife() {
       }
     });
     
-    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 19);
+    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 19, { manifestationEnabled, manifestationBonus });
     setBestResult(bestSimResult);
     
-    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 2);
+    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 2, { manifestationEnabled, manifestationBonus });
     setWorstResult(worstSimResult);
     
     setTimelineView('actual');
@@ -467,6 +484,34 @@ export function SingleLife() {
                 Same deck for all
               </Label>
             </div>
+            <div className="rounded-md border border-chart-4/30 bg-chart-4/5 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Label htmlFor="manifestation" className="text-sm font-semibold">Manifestation mode</Label>
+                  <p className="text-[10px] text-muted-foreground">A focused intention adds a small, reproducible edge to matching checks.</p>
+                </div>
+                <Switch id="manifestation" checked={manifestationEnabled} onCheckedChange={setManifestationEnabled} />
+              </div>
+              {manifestationEnabled && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px]">Goal</Label>
+                    <Select value={manifestationGoal} onValueChange={(v) => setManifestationGoal(v as ManifestationGoal)}>
+                      <SelectTrigger className="h-8 mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="money">Money</SelectItem>
+                        <SelectItem value="career">Career</SelectItem>
+                        <SelectItem value="love">Love</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="manifestation-bonus" className="text-[10px]">Bonus</Label>
+                    <Input id="manifestation-bonus" type="number" min={0} step={1} value={manifestationBonus} onChange={(e) => setManifestationBonus(Math.max(0, Math.round(Number(e.target.value)) || 0))} className="h-8 mt-1 font-mono" />
+                  </div>
+                </div>
+              )}
+            </div>
             
             <div className="flex gap-2 pt-2">
               <Button
@@ -570,7 +615,10 @@ export function SingleLife() {
               </div>
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 flex flex-col">
-                  <div className="mb-2">
+                   <Badge variant="outline" className={`mb-2 ${result.manifestationEnabled ? 'border-chart-4/50 text-chart-4' : 'text-muted-foreground'}`}>
+                     {result.manifestationEnabled ? <><span>Manifesting: </span><span className="capitalize">{result.manifestationGoal}</span> (+{result.manifestationBonus})</> : 'Not manifesting'}
+                   </Badge>
+                   <div className="mb-2">
                     <LuckAnalysis luck={result.luck} embedded compact />
                   </div>
                   <div className="flex justify-start flex-1">

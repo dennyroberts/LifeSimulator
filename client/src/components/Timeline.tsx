@@ -267,6 +267,11 @@ function MobileEventCard({ stage }: { stage: StageResult }) {
             {getStatusText()}
           </span>
         </div>
+        {outcome.manifestationApplied && (
+          <Badge variant="outline" className="mb-1 w-fit text-[9px] border-chart-4/50 text-chart-4">
+            Manifestation +{outcome.manifestationBonus ?? 0}
+          </Badge>
+        )}
         {outcome.outcomeMessage && (
           <div className={`text-[10px] italic mb-1 ${getStatusColor()}`} data-testid={`mobile-outcome-${stage.stage}`}>
             "{outcome.outcomeMessage}"
@@ -529,6 +534,11 @@ function CompactEventCard({ stage }: { stage: StageResult }) {
             {getStatusIcon()}
             {getStatusText()}
           </div>
+          {outcome.manifestationApplied && (
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-chart-4/50 text-chart-4" data-testid={`manifestation-${stage.stage}`}>
+              Manifesting +{outcome.manifestationBonus ?? 0}
+            </Badge>
+          )}
         </div>
         
         {outcome.outcomeMessage && (

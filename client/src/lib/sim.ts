@@ -8,6 +8,7 @@ import careersData from '../data/careers.json';
 export type TraitName = 'INT' | 'WORK' | 'NEPO' | 'CHAR' | 'RISK';
 export type WorldMode = 'normal' | 'nepo' | 'meritocracy';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'jackpot' | 'sinkhole';
+export type ManifestationGoal = 'money' | 'career' | 'love';
 
 export interface Traits {
   INT: number;
@@ -39,6 +40,7 @@ export interface Event {
   riskGateWeight: number;
   success: { jumpPct: number; growthDelta: number };
   fail: { jumpPct: number; growthDelta: number };
+  manifestationGoals?: ManifestationGoal[];
   outcomes?: EventOutcomes;
 }
 
@@ -101,6 +103,8 @@ export interface EventOutcome {
   traitContributions?: TraitContribution[];
   outcomeMessage?: string;
   decidingTrait?: TraitName; // The trait that made the difference (if any)
+  manifestationApplied: boolean;
+  manifestationBonus: number;
 }
 
 export interface StageResult {
@@ -137,6 +141,9 @@ export interface SimulationResult {
   traits: Traits;
   aspiration: CareerAspiration;
   agentIndex: number;
+  manifestationEnabled: boolean;
+  manifestationGoal: ManifestationGoal | null;
+  manifestationBonus: number;
   stages: StageResult[];
   finalIncome: number;
   peakIncome: number;
@@ -151,6 +158,28 @@ export interface Agent {
   traits: Traits;
   index: number;
   aspiration?: CareerAspiration;
+  manifestationGoal?: ManifestationGoal | null;
+  manifestationBonus?: number;
+}
+
+export interface ManifestationOptions {
+  manifestationEnabled?: boolean;
+  manifestationBonus?: number;
+}
+
+export interface MassSimulationManifestationOptions extends ManifestationOptions {
+  /** Global agent index at which this batch begins. */
+  globalOffset?: number;
+  /** Full cohort size, rather than this batch's size. */
+  totalRunSize?: number;
+  /** Stable seed shared by every batch in the cohort. */
+  baseManifestationSeed?: string;
+  /** @deprecated Use globalOffset. */
+  agentOffset?: number;
+  /** @deprecated Use totalRunSize. */
+  totalAgents?: number;
+  /** @deprecated Use baseManifestationSeed. */
+  manifestationSeed?: string;
 }
 
 const config = configData;
@@ -799,8 +828,13 @@ export function resolveEvent(
   rng: () => number,
   currentIncome: number,
   currentGrowth: number,
-  forcedRoll?: number
+  forcedRoll?: number,
+  manifestationGoal: ManifestationGoal | null = null,
+  manifestationBonus: number = 0,
 ): { outcome: EventOutcome; newIncome: number; newGrowth: number } {
+  const manifestationApplied = manifestationGoal !== null
+    && event.manifestationGoals?.includes(manifestationGoal) === true;
+  const effectiveManifestationBonus = manifestationApplied ? manifestationBonus : 0;
   let gateFailed = false;
   let gateRoll: number | undefined;
   let gateMod: number | undefined;
@@ -809,7 +843,7 @@ export function resolveEvent(
   
   if (event.riskGated && event.riskGateDC) {
     gateRoll = forcedRoll ?? rollD20(rng);
-    gateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode);
+    gateMod = computeTotalMod(traits, { RISK: event.riskGateWeight }, worldMode) + effectiveManifestationBonus;
     gateDC = event.riskGateDC;
     gatePass = gateRoll + gateMod >= gateDC;
     gateFailed = !gatePass;
@@ -827,7 +861,7 @@ export function resolveEvent(
   if (!gateFailed) {
     if (event.rollRequired && event.DC) {
       mainRoll = forcedRoll ?? rollD20(rng);
-      mainMod = computeTotalMod(traits, event.checkTraits, worldMode);
+      mainMod = computeTotalMod(traits, event.checkTraits, worldMode) + effectiveManifestationBonus;
       traitContributions = computeTraitContributions(traits, event.checkTraits, worldMode);
       mainDC = event.DC;
       
@@ -986,7 +1020,9 @@ export function resolveEvent(
     criticalType,
     traitContributions,
     outcomeMessage,
-    decidingTrait
+    decidingTrait,
+    manifestationApplied,
+    manifestationBonus: effectiveManifestationBonus
   };
   
   return { outcome, newIncome, newGrowth };
@@ -998,8 +1034,16 @@ export function simulateLife(
   seed: string,
   sameDeck: boolean,
   sharedEvents?: Map<number, Event>,
-  forcedRoll?: number
+  forcedRoll?: number,
+  manifestationOptions: ManifestationOptions = {}
 ): SimulationResult {
+  const manifestationGoal = manifestationOptions.manifestationEnabled === true
+    ? (agent.manifestationGoal ?? null)
+    : null;
+  const manifestationEnabled = manifestationGoal !== null;
+  const manifestationBonus = manifestationEnabled
+    ? (manifestationOptions.manifestationBonus ?? agent.manifestationBonus ?? 0)
+    : 0;
   const agentRng = createRng(`${seed}|agent${agent.index}`);
   
   let lifetimeEarnings = 0;
@@ -1056,7 +1100,18 @@ export function simulateLife(
     drawnEvents.push({ event, stage: stageNum });
     
     // Event applies at start of stage: jump% to current income, modify growth
-    const result = resolveEvent(event, stageNum, agent.traits, worldMode, agentRng, income, growth, forcedRoll);
+    const result = resolveEvent(
+      event,
+      stageNum,
+      agent.traits,
+      worldMode,
+      agentRng,
+      income,
+      growth,
+      forcedRoll,
+      manifestationGoal,
+      manifestationBonus
+    );
     
     // Update income and growth from event result
     income = result.newIncome;
@@ -1153,6 +1208,9 @@ export function simulateLife(
     traits: agent.traits,
     aspiration: agent.aspiration ?? null,
     agentIndex: agent.index,
+    manifestationEnabled,
+    manifestationGoal,
+    manifestationBonus,
     stages,
     finalIncome: income,
     peakIncome,
@@ -1209,32 +1267,93 @@ export function generateSharedEvents(seed: string): Map<number, Event> {
   return sharedEvents;
 }
 
+/**
+ * Creates a seeded, balanced manifestation cohort. A cohort with an odd
+ * size deliberately assigns the smaller half to manifestation.
+ */
+export function createManifestationAssignments(
+  total: number,
+  seed: string
+): Array<ManifestationGoal | null> {
+  const safeTotal = Math.max(0, Math.floor(total));
+  const assignments: Array<ManifestationGoal | null> = Array(safeTotal).fill(null);
+  const goals: ManifestationGoal[] = ['money', 'career', 'love'];
+  const goalRng = createRng(`${seed}|manifestation-goals`);
+
+  for (let i = 0; i < Math.floor(safeTotal / 2); i++) {
+    assignments[i] = goals[Math.floor(goalRng() * goals.length)];
+  }
+
+  const shuffleRng = createRng(`${seed}|manifestation-shuffle`);
+  for (let i = assignments.length - 1; i > 0; i--) {
+    const j = Math.floor(shuffleRng() * (i + 1));
+    [assignments[i], assignments[j]] = [assignments[j], assignments[i]];
+  }
+
+  return assignments;
+}
+
 export function runMassSimulation(
   numAgents: number,
   worldMode: WorldMode,
   seed: string,
   sameDeck: boolean,
   aspirationsEnabled: boolean = true,
-  preGeneratedSharedEvents?: Map<number, Event>
+  preGeneratedSharedEvents?: Map<number, Event>,
+  manifestationEnabled: boolean | MassSimulationManifestationOptions = false,
+  manifestationBonus: number = 0,
+  globalOffset: number = 0,
+  totalRunSize: number = numAgents,
+  baseManifestationSeed: string = seed
 ): SimulationResult[] {
-  const masterRng = createRng(seed);
-  
   // Use pre-generated shared events if provided, otherwise generate (for backwards compatibility)
   let sharedEvents: Map<number, Event> | undefined;
   if (sameDeck) {
     sharedEvents = preGeneratedSharedEvents || generateSharedEvents(seed);
   }
   
+  const massManifestationOptions = typeof manifestationEnabled === 'object'
+    ? manifestationEnabled
+    : undefined;
+  const isManifestationEnabled = massManifestationOptions?.manifestationEnabled
+    ?? (manifestationEnabled === true);
+  const effectiveManifestationBonus = massManifestationOptions?.manifestationBonus
+    ?? manifestationBonus;
+  const effectiveGlobalOffset = massManifestationOptions?.globalOffset
+    ?? massManifestationOptions?.agentOffset
+    ?? globalOffset;
+  const effectiveTotalRunSize = massManifestationOptions?.totalRunSize
+    ?? massManifestationOptions?.totalAgents
+    ?? totalRunSize;
+  const effectiveManifestationSeed = massManifestationOptions?.baseManifestationSeed
+    ?? massManifestationOptions?.manifestationSeed
+    ?? baseManifestationSeed;
+
   const results: SimulationResult[] = [];
+  const manifestationAssignments = isManifestationEnabled
+    ? createManifestationAssignments(effectiveTotalRunSize, effectiveManifestationSeed)
+    : [];
   
   for (let i = 0; i < numAgents; i++) {
-    const agentSeedRng = createRng(`${seed}|agent${i}|init`);
+    const agentIndex = effectiveGlobalOffset + i;
+    const agentSeedRng = createRng(`${seed}|agent${agentIndex}|init`);
     const traits = generateRandomTraits(agentSeedRng);
     const name = generateRandomName(agentSeedRng);
     const aspiration = aspirationsEnabled ? generateRandomAspiration(agentSeedRng) : null;
     
-    const agent: Agent = { name, traits, index: i, aspiration };
-    const result = simulateLife(agent, worldMode, seed, sameDeck, sharedEvents);
+    const manifestationGoal = manifestationAssignments[agentIndex] ?? null;
+    const agent: Agent = {
+      name,
+      traits,
+      index: agentIndex,
+      aspiration,
+      manifestationGoal,
+      manifestationBonus: isManifestationEnabled && manifestationGoal ? effectiveManifestationBonus : 0
+    };
+    const result = simulateLife(agent, worldMode, seed, sameDeck, sharedEvents, undefined, {
+      manifestationEnabled: isManifestationEnabled,
+      manifestationBonus: effectiveManifestationBonus
+    });
     results.push(result);
   }
   

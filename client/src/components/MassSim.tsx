@@ -36,6 +36,7 @@ import {
   type StageResult,
   type Event,
   type CareerAspiration,
+  type ManifestationGoal,
   runMassSimulation,
   generateSharedEvents,
   formatCurrency,
@@ -43,7 +44,7 @@ import {
   getLifetimeGrade,
   simulateLife,
 } from '@/lib/sim';
-import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star } from 'lucide-react';
+import { Play, Users, Settings, RefreshCw, TrendingUp, TrendingDown, BarChart3, Sparkles, Skull, BookOpen, Loader2, GraduationCap, Briefcase, Filter, Search, X, ChevronDown, ChevronRight, Plus, Clover, Save, Pencil, Trash2, Star, DollarSign, Heart } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import eventsData from '@/data/events.json';
@@ -187,6 +188,8 @@ export function MassSim() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [sameDeck, setSameDeck] = useState(false);
   const [aspirationsEnabled, setAspirationsEnabled] = useState(true);
+  const [manifestationEnabled, setManifestationEnabled] = useState(false);
+  const [manifestationBonus, setManifestationBonus] = useState(2);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
   const [agentCount, setAgentCount] = useState<AgentCount>(10000);
@@ -234,13 +237,20 @@ export function MassSim() {
       const batchResults = runMassSimulation(
         batchCount,
         worldMode,
-        `${currentSeed}|batch${i}`,
+        currentSeed,
         sameDeck,
         aspirationsEnabled,
-        sharedEvents
+        sharedEvents,
+        {
+          manifestationEnabled,
+          manifestationBonus,
+          globalOffset: batchStart,
+          totalRunSize: agentCount,
+          baseManifestationSeed: currentSeed
+        }
       );
       
-      batchResults.forEach((r) => {
+      batchResults.forEach((r: SimulationResult) => {
         allResults.push(r);
       });
       
@@ -362,6 +372,16 @@ export function MassSim() {
                 </Label>
               </div>
               <div className="flex items-center space-x-3">
+                <Switch id="manifestation-enabled-mass" checked={manifestationEnabled} onCheckedChange={setManifestationEnabled} />
+                <Label htmlFor="manifestation-enabled-mass" className="cursor-pointer">Manifestation mode</Label>
+              </div>
+              {manifestationEnabled && (
+                <div className="flex items-center gap-2 pl-1">
+                  <Label htmlFor="manifestation-bonus-mass" className="text-xs text-muted-foreground">Bonus</Label>
+                  <Input id="manifestation-bonus-mass" type="number" min={0} step={1} value={manifestationBonus} onChange={(e) => setManifestationBonus(Math.max(0, Math.round(Number(e.target.value)) || 0))} className="h-7 w-16 font-mono" />
+                </div>
+              )}
+              <div className="flex items-center space-x-3">
                 <Switch
                   id="aspirations-enabled"
                   checked={aspirationsEnabled}
@@ -458,6 +478,7 @@ export function MassSim() {
           </div>
           
           <CompareCohorts results={results} worldMode={worldMode} seed={seed} />
+          {results.some(result => result.manifestationEnabled) && <ManifestationAnalysis results={results} />}
           
           <CollapsiblePanel 
             title="Lifetime Earnings Distribution" 
@@ -546,9 +567,10 @@ function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: s
     }
   });
   
-  const agentData = { name: agent.name, traits: agent.traits, index: agent.agentIndex, aspiration: agent.aspiration };
-  const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 19);
-  const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 2);
+  const agentData = { name: agent.name, traits: agent.traits, index: agent.agentIndex, aspiration: agent.aspiration, manifestationGoal: agent.manifestationGoal, manifestationBonus: agent.manifestationBonus };
+  const options = { manifestationEnabled: agent.manifestationEnabled, manifestationBonus: agent.manifestationBonus };
+  const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 19, options);
+  const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 2, options);
   
   return { actual: agent, best, worst };
 }
@@ -657,7 +679,7 @@ function calculateTraitWinLoss(stages: StageResult[]): { wins: number; losses: n
     if (!outcome || outcome.mainRoll === undefined || outcome.mainDC === undefined) continue;
     
     const roll = outcome.mainRoll;
-    const mod = outcome.mainMod || 0;
+    const mod = (outcome.mainMod || 0) - (outcome.manifestationBonus || 0);
     const dc = outcome.mainDC;
     const totalRoll = roll + mod;
     
@@ -780,6 +802,9 @@ function AgentCard({ agentData, rank, isTop = false }: {
           </div>
           {/* Luck section - hidden on mobile, show inline on desktop */}
           <div className="hidden sm:block text-right shrink-0 space-y-1">
+            <div className={`text-[10px] ${actual.manifestationEnabled ? 'text-chart-4' : 'text-muted-foreground'}`}>
+              {actual.manifestationEnabled ? `Manifesting: ${actual.manifestationGoal} (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}
+            </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <Clover className="h-3 w-3 text-chart-2" />
               <span>Luck</span>
@@ -814,6 +839,11 @@ function AgentCard({ agentData, rank, isTop = false }: {
         </div>
         {/* Mobile luck row - compact horizontal */}
         <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2">
+          <span className={actual.manifestationEnabled ? 'text-chart-4' : 'text-muted-foreground'}>
+            {actual.manifestationEnabled
+              ? `Manifesting: ${actual.manifestationGoal} (+${actual.manifestationBonus ?? 0})`
+              : 'Not manifesting'}
+          </span>
           <Clover className="h-3 w-3 text-chart-2 shrink-0" />
           <div className="flex items-center gap-3 font-mono flex-wrap">
             <span>
@@ -2233,6 +2263,238 @@ function CohortPanel({
           )}
         </CardContent>
       )}
+    </Card>
+  );
+}
+
+function ManifestationAnalysis({ results }: { results: SimulationResult[] }) {
+  const manifesters = results.filter(r => r.manifestationEnabled);
+  const nonManifesters = results.filter(r => !r.manifestationEnabled);
+  if (!manifesters.length || !nonManifesters.length) return null;
+  const values = (items: SimulationResult[]) => items.map(r => r.lifetimeEarnings).sort((a, b) => a - b);
+  const percentile = (sorted: number[], p: number) => sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))] ?? 0;
+  const summary = (items: SimulationResult[]) => {
+    const v = values(items);
+    return { count: items.length, mean: v.reduce((a, b) => a + b, 0) / v.length, median: percentile(v, .5), min: v[0], max: v[v.length - 1], p25: percentile(v, .25), p75: percentile(v, .75) };
+  };
+  const m = summary(manifesters), n = summary(nonManifesters);
+  const uplift = m.median - n.median;
+  const pct = n.median ? (uplift / Math.abs(n.median)) * 100 : 0;
+  const top10 = getTopN(results, 10, r => r.lifetimeEarnings);
+  const topManifesters = top10.filter(r => r.manifestationEnabled).length;
+  const slice = (items: SimulationResult[]) => {
+    const ranked = [...items].sort((a, b) => a.lifetimeEarnings - b.lifetimeEarnings);
+    const lo = Math.floor(ranked.length * .45), hi = Math.max(lo + 1, Math.ceil(ranked.length * .55));
+    return ranked.slice(lo, hi);
+  };
+  const ms = slice(manifesters), ns = slice(nonManifesters);
+  const traits = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'] as const;
+  const avgTrait = (items: SimulationResult[], trait: typeof traits[number]) => items.reduce((sum, r) => sum + r.traits[trait], 0) / items.length;
+  const goalCohort = (goal: ManifestationGoal) => manifesters.filter(result => result.manifestationGoal === goal);
+  const meanMetric = (items: SimulationResult[], metric: (result: SimulationResult) => number) =>
+    items.length ? items.reduce((sum, result) => sum + metric(result), 0) / items.length : 0;
+  const medianMetric = (items: SimulationResult[], metric: (result: SimulationResult) => number) => {
+    if (!items.length) return 0;
+    const sorted = items.map(metric).sort((a, b) => a - b);
+    return percentile(sorted, .5);
+  };
+  const alignedEventStats = (items: SimulationResult[], goal: ManifestationGoal) => {
+    let attempts = 0;
+    let successes = 0;
+    for (const result of items) {
+      for (const stage of result.stages) {
+        const outcome = stage.eventOutcome;
+        if (!outcome?.event.manifestationGoals?.includes(goal)) continue;
+        attempts++;
+        if (outcome.success) successes++;
+      }
+    }
+    return {
+      attempts,
+      successes,
+      successRate: attempts ? successes / attempts : 0,
+      successesPerLife: items.length ? successes / items.length : 0,
+    };
+  };
+  const relationshipStats = (items: SimulationResult[]) => {
+    let partnered = 0;
+    let foundPartnerAttempts = 0;
+    let foundPartnerSuccesses = 0;
+    let divorces = 0;
+    for (const result of items) {
+      let isPartnered = false;
+      const eventStages = result.stages
+        .filter(stage => stage.eventOutcome)
+        .sort((a, b) => a.stage - b.stage);
+      for (const stage of eventStages) {
+        const outcome = stage.eventOutcome!;
+        if (outcome.event.id === 'you_find_your_person') {
+          foundPartnerAttempts++;
+          isPartnered = outcome.success;
+          if (outcome.success) foundPartnerSuccesses++;
+        } else if (outcome.event.id === 'divorce') {
+          divorces++;
+          isPartnered = false;
+        }
+      }
+      if (isPartnered) partnered++;
+    }
+    return {
+      partnered,
+      unmarried: items.length - partnered,
+      partneredRate: items.length ? partnered / items.length : 0,
+      foundPartnerAttempts,
+      foundPartnerSuccesses,
+      foundPartnerRate: foundPartnerAttempts ? foundPartnerSuccesses / foundPartnerAttempts : 0,
+      divorces,
+      divorcesPerThousand: items.length ? (divorces / items.length) * 1000 : 0,
+    };
+  };
+  const moneyManifesters = goalCohort('money');
+  const careerManifesters = goalCohort('career');
+  const loveManifesters = goalCohort('love');
+  const moneyEvents = alignedEventStats(moneyManifesters, 'money');
+  const controlMoneyEvents = alignedEventStats(nonManifesters, 'money');
+  const careerEvents = alignedEventStats(careerManifesters, 'career');
+  const controlCareerEvents = alignedEventStats(nonManifesters, 'career');
+  const loveStats = relationshipStats(loveManifesters);
+  const controlLoveStats = relationshipStats(nonManifesters);
+  const formatRate = (rate: number) => `${(rate * 100).toFixed(1)}%`;
+  const comparisonClass = (value: number, control: number) =>
+    value >= control ? 'text-chart-2' : 'text-destructive';
+  return (
+    <Card data-testid="manifestation-analysis">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-chart-4" />Manifesters vs Non-manifesters</CardTitle>
+        <p className="text-xs text-muted-foreground">A simulation comparison, not proof of causation. Each cohort is ranked independently.</p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div><div className="text-[10px] text-muted-foreground uppercase">Counts</div><div className="font-mono">{m.count.toLocaleString()} / {n.count.toLocaleString()}</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">Mean</div><div className="font-mono">{formatCurrency(m.mean)} / {formatCurrency(n.mean)}</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">Median</div><div className="font-mono">{formatCurrency(m.median)} / {formatCurrency(n.median)}</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">Min – Max</div><div className="font-mono text-xs">{formatCurrency(m.min)}–{formatCurrency(m.max)} / {formatCurrency(n.min)}–{formatCurrency(n.max)}</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">P25–P75</div><div className="font-mono text-xs">{formatCurrency(m.p25)}–{formatCurrency(m.p75)} / {formatCurrency(n.p25)}–{formatCurrency(n.p75)}</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">Median uplift</div><div className="font-mono text-chart-2">{formatCurrency(uplift)}</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">Relative uplift</div><div className="font-mono text-chart-2">{pct >= 0 ? '+' : ''}{pct.toFixed(1)}%</div></div>
+          <div><div className="text-[10px] text-muted-foreground uppercase">Top 10 share</div><div className="font-mono">{topManifesters}/10 manifesters</div></div>
+        </div>
+        <div className="rounded-md border p-3">
+          <div className="text-xs font-semibold mb-2">45th–55th percentile trait slice</div>
+          <div className="text-[10px] text-muted-foreground mb-2">Manifesters: {ms.length.toLocaleString()} · Non-manifesters: {ns.length.toLocaleString()}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {traits.map(trait => {
+              const a = avgTrait(ms, trait), b = avgTrait(ns, trait);
+              return <div key={trait} className="font-mono text-xs"><div className="text-muted-foreground">{trait}</div><div>{a.toFixed(2)} / {b.toFixed(2)}</div><div className={a - b >= 0 ? 'text-chart-2' : 'text-destructive'}>{a - b >= 0 ? '+' : ''}{(a - b).toFixed(2)}</div></div>;
+            })}
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground">Average traits shown as manifesters / non-manifesters; total trait-point gap: <span className="font-mono text-foreground">{(traits.reduce((sum, t) => sum + avgTrait(ms, t) - avgTrait(ns, t), 0)).toFixed(2)}</span></div>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <div className="text-sm font-semibold">Results by manifestation goal</div>
+            <p className="text-[10px] text-muted-foreground">Each goal cohort is compared with the full non-manifesting control group. Opportunity rates include only events tagged for that goal.</p>
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+            <div className="rounded-md border border-chart-2/30 bg-chart-2/5 p-3" data-testid="manifestation-money-analysis">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="h-4 w-4 text-chart-2" />
+                <div>
+                  <div className="text-sm font-semibold">Manifesting Money</div>
+                  <div className="text-[10px] text-muted-foreground">{moneyManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <div className="text-muted-foreground">Median lifetime earnings</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(medianMetric(moneyManifesters, r => r.lifetimeEarnings), n.median)}`}>{formatCurrency(medianMetric(moneyManifesters, r => r.lifetimeEarnings))}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(n.median)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Mean final income</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(meanMetric(moneyManifesters, r => r.finalIncome), meanMetric(nonManifesters, r => r.finalIncome))}`}>{formatCurrency(meanMetric(moneyManifesters, r => r.finalIncome))}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(meanMetric(nonManifesters, r => r.finalIncome))}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Money-opportunity pass rate</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(moneyEvents.successRate, controlMoneyEvents.successRate)}`}>{formatRate(moneyEvents.successRate)}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatRate(controlMoneyEvents.successRate)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Successful money events / life</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(moneyEvents.successesPerLife, controlMoneyEvents.successesPerLife)}`}>{moneyEvents.successesPerLife.toFixed(2)}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {controlMoneyEvents.successesPerLife.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md border border-chart-3/30 bg-chart-3/5 p-3" data-testid="manifestation-career-analysis">
+              <div className="flex items-center gap-2 mb-3">
+                <Briefcase className="h-4 w-4 text-chart-3" />
+                <div>
+                  <div className="text-sm font-semibold">Manifesting Career</div>
+                  <div className="text-[10px] text-muted-foreground">{careerManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <div className="text-muted-foreground">Mean final income</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(meanMetric(careerManifesters, r => r.finalIncome), meanMetric(nonManifesters, r => r.finalIncome))}`}>{formatCurrency(meanMetric(careerManifesters, r => r.finalIncome))}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(meanMetric(nonManifesters, r => r.finalIncome))}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Mean peak income</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(meanMetric(careerManifesters, r => r.peakIncome), meanMetric(nonManifesters, r => r.peakIncome))}`}>{formatCurrency(meanMetric(careerManifesters, r => r.peakIncome))}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatCurrency(meanMetric(nonManifesters, r => r.peakIncome))}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Career-opportunity pass rate</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(careerEvents.successRate, controlCareerEvents.successRate)}`}>{formatRate(careerEvents.successRate)}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatRate(controlCareerEvents.successRate)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Successful career events / life</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(careerEvents.successesPerLife, controlCareerEvents.successesPerLife)}`}>{careerEvents.successesPerLife.toFixed(2)}</div>
+                  <div className="text-[10px] text-muted-foreground">Control {controlCareerEvents.successesPerLife.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md border border-pink-400/30 bg-pink-400/5 p-3" data-testid="manifestation-love-analysis">
+              <div className="flex items-center gap-2 mb-3">
+                <Heart className="h-4 w-4 text-pink-400" />
+                <div>
+                  <div className="text-sm font-semibold">Manifesting Love</div>
+                  <div className="text-[10px] text-muted-foreground">{loveManifesters.length.toLocaleString()} lives · versus {nonManifesters.length.toLocaleString()} controls</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <div className="text-muted-foreground">Partnered at end of sim</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(loveStats.partneredRate, controlLoveStats.partneredRate)}`}>{loveStats.partnered.toLocaleString()} ({formatRate(loveStats.partneredRate)})</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatRate(controlLoveStats.partneredRate)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Unmarried at end</div>
+                  <div className="font-mono font-semibold">{loveStats.unmarried.toLocaleString()} ({formatRate(1 - loveStats.partneredRate)})</div>
+                  <div className="text-[10px] text-muted-foreground">Control {formatRate(1 - controlLoveStats.partneredRate)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Find-your-person pass rate</div>
+                  <div className={`font-mono font-semibold ${comparisonClass(loveStats.foundPartnerRate, controlLoveStats.foundPartnerRate)}`}>{formatRate(loveStats.foundPartnerRate)}</div>
+                  <div className="text-[10px] text-muted-foreground">{loveStats.foundPartnerAttempts.toLocaleString()} encounters · control {formatRate(controlLoveStats.foundPartnerRate)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Divorces per 1,000 lives</div>
+                  <div className={`font-mono font-semibold ${loveStats.divorcesPerThousand <= controlLoveStats.divorcesPerThousand ? 'text-chart-2' : 'text-destructive'}`}>{loveStats.divorcesPerThousand.toFixed(1)}</div>
+                  <div className="text-[10px] text-muted-foreground">{loveStats.divorces.toLocaleString()} total · control {controlLoveStats.divorcesPerThousand.toFixed(1)}</div>
+                </div>
+              </div>
+              <p className="mt-3 text-[10px] text-muted-foreground">“Partnered” means the last relationship-changing event was a successful Find Your Person; any later Divorce returns the life to unmarried.</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }

@@ -7,6 +7,10 @@ import {
   runMassSimulation,
   resolveEducation,
   resolveCareer,
+  drawEventFromRoll,
+  intrinsicExpectedEV,
+  getEventDrawWeight,
+  getRarityWeight,
   type Event,
   type Traits,
 } from './sim';
@@ -92,6 +96,64 @@ test('matching manifestation bonuses apply only to event checks, never risk gate
   assert.equal(baseline.outcome.success, false);
   assert.equal(manifested.outcome.success, true);
   assert.equal(manifested.outcome.mainRoll, 16);
+});
+
+test('woo manifestation increases good-card frequency and decreases bad-card frequency', () => {
+  const stage = 5;
+  const counts = (strength: number) => {
+    let good = 0, bad = 0;
+    for (let index = 0; index < 10_000; index++) {
+      const event = drawEventFromRoll((index + 0.5) / 10_000, strength, stage);
+      const quality = intrinsicExpectedEV(event, stage);
+      if (quality > 0) good++;
+      if (quality < 0) bad++;
+    }
+    return { good, bad };
+  };
+  const ordinary = counts(0);
+  const woo = counts(10);
+  assert.ok(woo.good > ordinary.good);
+  assert.ok(woo.bad < ordinary.bad);
+});
+
+test('woo draw weights use the exact bounded positive, negative, and neutral formula', () => {
+  const stage = 5;
+  const positive = events.find(event => intrinsicExpectedEV(event, stage) > 0)!;
+  const negative = events.find(event => intrinsicExpectedEV(event, stage) < 0)!;
+  const neutral: Event = {
+    id: 'neutral-test', name: 'Neutral', rarity: 'common', rollRequired: false, DC: null,
+    checkTraits: {}, riskGated: false, riskGateDC: null, riskGateWeight: 0,
+    success: { jumpPct: 0, growthDelta: 0 }, fail: { jumpPct: 0, growthDelta: 0 },
+  };
+  assert.equal(getEventDrawWeight(positive, stage, 10), getRarityWeight(positive.rarity) * 1.1);
+  assert.equal(getEventDrawWeight(negative, stage, 10), getRarityWeight(negative.rarity) * 0.9);
+  assert.equal(getEventDrawWeight(neutral, stage, 10), getRarityWeight(neutral.rarity));
+  assert.equal(getEventDrawWeight(positive, stage, -20), getRarityWeight(positive.rarity));
+  assert.equal(getEventDrawWeight(negative, stage, 200), 0);
+});
+
+test('woo mode changes deterministic card draws without adding roll bonuses', () => {
+  const options = {
+    manifestationEnabled: true,
+    manifestationMode: 'woo' as const,
+    manifestationBonus: 20,
+    wooStrength: 50,
+    totalRunSize: 20,
+    baseManifestationSeed: 'woo-deck',
+  };
+  const lives = runMassSimulation(20, 'normal', 'woo-deck', true, true, undefined, options);
+  const manifesters = lives.filter(life => life.manifestationEnabled);
+  const controls = lives.filter(life => !life.manifestationEnabled);
+  assert.ok(manifesters.every(life => life.manifestationBonus === 0 && life.wooStrength === 50));
+  assert.ok(manifesters.every(life => !life.stages[1].career?.manifestationApplied));
+  const eventIds = (life: typeof lives[number]) => life.stages.slice(2).map(stage => stage.eventOutcome?.event.id);
+  manifesters.slice(1).forEach(life => assert.deepEqual(eventIds(life), eventIds(manifesters[0])));
+  controls.slice(1).forEach(life => assert.deepEqual(eventIds(life), eventIds(controls[0])));
+  assert.notDeepEqual(eventIds(manifesters[0]), eventIds(controls[0]));
+  assert.deepEqual(
+    lives.map(life => [life.agentIndex, life.manifestationEnabled, eventIds(life)]),
+    runMassSimulation(20, 'normal', 'woo-deck', true, true, undefined, options).map(life => [life.agentIndex, life.manifestationEnabled, eventIds(life)]),
+  );
 });
 
 test('batched mass runs preserve exact cohorts and deterministic outcomes', () => {

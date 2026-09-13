@@ -112,6 +112,9 @@ export interface EventOutcome {
   manifestationBonus: number;
   mainManifestationApplied?: boolean;
   mainSucceededOnlyBecauseOfManifestation?: boolean;
+  wooAdjustedDraw?: boolean;
+  wooImprovedCard?: boolean;
+  wooCounterfactualEventName?: string;
 }
 
 export interface StageResult {
@@ -149,7 +152,9 @@ export interface SimulationResult {
   aspiration: CareerAspiration;
   agentIndex: number;
   manifestationEnabled: boolean;
+  manifestationMode: ManifestationMode;
   manifestationBonus: number;
+  wooStrength: number;
   stages: StageResult[];
   finalIncome: number;
   peakIncome: number;
@@ -158,6 +163,7 @@ export interface SimulationResult {
 }
 
 export type CareerAspiration = 'Healthcare' | 'Creative Fields' | 'Marketing' | 'Tech' | 'Finance' | 'Lawyer' | 'Doctor' | null;
+export type ManifestationMode = 'opportunity' | 'woo';
 
 export interface Agent {
   name: string;
@@ -169,7 +175,9 @@ export interface Agent {
 
 export interface ManifestationOptions {
   manifestationEnabled?: boolean;
+  manifestationMode?: ManifestationMode;
   manifestationBonus?: number;
+  wooStrength?: number;
 }
 
 export interface MassSimulationManifestationOptions extends ManifestationOptions {
@@ -275,14 +283,28 @@ export function getTotalDeckWeight(): number {
   return events.reduce((sum, e) => sum + getRarityWeight(e.rarity), 0);
 }
 
-export function drawEvent(rng: () => number): Event {
-  const totalWeight = getTotalDeckWeight();
-  let roll = rng() * totalWeight;
-  for (const event of events) {
-    roll -= getRarityWeight(event.rarity);
+export function getEventDrawWeight(event: Event, stage: number, wooStrength = 0): number {
+  const adjustment = clamp(wooStrength, 0, 100) / 100;
+  const quality = intrinsicExpectedEV(event, stage);
+  const multiplier = quality > 0 ? 1 + adjustment : quality < 0 ? 1 - adjustment : 1;
+  return getRarityWeight(event.rarity) * multiplier;
+}
+
+export function drawEventFromRoll(rollValue: number, wooStrength = 0, stage = 3): Event {
+  const weightedEvents = events.map(event => {
+    return { event, weight: getEventDrawWeight(event, stage, wooStrength) };
+  });
+  const totalWeight = weightedEvents.reduce((sum, item) => sum + item.weight, 0);
+  let roll = clamp(rollValue, 0, 0.9999999999999999) * totalWeight;
+  for (const { event, weight } of weightedEvents) {
+    roll -= weight;
     if (roll <= 0) return event;
   }
-  return events[events.length - 1];
+  return weightedEvents[weightedEvents.length - 1].event;
+}
+
+export function drawEvent(rng: () => number, wooStrength = 0, stage = 3): Event {
+  return drawEventFromRoll(rng(), wooStrength, stage);
 }
 
 export function computeTotalMod(
@@ -1077,7 +1099,12 @@ export function simulateLife(
   manifestationOptions: ManifestationOptions = {}
 ): SimulationResult {
   const manifestationEnabled = manifestationOptions.manifestationEnabled === true;
-  const manifestationBonus = manifestationEnabled
+  const manifestationMode = manifestationOptions.manifestationMode ?? 'opportunity';
+  const bonusManifestationEnabled = manifestationEnabled && manifestationMode === 'opportunity';
+  const wooStrength = manifestationEnabled && manifestationMode === 'woo'
+    ? clamp(manifestationOptions.wooStrength ?? 10, 0, 100)
+    : 0;
+  const manifestationBonus = manifestationEnabled && manifestationMode === 'opportunity'
     ? (manifestationOptions.manifestationBonus ?? agent.manifestationBonus ?? 0)
     : 0;
   const agentRng = createRng(`${seed}|agent${agent.index}`);
@@ -1104,7 +1131,7 @@ export function simulateLife(
     educationOutcome.label,
     agent.aspiration,
     forcedRoll,
-    manifestationEnabled,
+    bonusManifestationEnabled,
     manifestationBonus,
   );
   
@@ -1132,17 +1159,22 @@ export function simulateLife(
   
   for (const stageNum of config.eventStages) {
     let event: Event;
+    let ordinaryEvent: Event | undefined;
     
     if (sameDeck && sharedEvents) {
       event = sharedEvents.get(stageNum)!;
     } else if (sameDeck) {
       const stageRng = createRng(`${seed}|stage${stageNum}`);
-      event = drawEvent(stageRng);
+      const drawValue = stageRng();
+      ordinaryEvent = drawEventFromRoll(drawValue, 0, stageNum);
+      event = drawEventFromRoll(drawValue, wooStrength, stageNum);
     } else {
       // Keep opportunity draws independent from checks. This makes an on/off
       // counterfactual replay the identical life history rather than shifting
       // later draws when an earlier gate changes.
-      event = drawEvent(createRng(`${seed}|agent${agent.index}|event${stageNum}|draw`));
+      const drawValue = createRng(`${seed}|agent${agent.index}|event${stageNum}|draw`)();
+      ordinaryEvent = drawEventFromRoll(drawValue, 0, stageNum);
+      event = drawEventFromRoll(drawValue, wooStrength, stageNum);
     }
     
     drawnEvents.push({ event, stage: stageNum });
@@ -1157,9 +1189,14 @@ export function simulateLife(
       income,
       growth,
       forcedRoll,
-      manifestationEnabled,
+      bonusManifestationEnabled,
       manifestationBonus
     );
+    if (wooStrength > 0 && ordinaryEvent) {
+      result.outcome.wooAdjustedDraw = ordinaryEvent.id !== event.id;
+      result.outcome.wooImprovedCard = intrinsicExpectedEV(event, stageNum) > intrinsicExpectedEV(ordinaryEvent, stageNum);
+      result.outcome.wooCounterfactualEventName = ordinaryEvent.name;
+    }
     
     // Update income and growth from event result
     income = result.newIncome;
@@ -1257,7 +1294,9 @@ export function simulateLife(
     aspiration: agent.aspiration ?? null,
     agentIndex: agent.index,
     manifestationEnabled,
+    manifestationMode,
     manifestationBonus,
+    wooStrength,
     stages,
     finalIncome: income,
     peakIncome,
@@ -1305,11 +1344,11 @@ export function generateRandomAspiration(rng: () => number): CareerAspiration {
 }
 
 // Generate shared events for "same deck" mode - call once before batching
-export function generateSharedEvents(seed: string): Map<number, Event> {
+export function generateSharedEvents(seed: string, wooStrength = 0): Map<number, Event> {
   const sharedEvents = new Map<number, Event>();
   for (const stageNum of config.eventStages) {
     const stageRng = createRng(`${seed}|stage${stageNum}`);
-    sharedEvents.set(stageNum, drawEvent(stageRng));
+    sharedEvents.set(stageNum, drawEvent(stageRng, wooStrength, stageNum));
   }
   return sharedEvents;
 }
@@ -1351,12 +1390,6 @@ export function runMassSimulation(
   totalRunSize: number = numAgents,
   baseManifestationSeed: string = seed
 ): SimulationResult[] {
-  // Use pre-generated shared events if provided, otherwise generate (for backwards compatibility)
-  let sharedEvents: Map<number, Event> | undefined;
-  if (sameDeck) {
-    sharedEvents = preGeneratedSharedEvents || generateSharedEvents(seed);
-  }
-  
   const massManifestationOptions = typeof manifestationEnabled === 'object'
     ? manifestationEnabled
     : undefined;
@@ -1364,6 +1397,13 @@ export function runMassSimulation(
     ?? (manifestationEnabled === true);
   const effectiveManifestationBonus = massManifestationOptions?.manifestationBonus
     ?? manifestationBonus;
+  const effectiveManifestationMode = massManifestationOptions?.manifestationMode ?? 'opportunity';
+  const effectiveWooStrength = massManifestationOptions?.wooStrength ?? 10;
+  // Woo and control cohorts each receive a deterministic same deck under
+  // their own weighting. Opportunity mode retains the legacy shared map.
+  const sharedEvents = sameDeck && effectiveManifestationMode !== 'woo'
+    ? (preGeneratedSharedEvents || generateSharedEvents(seed))
+    : undefined;
   const effectiveGlobalOffset = massManifestationOptions?.globalOffset
     ?? massManifestationOptions?.agentOffset
     ?? globalOffset;
@@ -1396,7 +1436,9 @@ export function runMassSimulation(
     };
     const result = simulateLife(agent, worldMode, seed, sameDeck, sharedEvents, undefined, {
       manifestationEnabled: isManifestationEnabled && agentManifesting,
-      manifestationBonus: effectiveManifestationBonus
+      manifestationMode: effectiveManifestationMode,
+      manifestationBonus: effectiveManifestationBonus,
+      wooStrength: effectiveWooStrength,
     });
     results.push(result);
   }

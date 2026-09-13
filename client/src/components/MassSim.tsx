@@ -36,6 +36,7 @@ import {
   type StageResult,
   type Event,
   type CareerAspiration,
+  type ManifestationMode,
   runMassSimulation,
   generateSharedEvents,
   formatCurrency,
@@ -189,7 +190,9 @@ export function MassSim() {
   const [sameDeck, setSameDeck] = useState(false);
   const [aspirationsEnabled, setAspirationsEnabled] = useState(true);
   const [manifestationEnabled, setManifestationEnabled] = useState(false);
+  const [manifestationMode, setManifestationMode] = useState<ManifestationMode>('opportunity');
   const [manifestationBonus, setManifestationBonus] = useState(2);
+  const [wooStrength, setWooStrength] = useState(10);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
   const [agentCount, setAgentCount] = useState<AgentCount>(10000);
@@ -225,7 +228,7 @@ export function MassSim() {
     const allResults: SimulationResult[] = [];
     
     // Generate shared events ONCE before batching (so all batches use the same deck)
-    const sharedEvents = sameDeck ? generateSharedEvents(currentSeed) : undefined;
+    const sharedEvents = sameDeck && manifestationMode !== 'woo' ? generateSharedEvents(currentSeed) : undefined;
     
     for (let i = 0; i < batches; i++) {
       if (!isMountedRef.current) return;
@@ -243,7 +246,9 @@ export function MassSim() {
         sharedEvents,
         {
           manifestationEnabled,
+          manifestationMode,
           manifestationBonus,
+          wooStrength,
           globalOffset: batchStart,
           totalRunSize: agentCount,
           baseManifestationSeed: currentSeed
@@ -376,9 +381,21 @@ export function MassSim() {
                 <Label htmlFor="manifestation-enabled-mass" className="cursor-pointer">Manifestation mode</Label>
               </div>
               {manifestationEnabled && (
-                <div className="flex items-center gap-2 pl-1">
-                  <Label htmlFor="manifestation-bonus-mass" className="text-xs text-muted-foreground">Bonus</Label>
-                  <Input id="manifestation-bonus-mass" type="number" min={0} step={1} value={manifestationBonus} onChange={(e) => setManifestationBonus(Math.max(0, Math.round(Number(e.target.value)) || 0))} className="h-7 w-16 font-mono" />
+                <div className="space-y-2 pl-1">
+                  <Select value={manifestationMode} onValueChange={(value) => setManifestationMode(value as ManifestationMode)}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="opportunity">Better at opportunities</SelectItem>
+                      <SelectItem value="woo">Woo manifestation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {manifestationMode === 'opportunity' ? <div className="flex items-center gap-2">
+                    <Label htmlFor="manifestation-bonus-mass" className="text-xs text-muted-foreground">Bonus</Label>
+                    <Input id="manifestation-bonus-mass" type="number" min={0} step={1} value={manifestationBonus} onChange={(e) => setManifestationBonus(Math.max(0, Math.round(Number(e.target.value)) || 0))} className="h-7 w-16 font-mono" />
+                  </div> : <div className="flex items-center gap-2">
+                    <Label htmlFor="woo-strength-mass" className="text-xs text-muted-foreground">Weight ±%</Label>
+                    <Input id="woo-strength-mass" type="number" min={0} max={100} step={1} value={wooStrength} onChange={(e) => setWooStrength(Math.max(0, Math.min(100, Math.round(Number(e.target.value)) || 0)))} className="h-7 w-16 font-mono" />
+                  </div>}
                 </div>
               )}
               <div className="flex items-center space-x-3">
@@ -464,7 +481,7 @@ export function MassSim() {
               defaultExpanded={true}
               testId="top-performers"
             >
-              <AgentTable agents={topAgents} isTop worldMode={worldMode} seed={seed} />
+              <AgentTable agents={topAgents} isTop worldMode={worldMode} seed={seed} showManifestationStatus={results.some(result => result.manifestationEnabled)} />
             </CollapsiblePanel>
             
             <CollapsiblePanel 
@@ -473,7 +490,7 @@ export function MassSim() {
               testId="bottom-performers"
               defaultExpanded={true}
             >
-              <AgentTable agents={bottomAgents} isTop={false} worldMode={worldMode} seed={seed} />
+              <AgentTable agents={bottomAgents} isTop={false} worldMode={worldMode} seed={seed} showManifestationStatus={results.some(result => result.manifestationEnabled)} />
             </CollapsiblePanel>
           </div>
           
@@ -570,7 +587,7 @@ function computeBestWorst(agent: SimulationResult, worldMode: WorldMode, seed: s
   });
   
   const agentData = { name: agent.name, traits: agent.traits, index: agent.agentIndex, aspiration: agent.aspiration, manifestationBonus: agent.manifestationBonus };
-  const options = { manifestationEnabled: agent.manifestationEnabled, manifestationBonus: agent.manifestationBonus };
+  const options = { manifestationEnabled: agent.manifestationEnabled, manifestationMode: agent.manifestationMode, manifestationBonus: agent.manifestationBonus, wooStrength: agent.wooStrength };
   const best = simulateLife(agentData, worldMode, seed, true, sharedEvents, 19, options);
   const worst = simulateLife(agentData, worldMode, seed, true, sharedEvents, 2, options);
   
@@ -644,11 +661,12 @@ function GroupAverages({ agents, isTop }: { agents: SimulationResult[]; isTop: b
   );
 }
 
-function AgentTable({ agents, isTop, worldMode, seed }: { 
+function AgentTable({ agents, isTop, worldMode, seed, showManifestationStatus }: {
   agents: SimulationResult[]; 
   isTop: boolean;
   worldMode: WorldMode;
   seed: string;
+  showManifestationStatus: boolean;
 }) {
   const agentsWithScenarios = useMemo(() => {
     return agents.map(agent => computeBestWorst(agent, worldMode, seed));
@@ -664,6 +682,7 @@ function AgentTable({ agents, isTop, worldMode, seed }: {
             agentData={agentData} 
             rank={i + 1}
             isTop={isTop}
+            showManifestationStatus={showManifestationStatus}
           />
         ))}
       </div>
@@ -699,10 +718,11 @@ function calculateTraitWinLoss(stages: StageResult[]): { wins: number; losses: n
   return { wins, losses };
 }
 
-function AgentCard({ agentData, rank, isTop = false }: { 
+function AgentCard({ agentData, rank, isTop = false, showManifestationStatus = false }: {
   agentData: AgentWithScenarios; 
   rank: number;
   isTop?: boolean;
+  showManifestationStatus?: boolean;
 }) {
   const { actual, best, worst } = agentData;
   const actualGrade = getLifetimeGrade(actual.lifetimeEarnings);
@@ -804,14 +824,14 @@ function AgentCard({ agentData, rank, isTop = false }: {
           </div>
           {/* Luck section - hidden on mobile, show inline on desktop */}
           <div className="hidden sm:block text-right shrink-0 space-y-1">
-            <div className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium ${
+            {showManifestationStatus && <div className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium ${
               actual.manifestationEnabled
                 ? 'border-chart-4/50 bg-chart-4/10 text-chart-4'
                 : 'border-muted-foreground/25 bg-muted/60 text-muted-foreground'
             }`}>
               {actual.manifestationEnabled ? <Sparkles className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
-              <span>{actual.manifestationEnabled ? `Manifesting (+${actual.manifestationBonus ?? 0})` : 'Not manifesting'}</span>
-            </div>
+              <span>{actual.manifestationEnabled ? (actual.manifestationMode === 'woo' ? `Woo manifestation (±${actual.wooStrength}%)` : `Better at opportunities (+${actual.manifestationBonus ?? 0})`) : 'Not manifesting'}</span>
+            </div>}
             <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
               <Clover className="h-3 w-3 text-chart-2" />
               <span>Luck</span>
@@ -846,16 +866,16 @@ function AgentCard({ agentData, rank, isTop = false }: {
         </div>
         {/* Mobile luck row - compact horizontal */}
         <div className="sm:hidden flex items-center gap-2 text-[10px] border-t pt-2 flex-wrap">
-          <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-medium ${
+          {showManifestationStatus && <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-medium ${
             actual.manifestationEnabled
               ? 'border-chart-4/50 bg-chart-4/10 text-chart-4'
               : 'border-muted-foreground/25 bg-muted/60 text-muted-foreground'
           }`}>
             {actual.manifestationEnabled ? <Sparkles className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
             {actual.manifestationEnabled
-              ? `Manifesting (+${actual.manifestationBonus ?? 0})`
+              ? actual.manifestationMode === 'woo' ? `Woo manifestation (±${actual.wooStrength}%)` : `Better at opportunities (+${actual.manifestationBonus ?? 0})`
               : 'Not manifesting'}
-          </span>
+          </span>}
           <Clover className="h-3 w-3 text-chart-2 shrink-0" />
           <div className="flex items-center gap-3 font-mono flex-wrap">
             <span>
@@ -2376,13 +2396,15 @@ function ManifestationAnalysis({
   const nonManifesters = useMemo(() => results.filter(r => !r.manifestationEnabled), [results]);
   const analysisSeed = `${seed}|manifestation-analysis`;
   const analysisBonus = manifesters[0]?.manifestationBonus ?? 0;
+  const analysisMode = manifesters[0]?.manifestationMode ?? 'opportunity';
+  const analysisWooStrength = manifesters[0]?.wooStrength ?? 0;
   const paired = useMemo(
-    () => pairedIdenticalLives(analysisSeed, worldMode, analysisBonus, 200),
-    [analysisSeed, worldMode, analysisBonus],
+    () => pairedIdenticalLives(analysisSeed, worldMode, analysisBonus, 200, analysisMode, analysisWooStrength),
+    [analysisSeed, worldMode, analysisBonus, analysisMode, analysisWooStrength],
   );
   const allTens = useMemo(
-    () => independentAllTensCohorts(analysisSeed, worldMode, analysisBonus, 200),
-    [analysisSeed, worldMode, analysisBonus],
+    () => independentAllTensCohorts(analysisSeed, worldMode, analysisBonus, 200, analysisMode, analysisWooStrength),
+    [analysisSeed, worldMode, analysisBonus, analysisMode, analysisWooStrength],
   );
   if (!manifesters.length || !nonManifesters.length) return null;
   const values = (items: SimulationResult[]) => items.map(r => r.lifetimeEarnings).sort((a, b) => a - b);
@@ -2424,7 +2446,7 @@ function ManifestationAnalysis({
     let successes = 0;
     for (const result of items) {
       for (const stage of result.stages) {
-        if (!stage.eventOutcome?.event.manifestationEligible) continue;
+        if (!stage.eventOutcome || (analysisMode !== 'woo' && !stage.eventOutcome.event.manifestationEligible)) continue;
         attempts++;
         if (stage.eventOutcome.success) successes++;
       }
@@ -2443,8 +2465,8 @@ function ManifestationAnalysis({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-md border p-3" data-testid="effective-trait-bonus">
-          <div className="text-sm font-semibold mb-1">Effective Trait Bonus</div>
-          <p className="text-[10px] text-muted-foreground mb-2">Controls are selected from the exact lifetime-earnings dollar bounds defined by each manifester ±1 percentile-point band. Positive offsets mean fewer trait points among manifesters.</p>
+          <div className="text-sm font-semibold mb-1">{analysisMode === 'woo' ? 'Trait Offset at Matched Income' : 'Effective Trait Bonus'}</div>
+          <p className="text-[10px] text-muted-foreground mb-2">Controls are selected from the exact lifetime-earnings dollar bounds defined by each manifester ±1 percentile-point band. Positive offsets mean fewer trait points among manifesters{analysisMode === 'woo' ? '; this is an observational offset, not a trait bonus applied by Woo mode' : ''}.</p>
            <div className="grid gap-3 md:grid-cols-2">
              {incomeBands.map(band => (
                <div key={band.percentile} className="rounded-md border bg-muted/10 p-3" data-testid={`percentile-panel-${band.percentile}`}>
@@ -2461,7 +2483,7 @@ function ManifestationAnalysis({
                    })}
                    <div><div className="text-[9px] uppercase tracking-wide text-muted-foreground">Total</div><div className={`font-mono text-lg font-semibold ${band.totalTraitOffset === null ? 'text-muted-foreground' : band.totalTraitOffset > 0 ? 'text-chart-2' : 'text-foreground'}`}>{band.totalTraitOffset === null ? 'N/A' : `${band.totalTraitOffset > 0 ? '+' : ''}${band.totalTraitOffset.toFixed(2)}`}</div></div>
                  </div>
-                 <div className="mt-3 border-t pt-2 text-[10px] text-muted-foreground">Eligible events avg {band.averageEligibleEvents.toFixed(2)} · checks affected {band.averageEligibleChecks.toFixed(2)} · flips avg {band.averageFlips.toFixed(2)} · {band.totalFlips} total flips</div>
+                  <div className="mt-3 border-t pt-2 text-[10px] text-muted-foreground">{analysisMode === 'woo' ? `Card draws shifted avg ${band.averageEligibleChecks.toFixed(2)} · better cards avg ${band.averageFlips.toFixed(2)} · ${band.totalFlips} total improvements` : `Eligible events avg ${band.averageEligibleEvents.toFixed(2)} · checks affected ${band.averageEligibleChecks.toFixed(2)} · flips avg ${band.averageFlips.toFixed(2)} · ${band.totalFlips} total flips`}</div>
                </div>
              ))}
            </div>
@@ -2512,7 +2534,7 @@ function ManifestationAnalysis({
               <div>
                 <h4 className="font-semibold">Paired identical lives</h4>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  {paired.pairs.length} identical life histories per condition; manifestation is the only changed input.
+                   {paired.pairs.length} matched lives per condition; {analysisMode === 'woo' ? 'traits, raw dice, and draw values are identical while card weighting changes' : 'raw life histories are identical and manifestation is the only changed input'}.
                 </p>
               </div>
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -2532,12 +2554,12 @@ function ManifestationAnalysis({
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-md border border-dashed px-3 py-2 text-[10px] text-muted-foreground">
-                <span><b className="font-mono text-foreground">{paired.checksFlipped}</b> checks flipped</span>
-                <span><b className="font-mono text-foreground">{paired.careerUpgrades}</b> career upgrades</span>
+                <span><b className="font-mono text-foreground">{paired.checksFlipped}</b> {analysisMode === 'woo' ? 'better cards drawn' : 'outcomes improved'}</span>
+                {analysisMode !== 'woo' && <span><b className="font-mono text-foreground">{paired.careerUpgrades}</b> career upgrades</span>}
               </div>
               <div className="mt-4 border-t pt-3">
                 <div className="font-semibold">Largest earnings differences</div>
-                <p className="text-[10px] text-muted-foreground">The same raw life shown with and without manifestation.</p>
+                <p className="text-[10px] text-muted-foreground">{analysisMode === 'woo' ? 'Matched traits, raw dice, and card-draw values shown under ordinary and Woo-weighted selection.' : 'The same raw life shown with and without manifestation.'}</p>
               </div>
               <div className="mt-3 space-y-3">
                 {paired.pairs.filter(pair => pair.uplift !== 0).sort((a, b) => Math.abs(b.uplift) - Math.abs(a.uplift)).slice(0, 3).map(pair => (
@@ -2584,13 +2606,13 @@ function ManifestationAnalysis({
                   { label: 'Median earnings', left: formatCurrency(allTensManifesters.median), right: formatCurrency(allTensControls.median), leftValue: allTensManifesters.median, rightValue: allTensControls.median },
                   { label: '25th percentile', left: formatCurrency(allTensManifesters.p25), right: formatCurrency(allTensControls.p25), leftValue: allTensManifesters.p25, rightValue: allTensControls.p25 },
                   { label: '75th percentile', left: formatCurrency(allTensManifesters.p75), right: formatCurrency(allTensControls.p75), leftValue: allTensManifesters.p75, rightValue: allTensControls.p75 },
-                  { label: 'Eligible event success', left: `${(allTensEventSuccess(allTens.manifesters) * 100).toFixed(1)}%`, right: `${(allTensEventSuccess(allTens.controls) * 100).toFixed(1)}%`, leftValue: allTensEventSuccess(allTens.manifesters), rightValue: allTensEventSuccess(allTens.controls) },
+                   { label: analysisMode === 'woo' ? 'Event success rate' : 'Eligible event success', left: `${(allTensEventSuccess(allTens.manifesters) * 100).toFixed(1)}%`, right: `${(allTensEventSuccess(allTens.controls) * 100).toFixed(1)}%`, leftValue: allTensEventSuccess(allTens.manifesters), rightValue: allTensEventSuccess(allTens.controls) },
                 ]} />
               </div>
               <div className="mt-3 space-y-1 text-[10px] text-muted-foreground">
                 <p><b className="text-foreground">Top education outcomes:</b> {formatTopOutcomes(allTens.manifesters, 'education')} / {formatTopOutcomes(allTens.controls, 'education')}</p>
                 <p><b className="text-foreground">Top starting careers:</b> {formatTopOutcomes(allTens.manifesters, 'career')} / {formatTopOutcomes(allTens.controls, 'career')}</p>
-                <p><b className="text-foreground">Manifestation checks affected/flipped:</b> {allTens.manifestedChecks.applied}/{allTens.manifestedChecks.flipped}</p>
+                <p><b className="text-foreground">Manifestation effects/improvements:</b> {allTens.manifestedChecks.applied}/{allTens.manifestedChecks.flipped}</p>
                 <p>This sample shows ordinary life-history variation and is not injected into the primary run.</p>
               </div>
             </section>

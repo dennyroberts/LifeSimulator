@@ -1,5 +1,5 @@
 import { createRng } from './rng';
-import { generateRandomAspiration, generateRandomName, generateRandomTraits, simulateLife, type SimulationResult, type TraitName, type WorldMode } from './sim';
+import { generateRandomAspiration, generateRandomName, generateRandomTraits, simulateLife, type ManifestationMode, type SimulationResult, type TraitName, type WorldMode } from './sim';
 
 export const INCOME_PERCENTILES = [25, 50, 75, 95] as const;
 const traits: TraitName[] = ['INT', 'WORK', 'NEPO', 'CHAR', 'RISK'];
@@ -24,7 +24,7 @@ export interface IncomeBandAnalysis {
 export function manifestationChangedOutcome(stage: SimulationResult['stages'][number]): boolean {
   if (stage.career?.manifestationUpgraded) return true;
   const outcome = stage.eventOutcome;
-  return Boolean(outcome?.mainSucceededOnlyBecauseOfManifestation);
+  return Boolean(outcome?.mainSucceededOnlyBecauseOfManifestation || outcome?.wooImprovedCard);
 }
 
 export interface StageIncomeSeries {
@@ -73,6 +73,8 @@ export function assistedChecks(result: SimulationResult) {
     if (!event) continue;
     if (event.mainManifestationApplied) applied++;
     if (event.mainSucceededOnlyBecauseOfManifestation) flipped++;
+    if (event.wooAdjustedDraw) applied++;
+    if (event.wooImprovedCard) flipped++;
   }
   return { applied, flipped };
 }
@@ -134,14 +136,14 @@ export interface PairedExperiment {
 }
 
 /** Capped matched lives: same identity/index/seed makes every raw draw identical. */
-export function pairedIdenticalLives(seed: string, worldMode: WorldMode, bonus: number, size = 200): PairedExperiment {
+export function pairedIdenticalLives(seed: string, worldMode: WorldMode, bonus: number, size = 200, mode: ManifestationMode = 'opportunity', wooStrength = 10): PairedExperiment {
   const count = Math.max(1, Math.min(500, Math.floor(size)));
   const pairs: PairedExperiment['pairs'] = [];
   for (let index = 0; index < count; index++) {
     const init = createRng(`${seed}|paired|${index}|init`);
     const agent = { name: generateRandomName(init), traits: generateRandomTraits(init), aspiration: generateRandomAspiration(init), index };
-    const control = simulateLife(agent, worldMode, `${seed}|paired`, false, undefined, undefined, { manifestationEnabled: false, manifestationBonus: bonus });
-    const manifested = simulateLife(agent, worldMode, `${seed}|paired`, false, undefined, undefined, { manifestationEnabled: true, manifestationBonus: bonus });
+    const control = simulateLife(agent, worldMode, `${seed}|paired`, false, undefined, undefined, { manifestationEnabled: false, manifestationMode: mode, manifestationBonus: bonus, wooStrength });
+    const manifested = simulateLife(agent, worldMode, `${seed}|paired`, false, undefined, undefined, { manifestationEnabled: true, manifestationMode: mode, manifestationBonus: bonus, wooStrength });
     pairs.push({ manifested, control, uplift: manifested.lifetimeEarnings - control.lifetimeEarnings });
   }
   let helped = 0, tied = 0, harmed = 0, careerUpgrades = 0, checksAffected = 0, checksFlipped = 0;
@@ -162,12 +164,12 @@ export function pairedIdenticalLives(seed: string, worldMode: WorldMode, bonus: 
 
 export interface AllTensExperiment { manifesters: SimulationResult[]; controls: SimulationResult[]; size: number; manifestedChecks: ReturnType<typeof assistedChecks>; }
 /** Independent lives deliberately use distinct seeds; this is not a paired-roll study. */
-export function independentAllTensCohorts(seed: string, worldMode: WorldMode, bonus: number, size = 200): AllTensExperiment {
+export function independentAllTensCohorts(seed: string, worldMode: WorldMode, bonus: number, size = 200, mode: ManifestationMode = 'opportunity', wooStrength = 10): AllTensExperiment {
   const count = Math.max(1, Math.min(500, Math.floor(size)));
   const traits = { INT: 10, WORK: 10, NEPO: 10, CHAR: 10, RISK: 10 };
   const build = (manifestationEnabled: boolean, cohort: string) => Array.from({ length: count }, (_, index) => {
     const rng = createRng(`${seed}|all10|${cohort}|${index}`);
-    return simulateLife({ name: generateRandomName(rng), traits, aspiration: generateRandomAspiration(rng), index }, worldMode, `${seed}|all10|${cohort}`, false, undefined, undefined, { manifestationEnabled, manifestationBonus: bonus });
+    return simulateLife({ name: generateRandomName(rng), traits, aspiration: generateRandomAspiration(rng), index }, worldMode, `${seed}|all10|${cohort}`, false, undefined, undefined, { manifestationEnabled, manifestationMode: mode, manifestationBonus: bonus, wooStrength });
   });
   const manifesters = build(true, 'manifesters');
   const total = manifesters.reduce((sum, result) => {

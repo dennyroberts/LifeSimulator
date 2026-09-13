@@ -8,6 +8,47 @@ const openai = new OpenAI({
 });
 
 const avatarCache = new Map<string, Buffer>();
+const identityCache = new Map<string, { name: string; pictureUrl: string }>();
+
+type AvatarGender = "random" | "male" | "female";
+
+function normalizeGender(value: unknown): AvatarGender {
+  return value === "male" || value === "female" ? value : "random";
+}
+
+async function getRandomUserIdentity(id: string, gender: AvatarGender) {
+  const cacheKey = `${id}:${gender}`;
+  const cached = identityCache.get(cacheKey);
+  if (cached) return cached;
+  const params = new URLSearchParams({
+    seed: `life-simulator-${id}`,
+    inc: "name,picture",
+    noinfo: "true",
+  });
+  if (gender !== "random") params.set("gender", gender);
+  const response = await fetch(`https://randomuser.me/api/?${params}`, {
+    headers: { Accept: "application/json", "User-Agent": "LifeSimulator/1.0" },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error(`Identity provider returned ${response.status}`);
+  const payload = await response.json() as any;
+  const person = payload?.results?.[0];
+  const first = person?.name?.first;
+  const last = person?.name?.last;
+  const pictureUrl = person?.picture?.large;
+  if (!first || !last || typeof pictureUrl !== "string") throw new Error("Identity provider returned invalid data");
+  const parsedPictureUrl = new URL(pictureUrl);
+  if (parsedPictureUrl.protocol !== "https:" || parsedPictureUrl.hostname !== "randomuser.me") {
+    throw new Error("Identity provider returned an untrusted image URL");
+  }
+  const identity = { name: `${first} ${last}`, pictureUrl };
+  identityCache.set(cacheKey, identity);
+  if (identityCache.size > 100) {
+    const firstKey = identityCache.keys().next().value;
+    if (firstKey) identityCache.delete(firstKey);
+  }
+  return identity;
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -154,22 +195,38 @@ ${lifeEventsDescription}`;
     }
   });
 
+  app.get("/api/person/:id", async (req, res) => {
+    try {
+      const id = String(req.params.id).slice(0, 100);
+      const gender = normalizeGender(req.query.gender);
+      const identity = await getRandomUserIdentity(id, gender);
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.json({ name: identity.name, avatarUrl: `/api/avatar/${encodeURIComponent(id)}?gender=${gender}` });
+    } catch (error) {
+      console.error("Error fetching identity:", error);
+      res.status(502).json({ error: "Failed to fetch identity" });
+    }
+  });
+
   app.get("/api/avatar/:id", async (req, res) => {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id).slice(0, 100);
+      const gender = normalizeGender(req.query.gender);
+      const cacheKey = `${id}:${gender}`;
       
-      if (avatarCache.has(id)) {
+      if (avatarCache.has(cacheKey)) {
         res.setHeader("Content-Type", "image/jpeg");
         res.setHeader("Cache-Control", "public, max-age=3600");
-        return res.send(avatarCache.get(id));
+        return res.send(avatarCache.get(cacheKey));
       }
 
-      const avatarUrl = `https://i.pravatar.cc/512?u=${encodeURIComponent(`life-simulator-${id}`)}`;
-      const response = await fetch(avatarUrl, {
+      const identity = await getRandomUserIdentity(id, gender);
+      const response = await fetch(identity.pictureUrl, {
         headers: {
           Accept: "image/jpeg,image/*",
           "User-Agent": "LifeSimulator/1.0",
         },
+        signal: AbortSignal.timeout(8000),
       });
       if (!response.ok) {
         throw new Error(`Avatar provider returned ${response.status}`);
@@ -178,14 +235,17 @@ ${lifeEventsDescription}`;
       if (!contentType?.startsWith("image/")) {
         throw new Error(`Avatar provider returned invalid content type: ${contentType ?? "unknown"}`);
       }
+      const declaredLength = Number(response.headers.get("content-length") ?? 0);
+      if (declaredLength > 2_000_000) throw new Error("Avatar image is too large");
       
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      if (buffer.length > 2_000_000) throw new Error("Avatar image is too large");
       if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) {
         throw new Error("Avatar provider returned invalid JPEG data");
       }
       
-      avatarCache.set(id, buffer);
+      avatarCache.set(cacheKey, buffer);
       
       if (avatarCache.size > 100) {
         const firstKey = avatarCache.keys().next().value;

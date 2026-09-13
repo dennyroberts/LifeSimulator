@@ -23,6 +23,7 @@ import {
   type WorldMode,
   type SimulationResult,
   type CareerAspiration,
+  type ManifestationMode,
   simulateLife,
   generateRandomTraits,
   generateRandomName,
@@ -35,6 +36,8 @@ import { Dices, Play, User, Settings, RefreshCw, Share2, Trophy, Coins, Loader2,
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
+type AvatarGender = 'random' | 'female' | 'male';
+
 export function SingleLife() {
   const { toast } = useToast();
   
@@ -42,7 +45,8 @@ export function SingleLife() {
     const rng = createRng(Date.now());
     return generateRandomName(rng);
   });
-  const [avatarKey, setAvatarKey] = useState(() => Date.now());
+  const [avatarKey, setAvatarKey] = useState(() => String(Date.now()));
+  const [avatarGender, setAvatarGender] = useState<AvatarGender>('random');
   const [traits, setTraits] = useState<Traits>({
     INT: 10,
     WORK: 10,
@@ -53,7 +57,9 @@ export function SingleLife() {
   const [worldMode, setWorldMode] = useState<WorldMode>('normal');
   const [aspiration, setAspiration] = useState<CareerAspiration>(null);
   const [manifestationEnabled, setManifestationEnabled] = useState(false);
+  const [manifestationMode, setManifestationMode] = useState<ManifestationMode>('opportunity');
   const [manifestationBonus, setManifestationBonus] = useState(2);
+  const [wooStrength, setWooStrength] = useState(10);
   const [sameDeck, setSameDeck] = useState(false);
   const [seed, setSeed] = useState(() => String(Math.floor(Math.random() * 1000000)));
   const [seedLocked, setSeedLocked] = useState(false);
@@ -67,6 +73,7 @@ export function SingleLife() {
   const [hoveredStageIndex, setHoveredStageIndex] = useState<number | null>(null);
   const bioScrollRef = useRef<HTMLDivElement>(null);
   const sentenceRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
+  const identityRequestRef = useRef(0);
   
   const stageToAge = (stageIndex: number) => {
     if (stageIndex === 0) return 18;
@@ -165,8 +172,22 @@ export function SingleLife() {
     }
   }, [parsedBiography.ageSentenceMap]);
   
-  const handleNewAvatar = () => {
-    setAvatarKey(Date.now());
+  const refreshIdentity = async (nextGender: AvatarGender = avatarGender) => {
+    const nextKey = String(Date.now());
+    const requestId = ++identityRequestRef.current;
+    try {
+      const response = await fetch(`/api/person/${nextKey}?gender=${nextGender}`);
+      if (!response.ok) throw new Error('Identity request failed');
+      const identity = await response.json();
+      if (requestId !== identityRequestRef.current) return;
+      if (identity.name) {
+        setAvatarKey(nextKey);
+        setName(identity.name);
+      }
+    } catch {
+      if (requestId !== identityRequestRef.current) return;
+      toast({ title: 'Could not load a new identity', description: 'Please try again.', variant: 'destructive' });
+    }
   };
   
   useEffect(() => {
@@ -178,6 +199,10 @@ export function SingleLife() {
     const urlTraits = params.get('traits');
     const urlManifestation = params.get('manifestation');
     const urlManifestationBonus = params.get('manifestationBonus');
+    const urlManifestationMode = params.get('manifestationMode');
+    const urlWooStrength = params.get('wooStrength');
+    const urlAvatarGender = params.get('avatarGender') as AvatarGender | null;
+    const urlAvatarKey = params.get('avatarKey');
     
     if (urlSeed) setSeed(urlSeed);
     if (urlWorld && ['normal', 'nepo', 'meritocracy'].includes(urlWorld)) {
@@ -185,6 +210,8 @@ export function SingleLife() {
     }
     if (urlSameDeck) setSameDeck(urlSameDeck === 'true');
     if (urlName) setName(urlName);
+    if (urlAvatarGender && ['random', 'female', 'male'].includes(urlAvatarGender)) setAvatarGender(urlAvatarGender);
+    if (urlAvatarKey) setAvatarKey(urlAvatarKey);
     if (urlTraits) {
       try {
         const parsed = JSON.parse(urlTraits);
@@ -192,9 +219,20 @@ export function SingleLife() {
       } catch { }
     }
     if (urlManifestation) setManifestationEnabled(urlManifestation === 'true');
+    if (urlManifestationMode === 'opportunity' || urlManifestationMode === 'woo') setManifestationMode(urlManifestationMode);
     if (urlManifestationBonus !== null) {
       const parsedBonus = Number(urlManifestationBonus);
       if (Number.isFinite(parsedBonus)) setManifestationBonus(Math.max(0, Math.round(parsedBonus)));
+    }
+    if (urlWooStrength !== null) {
+      const parsedStrength = Number(urlWooStrength);
+      if (Number.isFinite(parsedStrength)) setWooStrength(Math.max(0, Math.min(100, Math.round(parsedStrength))));
+    }
+    if (!urlName) {
+      const initialGender = urlAvatarGender && ['random', 'female', 'male'].includes(urlAvatarGender)
+        ? urlAvatarGender
+        : 'random';
+      void refreshIdentity(initialGender);
     }
   }, []);
   
@@ -206,11 +244,15 @@ export function SingleLife() {
     if (name) params.set('name', name);
     params.set('traits', JSON.stringify(traits));
     params.set('manifestation', String(manifestationEnabled));
+    params.set('manifestationMode', manifestationMode);
     params.set('manifestationBonus', String(manifestationBonus));
+    params.set('wooStrength', String(wooStrength));
+    params.set('avatarGender', avatarGender);
+    params.set('avatarKey', String(avatarKey));
     
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
-  }, [seed, worldMode, sameDeck, name, traits, manifestationEnabled, manifestationBonus]);
+  }, [seed, worldMode, sameDeck, name, traits, manifestationEnabled, manifestationMode, manifestationBonus, wooStrength, avatarGender, avatarKey]);
   
   const handleRandomTraits = () => {
     const rng = createRng(Date.now());
@@ -218,11 +260,7 @@ export function SingleLife() {
     setTraits(newTraits);
   };
   
-  const handleRandomName = () => {
-    const rng = createRng(Date.now() + 1);
-    const newName = generateRandomName(rng);
-    setName(newName);
-  };
+  const handleRandomName = () => refreshIdentity();
   
   const handleRandomSeed = () => {
     setSeed(String(Math.floor(Math.random() * 1000000)));
@@ -237,7 +275,8 @@ export function SingleLife() {
     const agentName = name || 'Anonymous';
     const agent = { name: agentName, traits, index: 0, aspiration, manifestationBonus };
     
-    const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck, undefined, undefined, { manifestationEnabled, manifestationBonus });
+    const manifestationOptions = { manifestationEnabled, manifestationMode, manifestationBonus, wooStrength };
+    const simResult = simulateLife(agent, worldMode, currentSeed, sameDeck, undefined, undefined, manifestationOptions);
     setResult(simResult);
     
     const sharedEvents = new Map<number, any>();
@@ -247,10 +286,10 @@ export function SingleLife() {
       }
     });
     
-    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 19, { manifestationEnabled, manifestationBonus });
+    const bestSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 19, manifestationOptions);
     setBestResult(bestSimResult);
     
-    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 2, { manifestationEnabled, manifestationBonus });
+    const worstSimResult = simulateLife(agent, worldMode, currentSeed, true, sharedEvents, 2, manifestationOptions);
     setWorstResult(worstSimResult);
     
     setTimelineView('actual');
@@ -335,7 +374,7 @@ export function SingleLife() {
               <div className="flex flex-col items-center gap-2 shrink-0">
                 <Avatar className="h-24 w-24 border-2">
                   <AvatarImage
-                    src={`/api/avatar/${avatarKey}`}
+                    src={`/api/avatar/${avatarKey}?gender=${avatarGender}`}
                     alt="Agent avatar"
                   />
                   <AvatarFallback>
@@ -345,13 +384,25 @@ export function SingleLife() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleNewAvatar}
+                  onClick={() => refreshIdentity()}
                   className="gap-1 h-7 text-xs"
                   data-testid="button-new-avatar"
                 >
                   <RefreshCw className="h-3 w-3" />
                   New Face
                 </Button>
+                <Select value={avatarGender} onValueChange={(value) => {
+                  const nextGender = value as AvatarGender;
+                  setAvatarGender(nextGender);
+                  refreshIdentity(nextGender);
+                }}>
+                  <SelectTrigger className="h-7 w-24 text-xs" aria-label="Portrait gender"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="random">Random</SelectItem>
+                    <SelectItem value="female">Woman</SelectItem>
+                    <SelectItem value="male">Man</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="flex-1">
@@ -483,16 +534,30 @@ export function SingleLife() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <Label htmlFor="manifestation" className="text-sm font-semibold">Manifestation mode</Label>
-                  <p className="text-[10px] text-muted-foreground">A focused intention adds a small, reproducible edge to matching checks.</p>
+                   <p className="text-[10px] text-muted-foreground">Choose whether intention improves your execution or the opportunities you encounter.</p>
                 </div>
                 <Switch id="manifestation" checked={manifestationEnabled} onCheckedChange={setManifestationEnabled} />
               </div>
               {manifestationEnabled && (
-                <div>
+                 <div className="space-y-2">
                    <div>
+                     <Label htmlFor="manifestation-mode" className="text-[10px]">Style</Label>
+                     <Select value={manifestationMode} onValueChange={(value) => setManifestationMode(value as ManifestationMode)}>
+                       <SelectTrigger id="manifestation-mode" className="mt-1 h-8"><SelectValue /></SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="opportunity">Better at opportunities</SelectItem>
+                         <SelectItem value="woo">Woo manifestation</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+                   {manifestationMode === 'opportunity' ? <div>
                     <Label htmlFor="manifestation-bonus" className="text-[10px]">Bonus</Label>
                     <Input id="manifestation-bonus" type="number" min={0} step={1} value={manifestationBonus} onChange={(e) => setManifestationBonus(Math.max(0, Math.round(Number(e.target.value)) || 0))} className="h-8 mt-1 font-mono" />
-                  </div>
+                   </div> : <div>
+                     <Label htmlFor="woo-strength" className="text-[10px]">Card weighting change (%)</Label>
+                     <Input id="woo-strength" type="number" min={0} max={100} step={1} value={wooStrength} onChange={(e) => setWooStrength(Math.max(0, Math.min(100, Math.round(Number(e.target.value)) || 0)))} className="h-8 mt-1 font-mono" />
+                     <p className="mt-1 text-[10px] text-muted-foreground">Good cards become {wooStrength}% more likely; bad cards become {wooStrength}% less likely.</p>
+                   </div>}
                 </div>
               )}
             </div>
@@ -535,7 +600,7 @@ export function SingleLife() {
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border shrink-0">
                     <AvatarImage
-                      src={`/api/avatar/${avatarKey}`}
+                      src={`/api/avatar/${avatarKey}?gender=${avatarGender}`}
                       alt="Agent avatar"
                     />
                     <AvatarFallback>
@@ -599,9 +664,13 @@ export function SingleLife() {
               </div>
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 flex flex-col">
-                   <Badge variant="outline" className={`mb-2 ${result.manifestationEnabled ? 'border-chart-4/50 text-chart-4' : 'text-muted-foreground'}`}>
-                     {result.manifestationEnabled ? <>Manifesting (+{result.manifestationBonus})</> : 'Not manifesting'}
-                   </Badge>
+                   {result.manifestationEnabled && (
+                     <Badge variant="outline" className="mb-2 border-chart-4/50 text-chart-4">
+                       {result.manifestationMode === 'woo'
+                         ? <>Woo manifestation (±{result.wooStrength}%)</>
+                         : <>Better at opportunities (+{result.manifestationBonus})</>}
+                     </Badge>
+                   )}
                    <div className="mb-2">
                     <LuckAnalysis luck={result.luck} embedded compact />
                   </div>

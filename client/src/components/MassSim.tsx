@@ -2533,7 +2533,6 @@ function ManifestationAnalysis({
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-md border border-dashed px-3 py-2 text-[10px] text-muted-foreground">
                 <span><b className="font-mono text-foreground">{paired.checksFlipped}</b> checks flipped</span>
-                <span><b className="font-mono text-foreground">{paired.educationUpgrades}</b> education upgrades</span>
                 <span><b className="font-mono text-foreground">{paired.careerUpgrades}</b> career upgrades</span>
               </div>
               <div className="mt-4 border-t pt-3">

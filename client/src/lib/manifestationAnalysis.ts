@@ -20,9 +20,9 @@ export interface IncomeBandAnalysis {
   representatives: SimulationResult[];
 }
 
-/** True only when manifestation changed the realized education, career, or event-check outcome. */
+/** True only when manifestation changed the realized career or event-check outcome. */
 export function manifestationChangedOutcome(stage: SimulationResult['stages'][number]): boolean {
-  if (stage.education?.manifestationUpgraded || stage.career?.manifestationUpgraded) return true;
+  if (stage.career?.manifestationUpgraded) return true;
   const outcome = stage.eventOutcome;
   return Boolean(outcome?.mainSucceededOnlyBecauseOfManifestation);
 }
@@ -67,8 +67,6 @@ function average(items: SimulationResult[], value: (item: SimulationResult) => n
 export function assistedChecks(result: SimulationResult) {
   let applied = 0, flipped = 0;
   for (const stage of result.stages) {
-    if (stage.education?.manifestationApplied) applied++;
-    if (stage.education?.manifestationUpgraded) flipped++;
     if (stage.career?.manifestationApplied) applied++;
     if (stage.career?.manifestationUpgraded) flipped++;
     const event = stage.eventOutcome;
@@ -131,7 +129,7 @@ export function startingPointStrata(results: SimulationResult[], minimumPerCohor
 export interface PairedExperiment {
   pairs: Array<{ manifested: SimulationResult; control: SimulationResult; uplift: number }>;
   helped: number; tied: number; harmed: number; meanUplift: number;
-  educationUpgrades: number; careerUpgrades: number; checksAffected: number; checksFlipped: number;
+  careerUpgrades: number; checksAffected: number; checksFlipped: number;
   sameStartingStratum: { count: number; helped: number; tied: number; harmed: number; meanUplift: number };
 }
 
@@ -146,12 +144,10 @@ export function pairedIdenticalLives(seed: string, worldMode: WorldMode, bonus: 
     const manifested = simulateLife(agent, worldMode, `${seed}|paired`, false, undefined, undefined, { manifestationEnabled: true, manifestationBonus: bonus });
     pairs.push({ manifested, control, uplift: manifested.lifetimeEarnings - control.lifetimeEarnings });
   }
-  let helped = 0, tied = 0, harmed = 0, educationUpgrades = 0, careerUpgrades = 0, checksAffected = 0, checksFlipped = 0;
+  let helped = 0, tied = 0, harmed = 0, careerUpgrades = 0, checksAffected = 0, checksFlipped = 0;
   pairs.forEach(pair => {
     if (pair.uplift > 0) helped++; else if (pair.uplift < 0) harmed++; else tied++;
-    const edu = pair.manifested.stages.find(s => s.education)?.education;
     const career = pair.manifested.stages.find(s => s.career)?.career;
-    if (edu?.manifestationUpgraded) educationUpgrades++;
     if (career?.manifestationUpgraded) careerUpgrades++;
     const checks = assistedChecks(pair.manifested); checksAffected += checks.applied; checksFlipped += checks.flipped;
   });
@@ -160,7 +156,7 @@ export function pairedIdenticalLives(seed: string, worldMode: WorldMode, bonus: 
     return starting(pair.manifested) === starting(pair.control);
   });
   const split = (predicate: (pair: typeof pairs[number]) => boolean) => same.filter(predicate).length;
-  return { pairs, helped, tied, harmed, educationUpgrades, careerUpgrades, checksAffected, checksFlipped, meanUplift: pairs.reduce((sum, p) => sum + p.uplift, 0) / count,
+  return { pairs, helped, tied, harmed, careerUpgrades, checksAffected, checksFlipped, meanUplift: pairs.reduce((sum, p) => sum + p.uplift, 0) / count,
     sameStartingStratum: { count: same.length, helped: split(p => p.uplift > 0), tied: split(p => p.uplift === 0), harmed: split(p => p.uplift < 0), meanUplift: same.length ? same.reduce((sum, pair) => sum + pair.uplift, 0) / same.length : 0 } };
 }
 

@@ -123,21 +123,18 @@ test('batched mass runs preserve exact cohorts and deterministic outcomes', () =
   assert.ok(combined.filter(result => !result.manifestationEnabled).every(result => result.manifestationBonus === 0));
 });
 
-test('education and career retain manifestation counterfactual placement', () => {
-  const education = resolveEducation(averageTraits, 'normal', () => 0.5, 12, true, 2);
-  const career = resolveCareer(averageTraits, 'normal', () => 0.5, education.label, null, 12, true, 2, education.counterfactualLabel);
-  assert.equal(education.total - education.counterfactualTotal, 2);
-  const realizedEducationBonus = career.educationBonus;
-  const counterfactualEducationBonus = career.counterfactualTotal - career.roll;
-  assert.equal(career.total - career.counterfactualTotal, 2 + realizedEducationBonus - counterfactualEducationBonus);
-  assert.equal(education.manifestationApplied, true);
+test('education ignores manifestation while career retains counterfactual placement', () => {
+  const education = resolveEducation(averageTraits, 'normal', () => 0.5, 12);
+  const career = resolveCareer(averageTraits, 'normal', () => 0.5, education.label, null, 12, true, 2);
+  assert.equal(education.total, education.roll + education.totalMod);
+  assert.equal(career.total - career.counterfactualTotal, 2);
   assert.equal(career.manifestationApplied, true);
 });
 
-test('career counterfactual removes both direct manifestation and an upgraded education tier', () => {
-  const career = resolveCareer(averageTraits, 'normal', () => 0.5, 'Elite institution', null, 12, true, 2, 'Straight to workforce');
+test('career counterfactual removes the direct manifestation bonus', () => {
+  const career = resolveCareer(averageTraits, 'normal', () => 0.5, 'Elite institution', null, 12, true, 2);
   assert.equal(career.total, 17);
-  assert.equal(career.counterfactualTotal, 10);
+  assert.equal(career.counterfactualTotal, 15);
   assert.notEqual(career.career.name, career.counterfactualCareer.name);
   assert.equal(career.manifestationUpgraded, true);
 });
@@ -158,6 +155,7 @@ test('controlled paired lives share raw history and are deterministic', () => {
   assert.deepEqual(one.pairs.map(p => p.uplift), two.pairs.map(p => p.uplift));
   one.pairs.forEach(pair => {
     assert.equal(pair.manifested.stages[0].education?.roll, pair.control.stages[0].education?.roll);
+    assert.equal(pair.manifested.stages[0].education?.label, pair.control.stages[0].education?.label);
     assert.equal(pair.manifested.stages[1].career?.roll, pair.control.stages[1].career?.roll);
     assert.deepEqual(pair.manifested.stages.slice(2).map(s => s.eventOutcome?.event.id), pair.control.stages.slice(2).map(s => s.eventOutcome?.event.id));
     assert.deepEqual(pair.manifested.stages.slice(2).map(s => [s.eventOutcome?.gateRoll, s.eventOutcome?.mainRoll]), pair.control.stages.slice(2).map(s => [s.eventOutcome?.gateRoll, s.eventOutcome?.mainRoll]));
@@ -186,8 +184,8 @@ test('independent all-10 cohorts and adequate starting strata are constructed', 
 });
 
 test('manifestation marker requires a changed outcome, not merely an applied bonus', () => {
-  const appliedOnly = { education: { manifestationApplied: true, manifestationUpgraded: false } } as any;
-  const changed = { education: { manifestationApplied: true, manifestationUpgraded: true } } as any;
+  const appliedOnly = { career: { manifestationApplied: true, manifestationUpgraded: false } } as any;
+  const changed = { career: { manifestationApplied: true, manifestationUpgraded: true } } as any;
   const checkChanged = { eventOutcome: { mainSucceededOnlyBecauseOfManifestation: true } } as any;
   assert.equal(manifestationChangedOutcome(appliedOnly), false);
   assert.equal(manifestationChangedOutcome(changed), true);

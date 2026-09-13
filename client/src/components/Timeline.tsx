@@ -152,7 +152,6 @@ function MobileEducationCard({ stage }: { stage: StageResult }) {
           <Badge variant="secondary" className="text-[9px] px-1 py-0">
             {edu.label}
           </Badge>
-          {edu.manifestationApplied && <Badge variant="outline" className="text-[9px] px-1 py-0 border-chart-4/50 text-chart-4">{edu.manifestationUpgraded ? 'Manifestation upgraded' : `Manifestation +${edu.manifestationBonus}`}</Badge>}
         </div>
         {edu.outcomeMessage && (
           <div className="text-[10px] italic mb-1 text-chart-1" data-testid="mobile-edu-outcome">
@@ -354,7 +353,6 @@ function CompactEducationCard({ stage }: { stage: StageResult }) {
         <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 mb-2 self-start" data-testid="education-result">
           {edu.label}
         </Badge>
-        {edu.manifestationApplied && <Badge variant="outline" className="text-[9px] px-1.5 py-0 mb-2 self-start border-chart-4/50 text-chart-4">{edu.manifestationUpgraded ? 'Manifestation upgraded' : `Manifestation +${edu.manifestationBonus}`}</Badge>}
         
         {edu.outcomeMessage && (
           <div className="text-[11px] italic mb-2 px-2 py-1 rounded bg-chart-1/10" data-testid="edu-outcome">

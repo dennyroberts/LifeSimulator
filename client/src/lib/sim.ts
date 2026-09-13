@@ -52,11 +52,6 @@ export interface EducationOutcome {
   growthDelta: number;
   outcomeMessage?: string;
   traitContributions: TraitContribution[];
-  manifestationApplied: boolean;
-  manifestationBonus: number;
-  counterfactualTotal: number;
-  counterfactualLabel: string;
-  manifestationUpgraded: boolean;
 }
 
 export interface CareerDefinition {
@@ -657,15 +652,11 @@ export function resolveEducation(
   worldMode: WorldMode,
   rng: () => number,
   forcedRoll?: number,
-  manifestationEnabled = false,
-  manifestationBonus = 0,
 ): EducationOutcome {
   const roll = forcedRoll ?? roll2d10(rng);
   const checkTraits = config.education.checkTraits as Partial<Record<TraitName, number>>;
   const totalMod = computeTotalMod(traits, checkTraits, worldMode);
-  const effectiveBonus = manifestationEnabled ? Math.max(0, manifestationBonus) : 0;
-  const total = roll + totalMod + effectiveBonus;
-  const counterfactualTotal = roll + totalMod;
+  const total = roll + totalMod;
   const traitContributions = computeTraitContributions(traits, checkTraits, worldMode);
   
   const isGoodOutcome = total >= 15;
@@ -681,8 +672,7 @@ export function resolveEducation(
         outcomeMessage = selectTraitMessage(traitContributions, educationTraitSuccess, educationTraitFail, false, outcomeMessage);
       }
       
-        const counterfactual = config.education.thresholds.find(candidate => counterfactualTotal >= candidate.minTotal);
-        return {
+      return {
         roll,
         totalMod,
         total,
@@ -690,11 +680,6 @@ export function resolveEducation(
         growthDelta: threshold.growthDelta,
         outcomeMessage,
         traitContributions
-          , manifestationApplied: manifestationEnabled,
-          manifestationBonus: effectiveBonus,
-          counterfactualTotal,
-          counterfactualLabel: counterfactual?.label ?? 'Straight to workforce',
-          manifestationUpgraded: (counterfactual?.label ?? 'Straight to workforce') !== threshold.label
       };
     }
   }
@@ -708,12 +693,7 @@ export function resolveEducation(
     label: 'Straight to workforce',
     growthDelta: 0,
     outcomeMessage,
-    traitContributions,
-    manifestationApplied: manifestationEnabled,
-    manifestationBonus: effectiveBonus,
-    counterfactualTotal,
-    counterfactualLabel: 'Straight to workforce',
-    manifestationUpgraded: false
+    traitContributions
   };
 }
 
@@ -787,14 +767,12 @@ export function resolveCareer(
   forcedRoll?: number,
   manifestationEnabled = false,
   manifestationBonus = 0,
-  counterfactualEducationLabel = educationLabel,
 ): CareerOutcome {
   const roll = forcedRoll ?? roll2d10(rng);
   const isMaxRoll = roll === 20; // Max roll on 2d10
   
   const traitMod = computeTotalMod(traits, careerCheckTraits, worldMode);
   const educationBonus = educationBonusMap[educationLabel] ?? 0;
-  const counterfactualEducationBonus = educationBonusMap[counterfactualEducationLabel] ?? 0;
   const effectiveBonus = manifestationEnabled ? Math.max(0, manifestationBonus) : 0;
   const totalMod = traitMod + educationBonus + effectiveBonus;
   
@@ -815,7 +793,7 @@ export function resolveCareer(
       selectedCareer = aspirationCareer;
     }
   }
-  const counterfactualTotal = Math.max(0, roll + traitMod + counterfactualEducationBonus);
+  const counterfactualTotal = Math.max(0, roll + traitMod + educationBonus);
   let counterfactualCareer = careers[0];
   for (const career of careers) {
     if (counterfactualTotal >= career.minRoll && counterfactualTotal <= career.maxRoll) {
@@ -1109,7 +1087,7 @@ export function simulateLife(
   const stages: StageResult[] = [];
   const drawnEvents: { event: Event; stage: number }[] = [];
   
-  const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng, forcedRoll, manifestationEnabled, manifestationBonus);
+  const educationOutcome = resolveEducation(agent.traits, worldMode, agentRng, forcedRoll);
   
   stages.push({
     stage: 1,
@@ -1128,7 +1106,6 @@ export function simulateLife(
     forcedRoll,
     manifestationEnabled,
     manifestationBonus,
-    educationOutcome.counterfactualLabel,
   );
   
   let income = careerOutcome.finalSalary;

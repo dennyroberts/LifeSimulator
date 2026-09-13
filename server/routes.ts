@@ -23,20 +23,27 @@ async function getRandomUserIdentity(id: string, gender: AvatarGender) {
   const params = new URLSearchParams({
     seed: `life-simulator-${id}`,
     inc: "name,picture",
+    nat: "us,gb,ca,au,nz,ie",
     noinfo: "true",
   });
   if (gender !== "random") params.set("gender", gender);
-  const response = await fetch(`https://randomuser.me/api/?${params}`, {
-    headers: { Accept: "application/json", "User-Agent": "LifeSimulator/1.0" },
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!response.ok) throw new Error(`Identity provider returned ${response.status}`);
-  const payload = await response.json() as any;
-  const person = payload?.results?.[0];
-  const first = person?.name?.first;
-  const last = person?.name?.last;
-  const pictureUrl = person?.picture?.large;
-  if (!first || !last || typeof pictureUrl !== "string") throw new Error("Identity provider returned invalid data");
+  let first: string | undefined;
+  let last: string | undefined;
+  let pictureUrl: string | undefined;
+  for (let attempt = 0; attempt < 5 && (!first || !last || !pictureUrl); attempt++) {
+    if (attempt > 0) await new Promise(resolve => setTimeout(resolve, attempt * 75));
+    const response = await fetch(`https://randomuser.me/api/?${params}`, {
+      headers: { Accept: "application/json", "User-Agent": "LifeSimulator/1.0" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) throw new Error(`Identity provider returned ${response.status}`);
+    const payload = await response.json() as any;
+    const person = payload?.results?.[0];
+    first = person?.name?.first;
+    last = person?.name?.last;
+    pictureUrl = person?.picture?.large;
+  }
+  if (!first || !last || !pictureUrl) throw new Error("Identity provider returned invalid data");
   const parsedPictureUrl = new URL(pictureUrl);
   if (parsedPictureUrl.protocol !== "https:" || parsedPictureUrl.hostname !== "randomuser.me") {
     throw new Error("Identity provider returned an untrusted image URL");
